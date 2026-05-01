@@ -1,1 +1,1 @@
-pub mod default;
+// Moved to infra/event_bus.rs
