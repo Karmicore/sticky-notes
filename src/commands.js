@@ -31,6 +31,16 @@ export const commands = {
     shortcut: "",
     run: (ctx) => ctx.onHide(),
   },
+  "window.show_all": {
+    label: "显示全部",
+    shortcut: "Ctrl+Shift+S",
+    run: () => invoke("show_all_notes"),
+  },
+  "window.hide_all": {
+    label: "隐藏全部",
+    shortcut: "Ctrl+Shift+H",
+    run: () => invoke("hide_all_notes"),
+  },
   "note.pin": {
     label: "始终置顶",
     shortcut: "",
@@ -83,6 +93,9 @@ export const commands = {
 
 export const menuStructure = [
   { id: "note.new" },
+  { id: "window.show_all" },
+  { id: "window.hide_all" },
+  "separator",
   { id: "note.duplicate" },
   { id: "note.rename" },
   "separator",

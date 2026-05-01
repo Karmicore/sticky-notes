@@ -1,9 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { commands } from "../../commands";
-
-// ── Key Map ──
-// Maps keydown event signatures to command IDs.
-// Built once at module load from the command registry shortcuts.
 
 const keyMap = {
   "ctrl+n":                "note.new",
@@ -16,6 +12,8 @@ const keyMap = {
   "ctrl+minus":            "font.down",
   "ctrl+numpadsubtract":   "font.down",
   "f2":                    "note.rename",
+  "ctrl+shift+keyh":       "window.hide_all",
+  "ctrl+shift+keys":       "window.show_all",
 };
 
 function matchKey(e) {
@@ -27,7 +25,6 @@ function matchKey(e) {
 
   if (keyMap[combo]) return keyMap[combo];
 
-  // Fallback for keyboard layouts where code differs
   if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
     if (e.key === "=" || e.key === "+") return "font.up";
     if (e.key === "-") return "font.down";
@@ -36,19 +33,18 @@ function matchKey(e) {
   return null;
 }
 
-// getCtx: () => fresh context snapshot — avoids stale closure
 export function useKeyboard(getCtx, deps) {
-  useEffect(() => {
-    const ctx = getCtx();
-    if (!ctx.note) return;
+  const getCtxRef = useRef(getCtx);
+  getCtxRef.current = getCtx;
 
+  useEffect(() => {
     function onKey(e) {
       const cmdId = matchKey(e);
       if (!cmdId) return;
       const cmd = commands[cmdId];
       if (!cmd) return;
       e.preventDefault();
-      cmd.run(getCtx());
+      cmd.run(getCtxRef.current());
     }
 
     window.addEventListener("keydown", onKey);

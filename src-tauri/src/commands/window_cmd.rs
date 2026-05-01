@@ -52,6 +52,27 @@ pub async fn close_note_window(app: tauri::AppHandle, id: i32) -> Result<(), Str
     Ok(())
 }
 
+#[tauri::command]
+pub fn show_all_notes(app: tauri::AppHandle) -> Result<(), String> {
+    for (label, window) in app.webview_windows() {
+        if label.starts_with("note-") {
+            window.show().ok();
+            window.set_focus().ok();
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub fn hide_all_notes(app: tauri::AppHandle) -> Result<(), String> {
+    for (label, window) in app.webview_windows() {
+        if label.starts_with("note-") {
+            window.hide().ok();
+        }
+    }
+    Ok(())
+}
+
 pub fn spawn_note_window(app: &tauri::AppHandle, note: &Note) -> Result<(), String> {
     let label = format!("note-{}", note.id);
     if app.get_webview_window(&label).is_some() {
@@ -67,6 +88,7 @@ pub fn spawn_note_window(app: &tauri::AppHandle, note: &Note) -> Result<(), Stri
         .resizable(true)
         .always_on_top(note.is_always_on_top)
         .skip_taskbar(true)
+        .transparent(true)
         .build()
         .map_err(|e| e.to_string())?;
 
