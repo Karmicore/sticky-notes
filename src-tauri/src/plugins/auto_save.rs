@@ -2,10 +2,10 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
-use crate::core::event::NoteEvent;
-use crate::core::note::Note;
-use crate::core::plugin::{Plugin, PluginContext};
-use crate::core::repository::NoteRepository;
+use crate::app_core::event::NoteEvent;
+use crate::app_core::note::Note;
+use crate::app_core::plugin::{Plugin, PluginContext};
+use crate::app_core::repository::NoteRepository;
 
 const DEBOUNCE_MS: u128 = 800;
 

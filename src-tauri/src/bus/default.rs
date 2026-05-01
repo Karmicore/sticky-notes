@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use crate::core::event::{EventBus, NoteEvent};
+use crate::app_core::event::{EventBus, NoteEvent};
 
 type Handler = Box<dyn Fn(&NoteEvent) + Send + Sync>;
 

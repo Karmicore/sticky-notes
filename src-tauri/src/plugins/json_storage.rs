@@ -2,8 +2,8 @@ use std::fs;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicI32, Ordering};
 
-use crate::core::note::Note;
-use crate::core::repository::NoteRepository;
+use crate::app_core::note::Note;
+use crate::app_core::repository::NoteRepository;
 
 pub struct JsonStorage {
     data_dir: PathBuf,

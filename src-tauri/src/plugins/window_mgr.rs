@@ -2,10 +2,10 @@ use std::sync::Arc;
 
 use tauri::{Manager, State, WebviewWindow};
 
-use crate::core::event::{EventBus, NoteEvent};
-use crate::core::note::Note;
-use crate::core::plugin::{Plugin, PluginContext};
-use crate::core::repository::NoteRepository;
+use crate::app_core::event::{EventBus, NoteEvent};
+use crate::app_core::note::Note;
+use crate::app_core::plugin::{Plugin, PluginContext};
+use crate::app_core::repository::NoteRepository;
 
 pub struct WindowManagerPlugin {
     ctx: Option<PluginContext>,
