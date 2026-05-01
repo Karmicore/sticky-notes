@@ -18,12 +18,13 @@ function getMenuNoteId() {
 function parseMenuNote() {
   const hash = window.location.hash;
   if (!hash.startsWith("#menu/")) return null;
-  const parts = hash.slice(6).split("/");
-  const noteId = parseInt(parts[0], 10);
-  if (isNaN(noteId) || !parts[1]) return null;
+  const slashIdx = hash.indexOf("/", 6);
+  if (slashIdx === -1) return null;
+  const noteId = parseInt(hash.slice(6, slashIdx), 10);
+  if (isNaN(noteId)) return null;
+  const jsonStr = hash.slice(slashIdx + 1);
   try {
-    const json = atob(parts[1]);
-    return { noteId, note: JSON.parse(json) };
+    return { noteId, note: JSON.parse(jsonStr) };
   } catch {
     return null;
   }

@@ -81,10 +81,8 @@ pub fn open_context_menu(app: tauri::AppHandle, x: f64, y: f64, note_id: i32, no
         old.close().ok();
     }
 
-    use base64::Engine;
     let note_json = serde_json::to_string(&note).unwrap_or_default();
-    let encoded = base64::engine::general_purpose::STANDARD.encode(note_json.as_bytes());
-    let url = format!("index.html#menu/{}/{}", note_id, encoded);
+    let url = format!("index.html#menu/{}/{}", note_id, note_json);
 
     WebviewWindowBuilder::new(&app, &label, tauri::WebviewUrl::App(url.into()))
         .title("")
