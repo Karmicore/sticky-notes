@@ -9,7 +9,7 @@ pub fn spawn_note_window(app: &tauri::AppHandle, note: &Note) -> Result<(), Stri
         return Ok(());
     }
 
-    WebviewWindowBuilder::new(app, &label, tauri::WebviewUrl::App("index.html".into()))
+    WebviewWindowBuilder::new(app, &label, tauri::WebviewUrl::App("note.html".into()))
         .title(&note.title)
         .inner_size(note.width as f64, note.height as f64)
         .position(note.pos_x as f64, note.pos_y as f64)

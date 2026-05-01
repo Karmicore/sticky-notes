@@ -39,7 +39,7 @@ pub fn open_context_menu(
         opacity: note.opacity,
     };
     let note_json = serde_json::to_string(&menu_data).unwrap_or_default();
-    let url = format!("index.html#menu/{}/{}", note_id, note_json);
+    let url = format!("menu.html#menu/{}/{}", note_id, note_json);
 
     WebviewWindowBuilder::new(&app, &label, tauri::WebviewUrl::App(url.into()))
         .title("")
@@ -50,6 +50,7 @@ pub fn open_context_menu(
         .parent(&window).map_err(|e| e.to_string())?
         .skip_taskbar(true)
         .focused(true)
+        .transparent(true)
         .build()
         .map_err(|e| e.to_string())?;
 
