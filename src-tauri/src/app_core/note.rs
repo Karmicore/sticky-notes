@@ -20,6 +20,8 @@ pub struct Note {
     pub font_size: u32,
     pub opacity: f64,
     pub visible: bool,
+    #[serde(default)]
+    pub locked: bool,
 }
 
 impl Default for Note {
@@ -37,6 +39,7 @@ impl Default for Note {
             font_size: 14,
             opacity: 1.0,
             visible: true,
+            locked: false,
         }
     }
 }
