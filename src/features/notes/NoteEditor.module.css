@@ -1,0 +1,24 @@
+.textContent {
+  flex: 1;
+  min-height: 0;
+  background: rgba(255, 255, 255, 0.45);
+  border: none;
+  padding: 6px 8px;
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  color: #222;
+  resize: none;
+  outline: none;
+  line-height: 1.5;
+  font-size: 13px;
+  overflow-y: auto;
+}
+
+.textContent::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+.textContent:read-only {
+  cursor: default;
+  background: rgba(255, 255, 255, 0.25);
+}

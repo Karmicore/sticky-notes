@@ -1,0 +1,82 @@
+.titleBar {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 4px;
+  background: rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  user-select: none;
+  flex-shrink: 0;
+  cursor: grab;
+}
+
+.titleBar:active {
+  cursor: grabbing;
+}
+
+.titleBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: #555;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.1s;
+}
+
+.titleBtn:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.menuBtn {
+  font-size: 16px;
+  font-weight: 700;
+  color: #444;
+  margin-right: 2px;
+  letter-spacing: -1px;
+}
+
+.closeBtn:hover {
+  background: #e81123 !important;
+  color: white;
+}
+
+.titleText {
+  flex: 1;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: default;
+  letter-spacing: 0.2px;
+}
+
+.titleInput {
+  flex: 1;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 2px;
+  padding: 1px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #333;
+  background: rgba(255, 255, 255, 0.7);
+  outline: none;
+  text-align: center;
+  cursor: text;
+}
+
+.titleActions {
+  display: flex;
+  gap: 0;
+  margin-left: 2px;
+}

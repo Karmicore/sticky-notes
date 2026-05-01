@@ -1,8 +1,7 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { useNote } from "./hooks/useNote";
-import { useKeyboard } from "./hooks/useKeyboard";
-import { useWindowLifecycle } from "./hooks/useWindowLifecycle";
-import NoteWindow from "./components/NoteWindow";
+import { useNote } from "./features/notes/useNote";
+import { useWindowLifecycle } from "./features/notes/useWindowLifecycle";
+import NoteWindow from "./features/notes/NoteWindow";
 import "./App.css";
 
 function getNoteId() {
@@ -12,12 +11,11 @@ function getNoteId() {
 
 export default function App() {
   const noteId = getNoteId();
-  const { note, noteRef, update, changeFontSize, changeOpacity, saveNow } = useNote(noteId);
+  const { note, update, changeFontSize, changeOpacity, saveNow } = useNote(noteId);
 
-  useKeyboard({ note, noteRef, update, changeFontSize, changeOpacity });
   useWindowLifecycle(noteId, saveNow);
 
   if (!note) return null;
 
-  return <NoteWindow note={note} update={update} changeFontSize={changeFontSize} changeOpacity={changeOpacity} />;
+  return <NoteWindow noteId={noteId} note={note} update={update} changeFontSize={changeFontSize} changeOpacity={changeOpacity} />;
 }
