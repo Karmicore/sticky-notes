@@ -1,19 +1,16 @@
 use std::sync::Arc;
 use std::sync::atomic::{AtomicI32, Ordering};
 
-use super::event::{EventBus, NoteEvent};
 use super::note::Note;
 use super::repository::NoteRepository;
 
 pub struct NoteService {
     repo: Arc<dyn NoteRepository>,
-    bus: Arc<dyn EventBus>,
     next_id: AtomicI32,
 }
 
 impl NoteService {
-    pub fn new(repo: Arc<dyn NoteRepository>, bus: Arc<dyn EventBus>) -> Self {
-        // Scan existing notes to find the max ID
+    pub fn new(repo: Arc<dyn NoteRepository>) -> Self {
         let max_id = repo
             .load_all()
             .unwrap_or_default()
@@ -23,7 +20,6 @@ impl NoteService {
             .unwrap_or(-1);
         Self {
             repo,
-            bus,
             next_id: AtomicI32::new(max_id + 1),
         }
     }
@@ -41,15 +37,11 @@ impl NoteService {
     }
 
     pub fn save_note(&self, note: Note) -> Result<(), String> {
-        self.repo.save(&note)?;
-        self.bus.emit(NoteEvent::Updated(note));
-        Ok(())
+        self.repo.save(&note)
     }
 
     pub fn delete_note(&self, id: i32) -> Result<(), String> {
-        self.repo.delete(id)?;
-        self.bus.emit(NoteEvent::Deleted(id));
-        Ok(())
+        self.repo.delete(id)
     }
 
     pub fn create_note(&self, title: &str) -> Result<Note, String> {
@@ -60,7 +52,6 @@ impl NoteService {
             ..Note::default()
         };
         self.repo.save(&note)?;
-        self.bus.emit(NoteEvent::Created(note.clone()));
         Ok(note)
     }
 
@@ -77,7 +68,6 @@ impl NoteService {
             ..Note::default()
         };
         self.repo.save(&new_note)?;
-        self.bus.emit(NoteEvent::Created(new_note.clone()));
         Ok(new_note)
     }
 }

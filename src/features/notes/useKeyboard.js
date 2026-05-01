@@ -1,20 +1,5 @@
-import { useEffect, useRef } from "react";
-import { commands } from "../../commands";
-
-const keyMap = {
-  "ctrl+n":                "note.new",
-  "ctrl+d":                "note.duplicate",
-  "ctrl+l":                "note.lock",
-  "ctrl+shift+arrowup":    "opacity.up",
-  "ctrl+shift+arrowdown":  "opacity.down",
-  "ctrl+equal":            "font.up",
-  "ctrl+numpadadd":        "font.up",
-  "ctrl+minus":            "font.down",
-  "ctrl+numpadsubtract":   "font.down",
-  "f2":                    "note.rename",
-  "ctrl+shift+keyh":       "window.hide_all",
-  "ctrl+shift+keys":       "window.show_all",
-};
+import { useEffect } from "react";
+import { commands, keyMap } from "../../commands";
 
 function matchKey(e) {
   const parts = [];
@@ -25,6 +10,7 @@ function matchKey(e) {
 
   if (keyMap[combo]) return keyMap[combo];
 
+  // Fallback for keyboard layouts where e.code differs
   if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
     if (e.key === "=" || e.key === "+") return "font.up";
     if (e.key === "-") return "font.down";
@@ -33,10 +19,7 @@ function matchKey(e) {
   return null;
 }
 
-export function useKeyboard(getCtx, deps) {
-  const getCtxRef = useRef(getCtx);
-  getCtxRef.current = getCtx;
-
+export function useKeyboard(getCtx) {
   useEffect(() => {
     function onKey(e) {
       const cmdId = matchKey(e);
@@ -44,10 +27,10 @@ export function useKeyboard(getCtx, deps) {
       const cmd = commands[cmdId];
       if (!cmd) return;
       e.preventDefault();
-      cmd.run(getCtxRef.current());
+      cmd.run(getCtx());
     }
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, deps);
+  }, [getCtx]);
 }

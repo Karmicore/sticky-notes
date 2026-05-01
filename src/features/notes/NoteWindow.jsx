@@ -10,32 +10,66 @@ import styles from "./NoteWindow.module.css";
 
 const appWindow = getCurrentWindow();
 
-export default function NoteWindow({ noteId, note, update, changeFontSize, changeOpacity }) {
+export default function NoteWindow({ noteId, note, update }) {
   const [editingTitle, setEditingTitle] = useState(false);
-  const deleting = useRef(false);
-  const getCtxRef = useRef(null);
+  const noteRef = useRef(note);
+  noteRef.current = note;
 
+  // Stable callbacks — read from refs, never stale
   const handleDelete = useCallback(async () => {
-    deleting.current = true;
     try {
-      await invoke("delete_note", { id: note.id });
+      await invoke("delete_note", { id: noteRef.current.id });
       await appWindow.close();
     } catch (e) {
       console.error(e);
-      deleting.current = false;
     }
-  }, [note.id]);
+  }, []);
 
   const handlePin = useCallback(async () => {
-    const val = !note.isAlwaysOnTop;
+    const val = !noteRef.current.isAlwaysOnTop;
     await invoke("set_window_always_on_top", { onTop: val }).catch(console.error);
     update({ isAlwaysOnTop: val });
-  }, [note.isAlwaysOnTop, update]);
+  }, [update]);
 
   const handleClose = useCallback(async () => {
-    try { await invoke("save_note", { note }); } catch (e) { console.error(e); }
+    try { await invoke("save_note", { note: noteRef.current }); } catch (e) { console.error(e); }
     appWindow.close();
-  }, [note]);
+  }, []);
+
+  const changeFontSize = useCallback((delta) => {
+    const cur = noteRef.current.fontSize;
+    update({ fontSize: Math.min(72, Math.max(8, cur + delta)) });
+  }, [update]);
+
+  const changeOpacity = useCallback((delta) => {
+    const cur = Math.round(noteRef.current.opacity * 100);
+    const next = Math.min(100, Math.max(10, cur + delta));
+    update({ opacity: next / 100 });
+  }, [update]);
+
+  // Context builder — always reads fresh state from refs
+  const getCtx = useCallback(() => ({
+    noteId,
+    note: noteRef.current,
+    update,
+    changeFontSize,
+    changeOpacity,
+    setEditingTitle,
+    onDelete: handleDelete,
+    onHide: () => appWindow.hide(),
+    onPin: handlePin,
+  }), [noteId, update, changeFontSize, changeOpacity, handleDelete, handlePin]);
+
+  useKeyboard(getCtx, []);
+
+  useEffect(() => {
+    const unlisten = listen("menu-action", (event) => {
+      const { cmdId, arg } = event.payload;
+      const cmd = commands[cmdId];
+      if (cmd) cmd.run(getCtx(), arg);
+    });
+    return () => { unlisten.then((fn) => fn()); };
+  }, [getCtx]);
 
   function commitTitle(value) {
     const t = value.trim();
@@ -43,34 +77,13 @@ export default function NoteWindow({ noteId, note, update, changeFontSize, chang
     setEditingTitle(false);
   }
 
-  const getCtx = useCallback(() => ({
-    noteId, note, update, changeFontSize, changeOpacity,
-    setEditingTitle, onDelete: handleDelete,
-    onHide: () => appWindow.hide(), onPin: handlePin,
-  }), [noteId, note, update, changeFontSize, changeOpacity, handleDelete, handlePin]);
-
-  getCtxRef.current = getCtx;
-
-  useKeyboard(getCtx, [note]);
-
-  useEffect(() => {
-    const unlisten = listen("menu-action", (event) => {
-      const { cmdId, arg } = event.payload;
-      const cmd = commands[cmdId];
-      if (cmd) cmd.run(getCtxRef.current(), arg);
-    });
-    return () => { unlisten.then((fn) => fn()); };
-  }, []);
-
   function handleMenuToggle(e) {
     const rect = e.currentTarget.getBoundingClientRect();
-    const screenX = e.screenX;
-    const screenY = e.screenY + rect.height;
     invoke("open_context_menu", {
-      x: screenX,
-      y: screenY,
+      x: e.screenX,
+      y: e.screenY + rect.height,
       noteId,
-      note,
+      note: noteRef.current,
     }).catch(console.error);
   }
 

@@ -1,20 +1,14 @@
-use std::sync::Arc;
-
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager,
 };
 
-use crate::app_core::event::{EventBus, NoteEvent};
-
-pub struct TrayPlugin {
-    bus: Arc<dyn EventBus>,
-}
+pub struct TrayPlugin;
 
 impl TrayPlugin {
-    pub fn new(bus: Arc<dyn EventBus>) -> Self {
-        Self { bus }
+    pub fn new() -> Self {
+        Self
     }
 
     fn create_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
@@ -28,7 +22,6 @@ impl TrayPlugin {
     pub fn build(&self, app: &AppHandle) -> Result<(), String> {
         let tray_menu = Self::create_menu(app).map_err(|e| e.to_string())?;
 
-        let bus = self.bus.clone();
         let _tray = TrayIconBuilder::new()
             .icon(app.default_window_icon().unwrap().clone())
             .menu(&tray_menu)
@@ -41,7 +34,6 @@ impl TrayPlugin {
                             window.set_focus().ok();
                         }
                     }
-                    bus.emit(NoteEvent::ShowAll);
                 }
                 "hide" => {
                     for (label, window) in app.webview_windows() {
@@ -49,13 +41,11 @@ impl TrayPlugin {
                             window.hide().ok();
                         }
                     }
-                    bus.emit(NoteEvent::HideAll);
                 }
                 "new" => {
                     app.emit("create-note", ()).ok();
                 }
                 "quit" => {
-                    bus.emit(NoteEvent::Quit);
                     app.emit("quit-app", ()).ok();
                 }
                 _ => {}

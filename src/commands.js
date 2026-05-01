@@ -86,3 +86,22 @@ export const commands = {
     submenu: true,
   },
 };
+
+// ── Keyboard Map ──
+// Key combos use KeyboardEvent.code format (lowercase).
+// This is the single source of truth for keyboard shortcuts.
+
+export const keyMap = {
+  "ctrl+n":                "note.new",
+  "ctrl+d":                "note.duplicate",
+  "ctrl+l":                "note.lock",
+  "ctrl+shift+arrowup":    "opacity.up",
+  "ctrl+shift+arrowdown":  "opacity.down",
+  "ctrl+equal":            "font.up",
+  "ctrl+numpadadd":        "font.up",
+  "ctrl+minus":            "font.down",
+  "ctrl+numpadsubtract":   "font.down",
+  "f2":                    "note.rename",
+  "ctrl+shift+keyh":       "window.hide_all",
+  "ctrl+shift+keys":       "window.show_all",
+};

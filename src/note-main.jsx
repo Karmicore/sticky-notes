@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./App.css";
-import { useNote } from "./features/notes/useNote";
+import { useNote, useAutoSave } from "./features/notes/useNote";
 import { useWindowLifecycle } from "./features/notes/useWindowLifecycle";
 import NoteWindow from "./features/notes/NoteWindow";
 
@@ -13,10 +13,11 @@ function getNoteId() {
 
 function NoteRoute() {
   const noteId = getNoteId();
-  const { note, update, changeFontSize, changeOpacity, saveNow } = useNote(noteId);
+  const { note, update } = useNote(noteId);
+  const { saveNow } = useAutoSave(note);
   useWindowLifecycle(noteId, saveNow);
   if (!note) return null;
-  return <NoteWindow noteId={noteId} note={note} update={update} changeFontSize={changeFontSize} changeOpacity={changeOpacity} />;
+  return <NoteWindow noteId={noteId} note={note} update={update} />;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<NoteRoute />);
