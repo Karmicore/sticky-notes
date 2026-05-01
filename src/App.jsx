@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useNote } from "./hooks/useNote";
 import { useKeyboard } from "./hooks/useKeyboard";
@@ -14,9 +13,8 @@ function getNoteId() {
 export default function App() {
   const noteId = getNoteId();
   const { note, noteRef, update, changeFontSize, changeOpacity, saveNow } = useNote(noteId);
-  const [editingTitle, setEditingTitle] = useState(false);
 
-  useKeyboard({ note, noteRef, update, changeFontSize, changeOpacity, setEditingTitle });
+  useKeyboard({ note, noteRef, update, changeFontSize, changeOpacity });
   useWindowLifecycle(noteId, saveNow);
 
   if (!note) return null;

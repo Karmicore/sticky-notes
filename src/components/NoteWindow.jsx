@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import NoteMenu from "./NoteMenu";
@@ -8,7 +8,16 @@ const appWindow = getCurrentWindow();
 export default function NoteWindow({ note, update, changeFontSize, changeOpacity, saveNow }) {
   const [editingTitle, setEditingTitle] = useState(false);
   const [menu, setMenu] = useState(null);
-  const deleting = { current: false };
+  const deleting = useRef(false);
+
+  // F2 to rename
+  useEffect(() => {
+    function onKey(e) {
+      if (e.code === "F2") { e.preventDefault(); setEditingTitle(true); }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   async function handleClose() {
     await saveNow();

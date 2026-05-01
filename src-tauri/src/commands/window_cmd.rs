@@ -27,7 +27,7 @@ pub async fn create_note_window(
     app: tauri::AppHandle,
     svc: State<'_, Arc<NoteService>>,
 ) -> Result<Note, String> {
-    let note = svc.create_note(&format!("便签 {}", svc.next_id()))?;
+    let note = svc.create_note("便签")?;
     spawn_note_window(&app, &note)?;
     Ok(note)
 }

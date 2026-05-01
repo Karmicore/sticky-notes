@@ -7,15 +7,18 @@ use tauri::{
 };
 
 use crate::app_core::event::{EventBus, NoteEvent};
-use crate::app_core::plugin::{Plugin, PluginContext};
 
 pub struct TrayPlugin {
-    event_bus: Option<Arc<dyn EventBus>>,
+    bus: Option<Arc<dyn EventBus>>,
 }
 
 impl TrayPlugin {
     pub fn new() -> Self {
-        Self { event_bus: None }
+        Self { bus: None }
+    }
+
+    pub fn init(&mut self, bus: Arc<dyn EventBus>) {
+        self.bus = Some(bus);
     }
 
     fn create_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
@@ -25,27 +28,9 @@ impl TrayPlugin {
         let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
         Menu::with_items(app, &[&show, &hide, &new_note, &quit])
     }
-}
 
-impl Plugin for TrayPlugin {
-    fn name(&self) -> &str {
-        "tray"
-    }
-
-    fn init(&mut self, ctx: &mut PluginContext) -> Result<(), String> {
-        self.event_bus = Some(ctx.event_bus.clone());
-        Ok(())
-    }
-
-    fn on_event(&self, _event: &NoteEvent) {}
-
-    fn shutdown(&self) {}
-}
-
-impl TrayPlugin {
-    pub fn build_tray(&self, app: &AppHandle) -> Result<(), String> {
-        let bus = self.event_bus.clone().ok_or("event_bus not initialized")?;
-
+    pub fn build(&self, app: &AppHandle) -> Result<(), String> {
+        let bus = self.bus.clone().ok_or("tray not initialized")?;
         let tray_menu = Self::create_menu(app).map_err(|e| e.to_string())?;
 
         let bus_for_menu = bus.clone();
@@ -55,8 +40,8 @@ impl TrayPlugin {
             .show_menu_on_left_click(false)
             .on_menu_event(move |app, event| match event.id.as_ref() {
                 "show" => {
-                    for (_label, window) in app.webview_windows() {
-                        if _label.starts_with("note-") {
+                    for (label, window) in app.webview_windows() {
+                        if label.starts_with("note-") {
                             window.show().ok();
                             window.set_focus().ok();
                         }
@@ -64,8 +49,8 @@ impl TrayPlugin {
                     bus_for_menu.emit(NoteEvent::ShowAll);
                 }
                 "hide" => {
-                    for (_label, window) in app.webview_windows() {
-                        if _label.starts_with("note-") {
+                    for (label, window) in app.webview_windows() {
+                        if label.starts_with("note-") {
                             window.hide().ok();
                         }
                     }
@@ -88,8 +73,8 @@ impl TrayPlugin {
                 } = event
                 {
                     let app = tray.app_handle();
-                    for (_label, window) in app.webview_windows() {
-                        if _label.starts_with("note-") {
+                    for (label, window) in app.webview_windows() {
+                        if label.starts_with("note-") {
                             window.show().ok();
                             window.set_focus().ok();
                         }
