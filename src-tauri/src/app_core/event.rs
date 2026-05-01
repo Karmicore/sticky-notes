@@ -13,5 +13,4 @@ pub enum NoteEvent {
 
 pub trait EventBus: Send + Sync {
     fn emit(&self, event: NoteEvent);
-    fn subscribe(&self, handler: Box<dyn Fn(&NoteEvent) + Send + Sync>);
 }

@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::sync::atomic::{AtomicI32, Ordering};
 
 use super::event::{EventBus, NoteEvent};
 use super::note::Note;
@@ -7,19 +8,32 @@ use super::repository::NoteRepository;
 pub struct NoteService {
     repo: Arc<dyn NoteRepository>,
     bus: Arc<dyn EventBus>,
+    next_id: AtomicI32,
 }
 
 impl NoteService {
     pub fn new(repo: Arc<dyn NoteRepository>, bus: Arc<dyn EventBus>) -> Self {
-        Self { repo, bus }
+        // Scan existing notes to find the max ID
+        let max_id = repo
+            .load_all()
+            .unwrap_or_default()
+            .iter()
+            .map(|n| n.id)
+            .max()
+            .unwrap_or(-1);
+        Self {
+            repo,
+            bus,
+            next_id: AtomicI32::new(max_id + 1),
+        }
+    }
+
+    fn alloc_id(&self) -> i32 {
+        self.next_id.fetch_add(1, Ordering::SeqCst)
     }
 
     pub fn get_note(&self, id: i32) -> Result<Note, String> {
-        self.repo
-            .load_all()?
-            .into_iter()
-            .find(|n| n.id == id)
-            .ok_or_else(|| format!("Note {} not found", id))
+        self.repo.load(id)
     }
 
     pub fn load_all(&self) -> Result<Vec<Note>, String> {
@@ -39,7 +53,7 @@ impl NoteService {
     }
 
     pub fn create_note(&self, title: &str) -> Result<Note, String> {
-        let id = self.repo.next_id();
+        let id = self.alloc_id();
         let note = Note {
             id,
             title: title.to_string(),
@@ -53,7 +67,7 @@ impl NoteService {
     pub fn duplicate_note(&self, source_id: i32) -> Result<Note, String> {
         let source = self.get_note(source_id)?;
         let new_note = Note {
-            id: self.repo.next_id(),
+            id: self.alloc_id(),
             title: format!("{} (副本)", source.title),
             content: source.content,
             color: source.color,
@@ -65,9 +79,5 @@ impl NoteService {
         self.repo.save(&new_note)?;
         self.bus.emit(NoteEvent::Created(new_note.clone()));
         Ok(new_note)
-    }
-
-    pub fn next_id(&self) -> i32 {
-        self.repo.next_id()
     }
 }

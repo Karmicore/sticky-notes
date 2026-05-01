@@ -24,8 +24,3 @@ pub fn save_note(note: Note, svc: State<Arc<NoteService>>) -> Result<(), String>
 pub fn delete_note(id: i32, svc: State<Arc<NoteService>>) -> Result<(), String> {
     svc.delete_note(id)
 }
-
-#[tauri::command]
-pub fn get_next_id(svc: State<Arc<NoteService>>) -> i32 {
-    svc.next_id()
-}

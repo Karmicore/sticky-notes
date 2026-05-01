@@ -10,7 +10,6 @@ use app_core::note::Note;
 use app_core::repository::NoteRepository;
 use app_core::service::NoteService;
 use commands::window_cmd;
-use infra::auto_save::AutoSaveService;
 use infra::event_bus::DefaultEventBus;
 use infra::json_storage::JsonStorage;
 use plugins::tray::TrayPlugin;
@@ -23,12 +22,8 @@ pub fn run() {
     let repository: Arc<dyn NoteRepository> = Arc::new(JsonStorage::new());
     let service = Arc::new(NoteService::new(repository.clone(), event_bus.clone()));
 
-    // ── Infrastructure ──
-    let _auto_save = AutoSaveService::subscribe(event_bus.as_ref(), repository.clone());
-
     // ── Tray ──
-    let mut tray = TrayPlugin::new();
-    tray.init(event_bus.clone());
+    let tray = TrayPlugin::new(event_bus.clone());
 
     let repo_for_setup = repository.clone();
 
@@ -64,7 +59,6 @@ pub fn run() {
             commands::note_cmd::get_note,
             commands::note_cmd::save_note,
             commands::note_cmd::delete_note,
-            commands::note_cmd::get_next_id,
             commands::window_cmd::set_window_always_on_top,
             commands::window_cmd::hide_window,
             commands::window_cmd::show_window,
