@@ -89,7 +89,7 @@ export const commands = {
 
 // ── Menu Structure ──
 // Declarative layout: command IDs, separators, submenus.
-// NoteMenu renders from this; add/remove/reorder items here only.
+// MenuWindow renders from this; add/remove/reorder items here only.
 
 export const menuStructure = [
   { id: "note.new" },

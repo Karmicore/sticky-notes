@@ -73,6 +73,35 @@ pub fn hide_all_notes(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+pub fn open_context_menu(app: tauri::AppHandle, x: f64, y: f64, note_id: i32, note: Note) -> Result<(), String> {
+    let label = format!("menu-{}", note_id);
+
+    if let Some(old) = app.get_webview_window(&label) {
+        old.close().ok();
+    }
+
+    use base64::Engine;
+    let note_json = serde_json::to_string(&note).unwrap_or_default();
+    let encoded = base64::engine::general_purpose::STANDARD.encode(note_json.as_bytes());
+    let url = format!("index.html#menu/{}/{}", note_id, encoded);
+
+    WebviewWindowBuilder::new(&app, &label, tauri::WebviewUrl::App(url.into()))
+        .title("")
+        .inner_size(220.0, 300.0)
+        .position(x, y)
+        .decorations(false)
+        .resizable(false)
+        .always_on_top(true)
+        .skip_taskbar(true)
+        .focused(true)
+        .transparent(true)
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
 pub fn spawn_note_window(app: &tauri::AppHandle, note: &Note) -> Result<(), String> {
     let label = format!("note-{}", note.id);
     if app.get_webview_window(&label).is_some() {

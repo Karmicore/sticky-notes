@@ -1,18 +1,17 @@
-.contextMenu {
-  position: fixed;
-  z-index: 10000;
-  min-width: 200px;
+.menu {
+  width: 100%;
+  height: 100%;
   background: #2b2b2b;
   border: 1px solid #444;
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 4px 0;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
   font-size: 12px;
   color: #e0e0e0;
   user-select: none;
+  overflow-y: auto;
 }
 
-.ctxItem {
+.item {
   display: flex;
   align-items: center;
   padding: 5px 12px 5px 10px;
@@ -23,42 +22,42 @@
   gap: 12px;
 }
 
-.ctxItem:hover {
+.item:hover {
   background: #404040;
 }
 
-.ctxLabel {
+.label {
   flex: 1;
 }
 
-.ctxShortcut {
+.shortcut {
   font-size: 10px;
   color: #888;
   flex-shrink: 0;
 }
 
-.ctxArrow {
+.arrow {
   font-size: 10px;
   color: #888;
   flex-shrink: 0;
 }
 
-.ctxDanger:hover {
+.danger:hover {
   background: #5c2020;
   color: #ff6b6b;
 }
 
-.ctxSeparator {
+.separator {
   height: 1px;
   background: #404040;
   margin: 3px 8px;
 }
 
-.ctxHasSub {
+.hasSub {
   position: relative;
 }
 
-.ctxSubmenu {
+.submenu {
   position: absolute;
   left: 100%;
   top: -4px;
@@ -68,26 +67,26 @@
   border-radius: 4px;
   padding: 4px 0;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-  z-index: 10001;
+  z-index: 1;
 }
 
-.ctxSubItem {
+.subItem {
   padding: 4px 16px;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.08s;
 }
 
-.ctxSubItem:hover {
+.subItem:hover {
   background: #404040;
 }
 
-.ctxSubItemActive {
+.subItemActive {
   background: #404040;
   color: #7cb7ff;
 }
 
-.ctxColorGrid {
+.colorGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 3px;
@@ -95,7 +94,7 @@
   min-width: 120px;
 }
 
-.ctxColorSwatch {
+.colorSwatch {
   width: 24px;
   height: 24px;
   border-radius: 3px;
@@ -104,12 +103,12 @@
   transition: border-color 0.1s, transform 0.1s;
 }
 
-.ctxColorSwatch:hover {
+.colorSwatch:hover {
   border-color: rgba(255, 255, 255, 0.5);
   transform: scale(1.1);
 }
 
-.ctxColorSwatchActive {
+.colorSwatchActive {
   border-color: #fff;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
 }
