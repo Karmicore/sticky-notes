@@ -19,5 +19,5 @@ export default function App() {
 
   if (!note) return null;
 
-  return <NoteWindow note={note} update={update} changeFontSize={changeFontSize} changeOpacity={changeOpacity} saveNow={saveNow} />;
+  return <NoteWindow note={note} update={update} changeFontSize={changeFontSize} changeOpacity={changeOpacity} />;
 }

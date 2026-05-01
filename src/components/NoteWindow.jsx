@@ -5,7 +5,7 @@ import NoteMenu from "./NoteMenu";
 
 const appWindow = getCurrentWindow();
 
-export default function NoteWindow({ note, update, changeFontSize, changeOpacity, saveNow }) {
+export default function NoteWindow({ note, update, changeFontSize, changeOpacity }) {
   const [editingTitle, setEditingTitle] = useState(false);
   const [menu, setMenu] = useState(null);
   const deleting = useRef(false);
@@ -20,7 +20,11 @@ export default function NoteWindow({ note, update, changeFontSize, changeOpacity
   }, []);
 
   async function handleClose() {
-    await saveNow();
+    try {
+      await invoke("save_note", { note });
+    } catch (e) {
+      console.error("save before close failed:", e);
+    }
     await appWindow.close();
   }
 
@@ -47,9 +51,15 @@ export default function NoteWindow({ note, update, changeFontSize, changeOpacity
     setEditingTitle(false);
   }
 
+  function handleTitleMouseDown(e) {
+    // Only drag on the title bar background, not on buttons/inputs
+    if (e.target.closest("button") || e.target.closest("input")) return;
+    appWindow.startDragging();
+  }
+
   return (
     <div className="note-window" style={{ backgroundColor: note.color, opacity: note.opacity }}>
-      <div className="title-bar" data-tauri-drag-region>
+      <div className="title-bar" onMouseDown={handleTitleMouseDown}>
         <button className="title-btn menu-btn" onClick={() => setMenu(menu ? null : "main")}>⋮</button>
         {editingTitle ? (
           <input className="title-input" type="text" defaultValue={note.title} autoFocus
