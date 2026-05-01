@@ -1,295 +1,222 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./App.css";
 
 const COLORS = [
-  { hex: "#FFEB3B" }, { hex: "#BBDEFB" }, { hex: "#C8E6C9" }, { hex: "#F8BBD9" },
-  { hex: "#E1BEE7" }, { hex: "#FFE0B2" }, { hex: "#FFFFFF" }, { hex: "#90CAF9" },
-  { hex: "#A5D6A7" }, { hex: "#EF9A9A" }, { hex: "#F48FB1" }, { hex: "#E0E0E0" },
+  "#FFEB3B", "#BBDEFB", "#C8E6C9", "#F8BBD9",
+  "#E1BEE7", "#FFE0B2", "#FFFFFF", "#90CAF9",
+  "#A5D6A7", "#EF9A9A", "#F48FB1", "#E0E0E0",
 ];
 
 const OPACITIES = [20, 30, 40, 50, 60, 70, 80, 90, 100];
 
+function getNoteId() {
+  const label = getCurrentWindow().label;
+  return label.startsWith("note-") ? parseInt(label.slice(5), 10) : null;
+}
+
 export default function App() {
-  const [notes, setNotes] = useState([]);
-  const [contextMenu, setContextMenu] = useState(null);
-  const [editingTitle, setEditingTitle] = useState(null);
-  const saveTimers = useRef({});
+  const [note, setNote] = useState(null);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [menu, setMenu] = useState(null);
+  const noteRef = useRef(null);
+  const saveTimer = useRef(null);
+  const deleting = useRef(false);
 
-  const loadNotes = useCallback(async () => {
-    try {
-      const loaded = await invoke("load_notes");
-      const mapped = loaded.map((n) => ({ ...n, visible: n.visible !== false, locked: n.locked || false }));
-      if (mapped.length === 0) {
-        await createNote(mapped);
-      } else {
-        setNotes(mapped);
-      }
-    } catch (e) {
-      console.error("Failed to load notes:", e);
-      await createNote([]);
-    }
-  }, []);
+  useEffect(() => { noteRef.current = note; }, [note]);
 
+  // Load note + close handler
   useEffect(() => {
-    loadNotes();
-    const unlisteners = [
-      listen("show-all", () => setNotes((prev) => prev.map((n) => ({ ...n, visible: true })))),
-      listen("hide-all", () => setNotes((prev) => prev.map((n) => ({ ...n, visible: false })))),
-      listen("create-note", () => setNotes((prev) => createNoteSync(prev))),
-      listen("quit-app", async () => {
-        setNotes((prev) => {
-          prev.forEach((n) => invoke("save_note", { note: n }).catch(() => {}));
-          return prev;
-        });
-        await getCurrentWindow().close();
-      }),
-    ];
-    return () => unlisteners.forEach((u) => u.then((fn) => fn()));
+    const id = getNoteId();
+    if (id === null) return;
+    invoke("get_note", { id }).then((n) => {
+      setNote({ ...n, locked: n.locked || false });
+    }).catch(console.error);
+    const unlisten = getCurrentWindow().onCloseRequested(async (e) => {
+      if (deleting.current) return;
+      e.preventDefault();
+      if (noteRef.current) {
+        await invoke("save_note", { note: noteRef.current }).catch(() => {});
+      }
+      await getCurrentWindow().close();
+    });
+    return () => { unlisten.then((fn) => fn()); };
   }, []);
 
-  function createNoteSync(prev) {
-    const id = prev.length;
-    const offset = prev.length * 25;
-    const x = (100 + offset) % Math.max(window.innerWidth - 200, 200);
-    const y = (100 + Math.floor(offset / 10) * 25) % Math.max(window.innerHeight - 200, 200);
-    const newNote = {
-      id, title: `便签 ${id + 1}`, content: "", color: "#FFEB3B",
-      x, y, width: 260, height: 320, isAlwaysOnTop: true,
-      fontSize: 14, opacity: 1.0, visible: true, locked: false,
-    };
-    invoke("save_note", { note: newNote }).catch(() => {});
-    return [...prev, newNote];
-  }
-
-  async function createNote(currentNotes) {
-    try {
-      const id = await invoke("get_next_id");
-      const len = currentNotes ? currentNotes.length : 0;
-      const offset = len * 25;
-      const x = (100 + offset) % Math.max(window.innerWidth - 200, 200);
-      const y = (100 + Math.floor(offset / 10) * 25) % Math.max(window.innerHeight - 200, 200);
-      const newNote = {
-        id, title: `便签 ${id + 1}`, content: "", color: "#FFEB3B",
-        x, y, width: 260, height: 320, isAlwaysOnTop: true,
-        fontSize: 14, opacity: 1.0, visible: true, locked: false,
-      };
-      await invoke("save_note", { note: newNote });
-      setNotes((prev) => [...prev, newNote]);
-    } catch (e) {
-      console.error("Failed to create note:", e);
+  // Keyboard shortcuts
+  useEffect(() => {
+    if (!note) return;
+    function onKey(e) {
+      const ctrl = e.ctrlKey || e.metaKey;
+      if (ctrl && e.code === "KeyN") { e.preventDefault(); invoke("create_note_window"); }
+      else if (ctrl && e.code === "KeyD") { e.preventDefault(); invoke("duplicate_note", { sourceId: note.id }); }
+      else if (e.code === "F2") { e.preventDefault(); setEditingTitle(true); }
+      else if (ctrl && e.code === "KeyL") { e.preventDefault(); update({ locked: !noteRef.current.locked }); }
+      else if (ctrl && e.shiftKey && e.code === "ArrowUp") { e.preventDefault(); setOpacity(10); }
+      else if (ctrl && e.shiftKey && e.code === "ArrowDown") { e.preventDefault(); setOpacity(-10); }
+      else if (ctrl && (e.code === "Equal" || e.code === "NumpadAdd")) { e.preventDefault(); setFontSize(1); }
+      else if (ctrl && (e.code === "Minus" || e.code === "NumpadSubtract")) { e.preventDefault(); setFontSize(-1); }
     }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [note]);
+
+  function update(changes) {
+    setNote((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...changes };
+      clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => {
+        invoke("save_note", { note: updated }).catch(() => {});
+      }, 800);
+      return updated;
+    });
   }
 
-  function updateNote(note, changes) {
-    setNotes((prev) => prev.map((n) => (n.id === note.id ? { ...n, ...changes } : n)));
-    clearTimeout(saveTimers.current[note.id]);
-    saveTimers.current[note.id] = setTimeout(() => {
-      invoke("save_note", { note: { ...note, ...changes } }).catch(() => {});
-    }, 800);
+  function setFontSize(delta) {
+    const cur = noteRef.current;
+    if (!cur) return;
+    const next = Math.min(72, Math.max(8, cur.fontSize + delta));
+    update({ fontSize: next });
   }
 
-  async function deleteNote(note) {
-    try {
-      await invoke("delete_note", { id: note.id });
-      setNotes((prev) => {
-        const next = prev.filter((n) => n.id !== note.id);
-        if (next.length === 0) createNote([]);
-        return next;
-      });
-    } catch (e) {
-      console.error("Failed to delete note:", e);
-    }
+  function setOpacity(delta) {
+    const cur = noteRef.current;
+    if (!cur) return;
+    const next = Math.min(100, Math.max(10, Math.round(cur.opacity * 100) + delta));
+    update({ opacity: next / 100 });
   }
 
-  async function togglePin(note) {
-    const newVal = !note.isAlwaysOnTop;
-    try {
-      await invoke("set_window_always_on_top", { onTop: newVal });
-      updateNote(note, { isAlwaysOnTop: newVal });
-    } catch (e) {
-      console.error("Failed to toggle pin:", e);
-    }
+  async function handleClose() { await getCurrentWindow().close(); }
+
+  async function handleDelete() {
+    deleting.current = true;
+    try { await invoke("delete_note", { id: note.id }); await getCurrentWindow().close(); }
+    catch (e) { console.error(e); deleting.current = false; }
   }
 
-  function hideNote(note) {
-    updateNote(note, { visible: false });
+  async function handlePin() {
+    const val = !note.isAlwaysOnTop;
+    await invoke("set_window_always_on_top", { onTop: val }).catch(console.error);
+    update({ isAlwaysOnTop: val });
   }
 
-  async function closeWindow() {
-    await getCurrentWindow().hide();
+  function handleTitleCommit(value) {
+    const t = value.trim();
+    if (t) { update({ title: t }); getCurrentWindow().setTitle(t); }
+    setEditingTitle(false);
   }
 
-  async function startDrag(note, event) {
-    if (event.target.closest(".title-btn") || event.target.closest(".text-content")) return;
-    await getCurrentWindow().startDragging();
+  // Drag: only start if click is NOT on a button or input
+  function handleTitleMouseDown(e) {
+    if (e.target.closest(".title-btn") || e.target.closest(".title-input")) return;
+    if (e.buttons === 1) getCurrentWindow().startDragging();
   }
 
-  function openContextMenu(e, note) {
-    e.preventDefault();
-    e.stopPropagation();
-    const x = Math.min(e.clientX, window.innerWidth - 220);
-    const y = Math.min(e.clientY, window.innerHeight - 400);
-    setContextMenu({ x, y, note });
-  }
-
-  function handleTitleDblClick(e, note) {
-    e.stopPropagation();
-    setEditingTitle(note.id);
-  }
-
-  function handleTitleChange(note, newTitle) {
-    if (newTitle.trim()) {
-      updateNote(note, { title: newTitle.trim() });
-    }
-    setEditingTitle(null);
-  }
+  if (!note) return null;
 
   return (
-    <div className="app-container" onClick={() => setContextMenu(null)}>
-      <div className="notes-area">
-        {notes.map((note) =>
-          !note.visible ? null : (
-            <div
-              key={note.id}
-              className="note-window"
-              style={{
-                backgroundColor: note.color,
-                left: note.x + "px",
-                top: note.y + "px",
-                width: note.width + "px",
-                height: note.height + "px",
-                opacity: note.opacity,
-              }}
-              onMouseDown={(e) => startDrag(note, e)}
-              onContextMenu={(e) => openContextMenu(e, note)}
-            >
-              <div className="title-bar">
-                <button
-                  className="title-btn new-btn"
-                  onClick={(e) => { e.stopPropagation(); createNote(notes); }}
-                  title="新建便签"
-                >+</button>
+    <div className="note-window" style={{ backgroundColor: note.color, opacity: note.opacity }}>
+      <div className="title-bar" onMouseDown={handleTitleMouseDown}>
+        <button className="title-btn menu-btn" onClick={() => setMenu(menu ? null : "main")} title="菜单">⋮</button>
 
-                {editingTitle === note.id ? (
-                  <input
-                    className="title-input"
-                    type="text"
-                    defaultValue={note.title}
-                    autoFocus
-                    onBlur={(e) => handleTitleChange(note, e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleTitleChange(note, e.target.value);
-                      if (e.key === "Escape") setEditingTitle(null);
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                ) : (
-                  <span
-                    className="title-text"
-                    onDoubleClick={(e) => handleTitleDblClick(e, note)}
-                  >
-                    {note.title}
-                  </span>
-                )}
-
-                <div className="title-actions">
-                  <button className="title-btn" onClick={(e) => { e.stopPropagation(); hideNote(note); }} title="最小化">−</button>
-                  <button className="title-btn close-btn" onClick={(e) => { e.stopPropagation(); closeWindow(); }} title="关闭">×</button>
-                </div>
-              </div>
-
-              <textarea
-                className="text-content"
-                value={note.content}
-                placeholder="输入内容..."
-                readOnly={note.locked}
-                style={{ fontSize: note.fontSize + "px" }}
-                onChange={(e) => !note.locked && updateNote(note, { content: e.target.value })}
-              />
-
-              <div className="resize-grip" />
-            </div>
-          )
+        {editingTitle ? (
+          <input className="title-input" type="text" defaultValue={note.title} autoFocus
+            onBlur={(e) => handleTitleCommit(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") handleTitleCommit(e.target.value); if (e.key === "Escape") setEditingTitle(false); }}
+            onClick={(e) => e.stopPropagation()} />
+        ) : (
+          <span className="title-text" onDoubleClick={() => setEditingTitle(true)}>{note.title}</span>
         )}
+
+        <div className="title-actions">
+          <button className="title-btn close-btn" onClick={handleClose} title="关闭">×</button>
+        </div>
       </div>
 
-      {contextMenu && (
-        <ContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          note={contextMenu.note}
-          onClose={() => setContextMenu(null)}
-          onNew={() => createNote(notes)}
-          onDelete={deleteNote}
-          onHide={hideNote}
-          onTogglePin={togglePin}
-          onToggleLock={(n) => updateNote(n, { locked: !n.locked })}
-          onColor={(n, hex) => updateNote(n, { color: hex })}
-          onOpacity={(n, val) => updateNote(n, { opacity: val / 100 })}
-        />
+      <textarea className="text-content" value={note.content} placeholder="输入内容..."
+        readOnly={note.locked} style={{ fontSize: note.fontSize + "px" }}
+        onChange={(e) => !note.locked && update({ content: e.target.value })} />
+
+      <div className="resize-grip" />
+
+      {menu && (
+        <NoteMenu note={note} onClose={() => setMenu(null)}
+          onNew={() => invoke("create_note_window")}
+          onDuplicate={() => invoke("duplicate_note", { sourceId: note.id })}
+          onDelete={handleDelete} onHide={() => getCurrentWindow().hide()}
+          onPin={handlePin} onLock={() => update({ locked: !note.locked })}
+          onRename={() => setEditingTitle(true)}
+          onFontSizeUp={() => setFontSize(1)} onFontSizeDown={() => setFontSize(-1)}
+          onColor={(c) => update({ color: c })} onOpacity={(v) => update({ opacity: v / 100 })} />
       )}
     </div>
   );
 }
 
-function ContextMenu({ x, y, note, onClose, onNew, onDelete, onHide, onTogglePin, onToggleLock, onColor, onOpacity }) {
-  const [submenu, setSubmenu] = useState(null);
+function NoteMenu({ note, onClose, onNew, onDuplicate, onDelete, onHide, onPin, onLock, onRename, onFontSizeUp, onFontSizeDown, onColor, onOpacity }) {
+  const [sub, setSub] = useState(null);
   const ref = useRef(null);
 
   useEffect(() => {
-    function handleClick(e) {
-      if (ref.current && !ref.current.contains(e.target)) onClose();
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, [onClose]);
 
+  function item(label, shortcut, action, danger) {
+    return (
+      <div className={`ctx-item${danger ? " ctx-danger" : ""}`} onClick={() => { action(); onClose(); }}>
+        <span className="ctx-label">{label}</span>
+        {shortcut && <span className="ctx-shortcut">{shortcut}</span>}
+      </div>
+    );
+  }
+
   return (
-    <div ref={ref} className="context-menu" style={{ left: x, top: y }} onClick={(e) => e.stopPropagation()}>
-      <div className="ctx-item" onClick={() => { onNew(); onClose(); }}>
-        <span className="ctx-icon">+</span><span>New Note</span>
-      </div>
+    <div ref={ref} className="context-menu" onClick={(e) => e.stopPropagation()}>
+      {item("新建便签", "Ctrl+N", onNew)}
+      {item("复制便签", "Ctrl+D", onDuplicate)}
+      {item("重命名", "F2", onRename)}
       <div className="ctx-separator" />
-      <div className="ctx-item ctx-danger" onClick={() => { onDelete(note); onClose(); }}>
-        <span className="ctx-icon"></span><span>Delete</span>
-      </div>
-      <div className="ctx-item" onClick={() => { onHide(note); onClose(); }}>
-        <span className="ctx-icon"></span><span>Hide</span>
-      </div>
+      {item("删除", "", onDelete, true)}
+      {item("隐藏", "", onHide)}
       <div className="ctx-separator" />
-      <div className="ctx-item" onClick={() => { onTogglePin(note); onClose(); }}>
-        <span className="ctx-icon">{note.isAlwaysOnTop ? "✓" : ""}</span><span>Always on Top</span>
-      </div>
-      <div className="ctx-item" onClick={() => { onToggleLock(note); onClose(); }}>
-        <span className="ctx-icon">{note.locked ? "✓" : ""}</span><span>Lock Note</span>
-      </div>
+      {item("始终置顶", note.isAlwaysOnTop ? "✓" : "", onPin)}
+      {item("锁定便签", note.locked ? "✓" : "", onLock)}
       <div className="ctx-separator" />
-      <div className="ctx-item ctx-has-sub" onMouseEnter={() => setSubmenu("opacity")} onMouseLeave={() => setSubmenu(null)}>
-        <span className="ctx-icon"></span><span>Opacity</span><span className="ctx-arrow">▸</span>
-        {submenu === "opacity" && (
+
+      <div className="ctx-item" onClick={() => { onFontSizeUp(); onClose(); }}>
+        <span className="ctx-label">字体增大</span><span className="ctx-shortcut">Ctrl++</span>
+      </div>
+      <div className="ctx-item" onClick={() => { onFontSizeDown(); onClose(); }}>
+        <span className="ctx-label">字体减小</span><span className="ctx-shortcut">Ctrl+-</span>
+      </div>
+
+      <div className="ctx-item ctx-has-sub" onMouseEnter={() => setSub("opacity")} onMouseLeave={() => setSub(null)}>
+        <span className="ctx-label">透明度</span><span className="ctx-arrow">▸</span>
+        {sub === "opacity" && (
           <div className="ctx-submenu">
             {OPACITIES.map((v) => (
-              <div key={v} className={`ctx-sub-item${Math.round(note.opacity * 100) === v ? " active" : ""}`} onClick={() => { onOpacity(note, v); onClose(); }}>{v}%</div>
+              <div key={v} className={`ctx-sub-item${Math.round(note.opacity * 100) === v ? " active" : ""}`}
+                onClick={() => { onOpacity(v); onClose(); }}>{v}%</div>
             ))}
           </div>
         )}
       </div>
-      <div className="ctx-item ctx-has-sub" onMouseEnter={() => setSubmenu("color")} onMouseLeave={() => setSubmenu(null)}>
-        <span className="ctx-icon"></span><span>Color</span><span className="ctx-arrow">▸</span>
-        {submenu === "color" && (
+
+      <div className="ctx-item ctx-has-sub" onMouseEnter={() => setSub("color")} onMouseLeave={() => setSub(null)}>
+        <span className="ctx-label">颜色</span><span className="ctx-arrow">▸</span>
+        {sub === "color" && (
           <div className="ctx-submenu ctx-color-grid">
             {COLORS.map((c) => (
-              <div key={c.hex} className={`ctx-color-swatch${note.color === c.hex ? " active" : ""}`} style={{ backgroundColor: c.hex }} onClick={() => { onColor(note, c.hex); onClose(); }} />
+              <div key={c} className={`ctx-color-swatch${note.color === c ? " active" : ""}`}
+                style={{ backgroundColor: c }} onClick={() => { onColor(c); onClose(); }} />
             ))}
           </div>
         )}
       </div>
-      <div className="ctx-separator" />
-      <div className="ctx-item ctx-disabled"><span className="ctx-icon"></span><span>Alarm...</span></div>
-      <div className="ctx-item ctx-disabled"><span className="ctx-icon"></span><span>Print</span></div>
     </div>
   );
 }

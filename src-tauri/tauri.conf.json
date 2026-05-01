@@ -12,16 +12,10 @@
   "app": {
     "windows": [
       {
-        "title": "便签",
         "label": "main",
-        "width": 260,
-        "height": 320,
-        "minWidth": 180,
-        "minHeight": 100,
-        "decorations": false,
-        "transparent": true,
-        "resizable": true,
-        "visible": true
+        "visible": false,
+        "width": 1,
+        "height": 1
       }
     ],
     "security": {

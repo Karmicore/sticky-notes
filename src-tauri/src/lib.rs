@@ -6,6 +6,7 @@ use std::sync::Arc;
 
 use bus::default::DefaultEventBus;
 use app_core::event::EventBus;
+use app_core::note::Note;
 use app_core::plugin::{Plugin, PluginContext};
 use app_core::repository::NoteRepository;
 use plugins::auto_save::AutoSavePlugin;
@@ -47,6 +48,7 @@ pub fn run() {
     }));
 
     let bus_for_quit = event_bus.clone();
+    let repo_for_setup = repository.clone();
 
     // Build Tauri app
     tauri::Builder::default()
@@ -60,31 +62,43 @@ pub fn run() {
             // Build tray
             tray.build_tray(&handle).expect("tray build failed");
 
-            // Store app_handle in window_mgr for event handling
-            // We need to re-init window_mgr with the actual handle
-            // But since Plugin trait takes &mut self only in init,
-            // we'll emit ShowAll via the window directly here as a workaround
-            // The tray plugin handles menu events, so window_mgr just needs handle for on_event
-            // Actually, let's store handle on the App state for window_mgr to use
+            // Store handle for window_mgr event handling
             let wm_ctx = PluginContext {
                 event_bus: bus_for_quit.clone(),
                 repository: app.state::<Arc<dyn NoteRepository>>().inner().clone(),
                 app_handle: Some(handle.clone()),
             };
-            // Re-init with real handle
-            // Note: we can't re-init because we moved window_mgr, so we store handle as state
             app.manage(wm_ctx);
+
+            // Load notes and spawn a window for each
+            let notes = repo_for_setup.load_all().unwrap_or_default();
+            if notes.is_empty() {
+                // No notes yet — create a default one
+                let note = Note::default();
+                repo_for_setup.save(&note).ok();
+                plugins::window_mgr::spawn_note_window(&handle, &note)
+                    .expect("failed to spawn default note window");
+            } else {
+                for note in &notes {
+                    plugins::window_mgr::spawn_note_window(&handle, note)
+                        .unwrap_or_else(|e| eprintln!("Failed to spawn window for note {}: {}", note.id, e));
+                }
+            }
 
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             plugins::window_mgr::load_notes,
+            plugins::window_mgr::get_note,
             plugins::window_mgr::save_note,
             plugins::window_mgr::delete_note,
             plugins::window_mgr::get_next_id,
             plugins::window_mgr::set_window_always_on_top,
             plugins::window_mgr::hide_window,
             plugins::window_mgr::show_window,
+            plugins::window_mgr::create_note_window,
+            plugins::window_mgr::duplicate_note,
+            plugins::window_mgr::close_note_window,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

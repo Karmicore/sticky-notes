@@ -55,13 +55,20 @@ impl TrayPlugin {
             .show_menu_on_left_click(false)
             .on_menu_event(move |app, event| match event.id.as_ref() {
                 "show" => {
-                    if let Some(window) = app.get_webview_window("main") {
-                        window.show().ok();
-                        window.set_focus().ok();
+                    for (_label, window) in app.webview_windows() {
+                        if _label.starts_with("note-") {
+                            window.show().ok();
+                            window.set_focus().ok();
+                        }
                     }
                     bus_for_menu.emit(NoteEvent::ShowAll);
                 }
                 "hide" => {
+                    for (_label, window) in app.webview_windows() {
+                        if _label.starts_with("note-") {
+                            window.hide().ok();
+                        }
+                    }
                     bus_for_menu.emit(NoteEvent::HideAll);
                 }
                 "new" => {
@@ -81,9 +88,11 @@ impl TrayPlugin {
                 } = event
                 {
                     let app = tray.app_handle();
-                    if let Some(window) = app.get_webview_window("main") {
-                        window.show().ok();
-                        window.set_focus().ok();
+                    for (_label, window) in app.webview_windows() {
+                        if _label.starts_with("note-") {
+                            window.show().ok();
+                            window.set_focus().ok();
+                        }
                     }
                 }
             })
