@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import NoteMenu from "./NoteMenu";
@@ -9,6 +9,7 @@ export default function NoteWindow({ note, update, changeFontSize, changeOpacity
   const [editingTitle, setEditingTitle] = useState(false);
   const [menu, setMenu] = useState(null);
   const deleting = useRef(false);
+  const titleBarRef = useRef(null);
 
   // F2 to rename
   useEffect(() => {
@@ -19,14 +20,32 @@ export default function NoteWindow({ note, update, changeFontSize, changeOpacity
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  async function handleClose() {
+  // Title bar drag — native DOM listener per Tauri 2.x official docs
+  useEffect(() => {
+    const el = titleBarRef.current;
+    if (!el) return;
+
+    function onMouseDown(e) {
+      // Only left button, skip buttons/inputs
+      if (e.buttons !== 1) return;
+      if (e.target.closest("button") || e.target.closest("input")) return;
+      e.detail === 2
+        ? appWindow.toggleMaximize().catch(() => {})
+        : appWindow.startDragging();
+    }
+
+    el.addEventListener("mousedown", onMouseDown);
+    return () => el.removeEventListener("mousedown", onMouseDown);
+  }, []);
+
+  const handleClose = useCallback(async () => {
     try {
       await invoke("save_note", { note });
     } catch (e) {
       console.error("save before close failed:", e);
     }
-    await appWindow.close();
-  }
+    appWindow.close();
+  }, [note]);
 
   async function handleDelete() {
     deleting.current = true;
@@ -51,15 +70,9 @@ export default function NoteWindow({ note, update, changeFontSize, changeOpacity
     setEditingTitle(false);
   }
 
-  function handleTitleMouseDown(e) {
-    // Only drag on the title bar background, not on buttons/inputs
-    if (e.target.closest("button") || e.target.closest("input")) return;
-    appWindow.startDragging();
-  }
-
   return (
     <div className="note-window" style={{ backgroundColor: note.color, opacity: note.opacity }}>
-      <div className="title-bar" onMouseDown={handleTitleMouseDown}>
+      <div className="title-bar" ref={titleBarRef}>
         <button className="title-btn menu-btn" onClick={() => setMenu(menu ? null : "main")}>⋮</button>
         {editingTitle ? (
           <input className="title-input" type="text" defaultValue={note.title} autoFocus
