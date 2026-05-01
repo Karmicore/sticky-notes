@@ -3,8 +3,20 @@ use std::sync::Arc;
 use tauri::{Manager, State, WebviewWindow};
 use tauri::webview::WebviewWindowBuilder;
 
+use serde::Serialize;
+
 use crate::app_core::note::Note;
 use crate::app_core::service::NoteService;
+
+#[derive(Serialize)]
+struct MenuNoteData {
+    id: i32,
+    title: String,
+    color: String,
+    is_always_on_top: bool,
+    locked: bool,
+    opacity: f64,
+}
 
 #[tauri::command]
 pub fn set_window_always_on_top(window: WebviewWindow, on_top: bool) -> Result<(), String> {
@@ -81,7 +93,15 @@ pub fn open_context_menu(app: tauri::AppHandle, x: f64, y: f64, note_id: i32, no
         old.close().ok();
     }
 
-    let note_json = serde_json::to_string(&note).unwrap_or_default();
+    let menu_data = MenuNoteData {
+        id: note.id,
+        title: note.title,
+        color: note.color,
+        is_always_on_top: note.is_always_on_top,
+        locked: note.locked,
+        opacity: note.opacity,
+    };
+    let note_json = serde_json::to_string(&menu_data).unwrap_or_default();
     let url = format!("index.html#menu/{}/{}", note_id, note_json);
 
     WebviewWindowBuilder::new(&app, &label, tauri::WebviewUrl::App(url.into()))

@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { getCurrentWindow, listen } from "@tauri-apps/api/window";
+import { listen } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useKeyboard } from "./useKeyboard";
 import TitleBar from "./TitleBar";
 import NoteEditor from "./NoteEditor";
