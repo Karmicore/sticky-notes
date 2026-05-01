@@ -9,7 +9,7 @@ use app_core::event::EventBus;
 use app_core::note::Note;
 use app_core::repository::NoteRepository;
 use app_core::service::NoteService;
-use commands::window_cmd;
+use commands::window_factory;
 use infra::event_bus::DefaultEventBus;
 use infra::json_storage::JsonStorage;
 use plugins::tray::TrayPlugin;
@@ -43,11 +43,11 @@ pub fn run() {
             if notes.is_empty() {
                 let note = Note::default();
                 repo_for_setup.save(&note).ok();
-                window_cmd::spawn_note_window(&handle, &note)
+                window_factory::spawn_note_window(&handle, &note)
                     .expect("failed to spawn default note window");
             } else {
                 for note in &notes {
-                    window_cmd::spawn_note_window(&handle, note)
+                    window_factory::spawn_note_window(&handle, note)
                         .unwrap_or_else(|e| eprintln!("spawn note {}: {}", note.id, e));
                 }
             }
@@ -62,12 +62,12 @@ pub fn run() {
             commands::window_cmd::set_window_always_on_top,
             commands::window_cmd::hide_window,
             commands::window_cmd::show_window,
-            commands::window_cmd::create_note_window,
-            commands::window_cmd::duplicate_note,
-            commands::window_cmd::close_note_window,
             commands::window_cmd::show_all_notes,
             commands::window_cmd::hide_all_notes,
-            commands::window_cmd::open_context_menu,
+            commands::note_lifecycle_cmd::create_note_window,
+            commands::note_lifecycle_cmd::duplicate_note,
+            commands::note_lifecycle_cmd::close_note_window,
+            commands::menu_cmd::open_context_menu,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

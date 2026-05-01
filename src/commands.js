@@ -1,8 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
 
 // ── Command Registry ──
-// Every command lives here. Menu, keyboard, and toolbar all read from this table.
-// To add a feature: add one entry here. Done.
+// Pure action definitions. Menu layout and keyboard bindings live in separate files.
+// To add a command: add one entry here, then wire it in menuConfig.js and/or keyBindings.js.
 
 export const commands = {
   "note.new": {
@@ -86,37 +86,3 @@ export const commands = {
     submenu: true,
   },
 };
-
-// ── Menu Structure ──
-// Declarative layout: command IDs, separators, submenus.
-// MenuWindow renders from this; add/remove/reorder items here only.
-
-export const menuStructure = [
-  { id: "note.new" },
-  { id: "window.show_all" },
-  { id: "window.hide_all" },
-  "separator",
-  { id: "note.duplicate" },
-  { id: "note.rename" },
-  "separator",
-  { id: "note.delete" },
-  { id: "note.hide" },
-  "separator",
-  { id: "note.pin" },
-  { id: "note.lock" },
-  "separator",
-  { id: "font.up" },
-  { id: "font.down" },
-  { id: "opacity.set", submenu: "op" },
-  { id: "color.set", submenu: "co" },
-];
-
-// ── Keyboard Map ──
-// Shortcut string → command ID mapping.
-// useKeyboard reads from this; no hardcoded shortcuts in hooks.
-
-export const keyboardMap = Object.fromEntries(
-  Object.entries(commands)
-    .filter(([, cmd]) => cmd.shortcut)
-    .map(([id, cmd]) => [cmd.shortcut, id])
-);

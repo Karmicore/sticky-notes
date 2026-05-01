@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { emit } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { COLORS, OPACITIES } from "../../constants";
-import { commands, menuStructure } from "../../commands";
+import { commands } from "../../commands";
+import { menuStructure } from "../../menuConfig";
 import styles from "./MenuWindow.module.css";
 
 const appWindow = getCurrentWindow();
