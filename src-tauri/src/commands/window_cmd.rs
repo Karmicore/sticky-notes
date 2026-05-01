@@ -66,6 +66,7 @@ pub fn spawn_note_window(app: &tauri::AppHandle, note: &Note) -> Result<(), Stri
         .decorations(false)
         .resizable(true)
         .always_on_top(note.is_always_on_top)
+        .skip_taskbar(true)
         .build()
         .map_err(|e| e.to_string())?;
 
