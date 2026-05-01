@@ -11,7 +11,7 @@ const appWindow = getCurrentWindow();
 
 export default function NoteWindow({ noteId, note, update, changeFontSize, changeOpacity }) {
   const [editingTitle, setEditingTitle] = useState(false);
-  const [menu, setMenu] = useState(null);
+  const [menuAnchor, setMenuAnchor] = useState(null);
   const deleting = useRef(false);
 
   const handleDelete = useCallback(async () => {
@@ -50,13 +50,21 @@ export default function NoteWindow({ noteId, note, update, changeFontSize, chang
 
   useKeyboard(getCtx, [note]);
 
+  function toggleMenu(e) {
+    if (menuAnchor) {
+      setMenuAnchor(null);
+    } else {
+      setMenuAnchor({ x: e.clientX, y: e.clientY });
+    }
+  }
+
   return (
     <div className={styles.noteWindow} style={{ backgroundColor: note.color, opacity: note.opacity }}>
       <TitleBar note={note} editingTitle={editingTitle} setEditingTitle={setEditingTitle}
-        commitTitle={commitTitle} onClose={handleClose} onMenuToggle={() => setMenu(menu ? null : "main")} />
+        commitTitle={commitTitle} onClose={handleClose} onMenuToggle={toggleMenu} />
       <NoteEditor note={note} update={update} />
       <div className={styles.resizeGrip} />
-      {menu && <NoteMenu note={note} ctx={getCtx()} onClose={() => setMenu(null)} />}
+      {menuAnchor && <NoteMenu note={note} ctx={getCtx()} onClose={() => setMenuAnchor(null)} anchor={menuAnchor} />}
     </div>
   );
 }
