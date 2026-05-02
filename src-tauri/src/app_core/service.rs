@@ -65,7 +65,8 @@ impl NoteService {
 
     pub fn duplicate_note(&self, source_id: i32) -> Result<Note, String> {
         let source = self.get_note(source_id)?;
-        let (x, y) = self.next_position();
+        let x = source.pos_x + 30;
+        let y = source.pos_y + 30;
         let new_note = Note {
             id: self.alloc_id(),
             title: format!("{} (副本)", source.title),
@@ -73,10 +74,13 @@ impl NoteService {
             color: source.color,
             font_size: source.font_size,
             opacity: source.opacity,
+            width: source.width,
+            height: source.height,
+            is_always_on_top: source.is_always_on_top,
+            visible: source.visible,
             pos_x: x,
             pos_y: y,
             locked: false,
-            ..Note::default()
         };
         self.repo.save(&new_note)?;
         Ok(new_note)
