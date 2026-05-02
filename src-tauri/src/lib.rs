@@ -9,14 +9,14 @@ use app_core::note::Note;
 use app_core::repository::NoteRepository;
 use app_core::service::NoteService;
 use commands::window_cmd;
-use infra::json_storage::JsonStorage;
+use infra::sqlite_storage::SqliteStorage;
 use plugins::tray::TrayPlugin;
 
 pub fn run() {
     env_logger::init();
 
     // ── Core ──
-    let repository: Arc<dyn NoteRepository> = Arc::new(JsonStorage::new());
+    let repository: Arc<dyn NoteRepository> = Arc::new(SqliteStorage::new());
     let service = Arc::new(NoteService::new(repository.clone()));
 
     // ── Tray ──
