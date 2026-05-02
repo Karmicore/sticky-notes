@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useKeyboard } from "./useKeyboard";
@@ -11,8 +11,14 @@ const appWindow = getCurrentWindow();
 
 export default function NoteWindow({ noteId, note, update, saveNow }) {
   const [editingTitle, setEditingTitle] = useState(false);
+  const [focused, setFocused] = useState(true);
   const noteRef = useRef(note);
   noteRef.current = note;
+
+  useEffect(() => {
+    const unlisten = appWindow.onFocusChanged(({ payload }) => setFocused(payload));
+    return () => { unlisten.then((fn) => fn()); };
+  }, []);
 
   // Stable callbacks — read from refs, never stale
   const handleDelete = useCallback(async () => {
@@ -75,7 +81,7 @@ export default function NoteWindow({ noteId, note, update, saveNow }) {
   }
 
   return (
-    <div className={styles.noteWindow} style={{ backgroundColor: note.color, opacity: note.opacity }}>
+    <div className={styles.noteWindow} style={{ backgroundColor: note.color, opacity: note.opacity, filter: focused ? "none" : "brightness(0.75)" }}>
       <TitleBar note={note} editingTitle={editingTitle} setEditingTitle={setEditingTitle}
         commitTitle={commitTitle} onClose={handleClose} onMenuToggle={handleMenuToggle} />
       <NoteEditor note={note} update={update} />
