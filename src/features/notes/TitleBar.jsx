@@ -6,34 +6,62 @@ const appWindow = getCurrentWindow();
 
 export default function TitleBar({ note, editingTitle, setEditingTitle, commitTitle, onClose, onMenuToggle, onCollapseToggle }) {
   const ref = useRef(null);
-  const clickTimer = useRef(null);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
+    let dragTimer = null;
+    let mouseDownX = 0;
+    let mouseDownY = 0;
+
     function onMouseDown(e) {
-      if (e.buttons !== 1) return;
+      if (e.button !== 0) return;
       if (e.target.closest("button") || e.target.closest("input")) return;
 
-      if (clickTimer.current) {
-        // Second click within 250ms → collapse toggle
-        clearTimeout(clickTimer.current);
-        clickTimer.current = null;
+      if (dragTimer) {
+        // Second click within window → collapse
+        clearTimeout(dragTimer);
+        dragTimer = null;
         onCollapseToggle();
-      } else {
-        // First click → wait to see if double-click follows
-        clickTimer.current = setTimeout(() => {
-          clickTimer.current = null;
-          appWindow.startDragging();
-        }, 250);
+        return;
+      }
+
+      mouseDownX = e.screenX;
+      mouseDownY = e.screenY;
+
+      // Start drag after timeout (if no move detected first)
+      dragTimer = setTimeout(() => {
+        dragTimer = null;
+        appWindow.startDragging();
+      }, 300);
+    }
+
+    function onMouseMove(e) {
+      if (!dragTimer) return;
+      // Moved >3px → user wants to drag, start immediately
+      if (Math.abs(e.screenX - mouseDownX) > 3 || Math.abs(e.screenY - mouseDownY) > 3) {
+        clearTimeout(dragTimer);
+        dragTimer = null;
+        appWindow.startDragging();
+      }
+    }
+
+    function onMouseUp() {
+      if (dragTimer) {
+        clearTimeout(dragTimer);
+        dragTimer = null;
       }
     }
 
     el.addEventListener("mousedown", onMouseDown);
+    el.addEventListener("mousemove", onMouseMove);
+    el.addEventListener("mouseup", onMouseUp);
     return () => {
       el.removeEventListener("mousedown", onMouseDown);
-      clearTimeout(clickTimer.current);
+      el.removeEventListener("mousemove", onMouseMove);
+      el.removeEventListener("mouseup", onMouseUp);
+      clearTimeout(dragTimer);
     };
   }, [onCollapseToggle]);
 
