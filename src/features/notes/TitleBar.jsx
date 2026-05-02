@@ -5,7 +5,7 @@ import { LogicalPosition } from "@tauri-apps/api/dpi";
 import styles from "./TitleBar.module.css";
 
 const appWindow = getCurrentWindow();
-const SNAP_THRESHOLD = 10;
+const SNAP_THRESHOLD = 5;
 
 function snapAxis(val, size, targets) {
   let best = null;
