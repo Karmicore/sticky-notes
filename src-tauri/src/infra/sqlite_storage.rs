@@ -43,14 +43,17 @@ impl SqliteStorage {
             )",
         ).expect("failed to create notes table");
 
-        // Migration: add columns for older databases
-        let _ = conn.execute_batch(
-            "ALTER TABLE notes ADD COLUMN collapsed INTEGER NOT NULL DEFAULT 0;
-             ALTER TABLE notes ADD COLUMN expanded_height INTEGER NOT NULL DEFAULT 240;
-             ALTER TABLE notes ADD COLUMN expanded_width INTEGER NOT NULL DEFAULT 260;
-             UPDATE notes SET expanded_height = height WHERE height > 80;
-             UPDATE notes SET expanded_width = width WHERE width > 0;",
-        );
+        // Migration: add columns for older databases (each statement separate
+        // so a "duplicate column" error on one doesn't roll back the others)
+        for sql in [
+            "ALTER TABLE notes ADD COLUMN collapsed INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE notes ADD COLUMN expanded_height INTEGER NOT NULL DEFAULT 240",
+            "ALTER TABLE notes ADD COLUMN expanded_width INTEGER NOT NULL DEFAULT 260",
+            "UPDATE notes SET expanded_height = height WHERE height > 80",
+            "UPDATE notes SET expanded_width = width WHERE width > 0",
+        ] {
+            let _ = conn.execute_batch(sql);
+        }
 
         Self { conn: Mutex::new(conn) }
     }
