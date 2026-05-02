@@ -14,8 +14,8 @@ impl TrayPlugin {
     }
 
     fn create_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
-        let show = MenuItem::with_id(app, "show", "显示全部", true, None::<&str>)?;
-        let hide = MenuItem::with_id(app, "hide", "隐藏全部", true, None::<&str>)?;
+        let show = MenuItem::with_id(app, "show", "显示全部", true, Some("Alt+S"))?;
+        let hide = MenuItem::with_id(app, "hide", "隐藏全部", true, Some("Alt+H"))?;
         let new_note = MenuItem::with_id(app, "new", "新建便签", true, Some("Alt+N"))?;
         let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
         Menu::with_items(app, &[&show, &hide, &new_note, &quit])
