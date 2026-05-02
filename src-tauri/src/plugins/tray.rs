@@ -1,8 +1,10 @@
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Emitter, Manager,
+    AppHandle, Emitter,
 };
+
+use crate::commands::window_cmd;
 
 pub struct TrayPlugin;
 
@@ -27,27 +29,10 @@ impl TrayPlugin {
             .menu(&tray_menu)
             .show_menu_on_left_click(false)
             .on_menu_event(move |app, event| match event.id.as_ref() {
-                "show" => {
-                    for (label, window) in app.webview_windows() {
-                        if label.starts_with("note-") {
-                            window.show().ok();
-                            window.set_focus().ok();
-                        }
-                    }
-                }
-                "hide" => {
-                    for (label, window) in app.webview_windows() {
-                        if label.starts_with("note-") {
-                            window.hide().ok();
-                        }
-                    }
-                }
-                "new" => {
-                    app.emit("create-note", ()).ok();
-                }
-                "quit" => {
-                    app.emit("quit-app", ()).ok();
-                }
+                "show" => window_cmd::show_all_note_windows(app),
+                "hide" => window_cmd::hide_all_note_windows(app),
+                "new" => { app.emit("create-note", ()).ok(); }
+                "quit" => { app.emit("quit-app", ()).ok(); }
                 _ => {}
             })
             .on_tray_icon_event(|tray, event| {
@@ -57,13 +42,7 @@ impl TrayPlugin {
                     ..
                 } = event
                 {
-                    let app = tray.app_handle();
-                    for (label, window) in app.webview_windows() {
-                        if label.starts_with("note-") {
-                            window.show().ok();
-                            window.set_focus().ok();
-                        }
-                    }
+                    window_cmd::show_all_note_windows(tray.app_handle());
                 }
             })
             .build(app)

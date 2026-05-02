@@ -10,7 +10,7 @@ import styles from "./NoteWindow.module.css";
 
 const appWindow = getCurrentWindow();
 
-export default function NoteWindow({ noteId, note, update }) {
+export default function NoteWindow({ noteId, note, update, saveNow }) {
   const [editingTitle, setEditingTitle] = useState(false);
   const noteRef = useRef(note);
   noteRef.current = note;
@@ -32,9 +32,9 @@ export default function NoteWindow({ noteId, note, update }) {
   }, [update]);
 
   const handleClose = useCallback(async () => {
-    try { await invoke("save_note", { note: noteRef.current }); } catch (e) { console.error(e); }
+    await saveNow();
     appWindow.close();
-  }, []);
+  }, [saveNow]);
 
   const changeFontSize = useCallback((delta) => {
     const cur = noteRef.current.fontSize;
@@ -60,7 +60,7 @@ export default function NoteWindow({ noteId, note, update }) {
     onPin: handlePin,
   }), [noteId, update, changeFontSize, changeOpacity, handleDelete, handlePin]);
 
-  useKeyboard(getCtx, []);
+  useKeyboard(getCtx);
 
   useEffect(() => {
     const unlisten = listen("menu-action", (event) => {

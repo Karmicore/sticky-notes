@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { listen } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 import { useNote, useAutoSave } from "./features/notes/useNote";
 import { useWindowLifecycle } from "./features/notes/useWindowLifecycle";
@@ -16,8 +18,16 @@ function NoteRoute() {
   const { note, update } = useNote(noteId);
   const { saveNow } = useAutoSave(note);
   useWindowLifecycle(noteId, saveNow);
+
+  // Listen for tray "新建便签" event
+  useEffect(() => {
+    const unlisten = listen("create-note", () => {
+      invoke("create_note_window").catch(console.error);
+    });
+    return () => { unlisten.then((fn) => fn()); };
+  }, []);
   if (!note) return null;
-  return <NoteWindow noteId={noteId} note={note} update={update} />;
+  return <NoteWindow noteId={noteId} note={note} update={update} saveNow={saveNow} />;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<NoteRoute />);

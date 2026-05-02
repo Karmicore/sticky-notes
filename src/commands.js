@@ -1,8 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
 
 // ── Command Registry ──
-// Pure action definitions. Menu layout and keyboard bindings live in separate files.
-// To add a command: add one entry here, then wire it in menuConfig.js and/or keyBindings.js.
+// Single source of truth for all commands, keyboard shortcuts, and menu structure.
+// To add a command: add one entry here, then add its id to menuStructure below.
 
 export const commands = {
   "note.new": {
@@ -87,9 +87,32 @@ export const commands = {
   },
 };
 
+// ── Menu Structure ──
+// Declarative layout: command IDs, separators, submenus.
+// MenuWindow renders from this; add/remove/reorder items here only.
+
+export const menuStructure = [
+  { id: "note.new" },
+  { id: "window.show_all" },
+  { id: "window.hide_all" },
+  "separator",
+  { id: "note.duplicate" },
+  { id: "note.rename" },
+  "separator",
+  { id: "note.delete" },
+  { id: "note.hide" },
+  "separator",
+  { id: "note.pin" },
+  { id: "note.lock" },
+  "separator",
+  { id: "font.up" },
+  { id: "font.down" },
+  { id: "opacity.set", submenu: "op" },
+  { id: "color.set", submenu: "co" },
+];
+
 // ── Keyboard Map ──
 // Key combos use KeyboardEvent.code format (lowercase).
-// This is the single source of truth for keyboard shortcuts.
 
 export const keyMap = {
   "ctrl+n":                "note.new",

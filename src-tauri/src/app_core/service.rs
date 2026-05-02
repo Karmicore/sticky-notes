@@ -32,10 +32,6 @@ impl NoteService {
         self.repo.load(id)
     }
 
-    pub fn load_all(&self) -> Result<Vec<Note>, String> {
-        self.repo.load_all()
-    }
-
     pub fn save_note(&self, note: Note) -> Result<(), String> {
         self.repo.save(&note)
     }
