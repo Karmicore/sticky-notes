@@ -55,12 +55,12 @@ export default function TitleBar({ note, editingTitle, setEditingTitle, commitTi
     }
 
     el.addEventListener("mousedown", onMouseDown);
-    el.addEventListener("mousemove", onMouseMove);
-    el.addEventListener("mouseup", onMouseUp);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
     return () => {
       el.removeEventListener("mousedown", onMouseDown);
-      el.removeEventListener("mousemove", onMouseMove);
-      el.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
       clearTimeout(dragTimer);
     };
   }, [onCollapseToggle]);
