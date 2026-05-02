@@ -1,11 +1,7 @@
 import { useRef, useCallback, useEffect } from "react";
 import confetti from "canvas-confetti";
 import styles from "./styles/NoteEditor.module.css";
-
-const CHECKBOX_RE = /^- \[([ \-x])\] /;
-const CHECKBOX_PREFIX = "- [ ] ";
-const CB_LEN = CHECKBOX_PREFIX.length;
-const CB_NEXT = { " ": "-", "-": "x", "x": " " };
+import { CHECKBOX_RE, CHECKBOX_PREFIX, CB_LEN, CB_NEXT } from "./utils/checkbox";
 const NBSP = " ";
 
 export default function NoteEditor({ note, update, insertCheckboxRef, style }) {

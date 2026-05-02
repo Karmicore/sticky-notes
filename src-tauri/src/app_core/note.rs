@@ -60,3 +60,90 @@ impl Default for Note {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_values() {
+        let n = Note::default();
+        assert_eq!(n.id, 0);
+        assert_eq!(n.title, "便签");
+        assert!(n.content.is_empty());
+        assert_eq!(n.color, "#FFEB3B");
+        assert!(n.is_always_on_top);
+        assert!(!n.locked);
+        assert!(!n.collapsed);
+    }
+
+    #[test]
+    fn serde_roundtrip() {
+        let note = Note {
+            id: 5,
+            title: "测试".into(),
+            content: "内容\n换行".into(),
+            color: "#BBDEFB".into(),
+            pos_x: -10,
+            pos_y: 20,
+            width: 300,
+            height: 400,
+            is_always_on_top: false,
+            font_size: 18,
+            opacity: 0.7,
+            visible: true,
+            locked: true,
+            collapsed: true,
+            expanded_height: 400,
+            expanded_width: 300,
+        };
+        let json = serde_json::to_string(&note).unwrap();
+        let deserialized: Note = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.id, 5);
+        assert_eq!(deserialized.title, "测试");
+        assert_eq!(deserialized.content, "内容\n换行");
+        assert_eq!(deserialized.pos_x, -10);
+        assert!(!deserialized.is_always_on_top);
+        assert!(deserialized.locked);
+        assert!(deserialized.collapsed);
+    }
+
+    #[test]
+    fn serde_json_field_names_match_frontend() {
+        let note = Note::default();
+        let json = serde_json::to_value(&note).unwrap();
+        // Frontend uses camelCase
+        assert!(json.get("isAlwaysOnTop").is_some());
+        assert!(json.get("fontSize").is_some());
+        // Frontend uses x/y not pos_x/pos_y
+        assert!(json.get("x").is_some());
+        assert!(json.get("y").is_some());
+        // pos_x/pos_y should NOT appear
+        assert!(json.get("pos_x").is_none());
+        assert!(json.get("pos_y").is_none());
+    }
+
+    #[test]
+    fn serde_missing_optional_fields_use_defaults() {
+        let json = r##"{"id":1,"title":"t","content":"c","color":"#FFEB3B","x":0,"y":0,"width":200,"height":200,"isAlwaysOnTop":true,"fontSize":14,"opacity":1.0,"visible":true}"##;
+        let note: Note = serde_json::from_str(json).unwrap();
+        assert!(!note.locked);
+        assert!(!note.collapsed);
+        assert_eq!(note.expanded_height, 240);
+        assert_eq!(note.expanded_width, 260);
+    }
+
+    #[test]
+    fn serde_extra_fields_ignored() {
+        let json = r##"{"id":1,"title":"t","content":"c","color":"#FFEB3B","x":0,"y":0,"width":200,"height":200,"isAlwaysOnTop":true,"fontSize":14,"opacity":1.0,"visible":true,"unknownField":"hello"}"##;
+        let result: Result<Note, _> = serde_json::from_str(json);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn serde_invalid_type_fails() {
+        let json = r##"{"id":"not_a_number","title":"t","content":"c","color":"#FFEB3B","x":0,"y":0,"width":200,"height":200,"isAlwaysOnTop":true,"fontSize":14,"opacity":1.0,"visible":true}"##;
+        let result: Result<Note, _> = serde_json::from_str(json);
+        assert!(result.is_err());
+    }
+}

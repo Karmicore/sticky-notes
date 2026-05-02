@@ -29,7 +29,7 @@ impl SqliteStorage {
     }
 
     #[cfg(test)]
-    fn new_memory() -> Self {
+    pub(crate) fn new_memory() -> Self {
         let conn = Connection::open_in_memory().expect("failed to open in-memory db");
         Self::init_schema(&conn);
         Self { conn: Mutex::new(conn) }

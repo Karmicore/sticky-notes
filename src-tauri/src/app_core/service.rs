@@ -93,3 +93,117 @@ impl NoteService {
         Ok(new_note)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::infra::sqlite_storage::SqliteStorage;
+
+    fn make_service() -> NoteService {
+        let repo: Arc<dyn NoteRepository> = Arc::new(SqliteStorage::new_memory());
+        NoteService::new(repo)
+    }
+
+    #[test]
+    fn create_note_assigns_incremental_ids() {
+        let svc = make_service();
+        let n1 = svc.create_note("A").unwrap();
+        let n2 = svc.create_note("B").unwrap();
+        let n3 = svc.create_note("C").unwrap();
+        assert_eq!(n1.id, 0);
+        assert_eq!(n2.id, 1);
+        assert_eq!(n3.id, 2);
+    }
+
+    #[test]
+    fn create_note_with_existing_data_continues_ids() {
+        let repo: Arc<dyn NoteRepository> = Arc::new(SqliteStorage::new_memory());
+        // Pre-seed with id=5
+        let mut existing = Note::default();
+        existing.id = 5;
+        existing.title = "existing".into();
+        repo.save(&existing).unwrap();
+
+        let svc = NoteService::new(repo);
+        let n = svc.create_note("new").unwrap();
+        assert_eq!(n.id, 6);
+    }
+
+    #[test]
+    fn create_note_position_increments() {
+        let svc = make_service();
+        let n1 = svc.create_note("A").unwrap();
+        let n2 = svc.create_note("B").unwrap();
+        assert!(n2.pos_x > n1.pos_x || n2.pos_y > n1.pos_y);
+    }
+
+    #[test]
+    fn position_wraps_around_screen() {
+        let svc = make_service();
+        // Create many notes to trigger wrap
+        for i in 0..60 {
+            svc.create_note(&format!("N{}", i)).unwrap();
+        }
+        // After many notes, position should have wrapped back
+        let notes = svc.repo.load_all().unwrap();
+        let max_x = notes.iter().map(|n| n.pos_x).max().unwrap();
+        assert!(max_x <= 1600, "pos_x wrapped: max_x = {}", max_x);
+    }
+
+    #[test]
+    fn duplicate_note_copies_content() {
+        let svc = make_service();
+        let mut original = svc.create_note("Original").unwrap();
+        original.content = "important text".into();
+        original.color = "#BBDEFB".into();
+        original.font_size = 20;
+        svc.save_note(original).unwrap();
+
+        let dup = svc.duplicate_note(0).unwrap();
+        assert_eq!(dup.content, "important text");
+        assert_eq!(dup.color, "#BBDEFB");
+        assert_eq!(dup.font_size, 20);
+        assert_eq!(dup.title, "Original (副本)");
+        assert!(dup.pos_x > 100 || dup.pos_y > 100); // offset from original
+    }
+
+    #[test]
+    fn duplicate_nonexistent_fails() {
+        let svc = make_service();
+        assert!(svc.duplicate_note(999).is_err());
+    }
+
+    #[test]
+    fn delete_note_then_get_fails() {
+        let svc = make_service();
+        svc.create_note("A").unwrap();
+        svc.delete_note(0).unwrap();
+        assert!(svc.get_note(0).is_err());
+    }
+
+    #[test]
+    fn load_all_visible_filters_hidden() {
+        let svc = make_service();
+        svc.create_note("visible").unwrap();
+        let mut hidden = svc.create_note("hidden").unwrap();
+        hidden.visible = false;
+        svc.save_note(hidden).unwrap();
+
+        let visible = svc.load_all_visible().unwrap();
+        assert_eq!(visible.len(), 1);
+        assert_eq!(visible[0].title, "visible");
+    }
+
+    #[test]
+    fn duplicate_resets_locked_and_collapsed() {
+        let svc = make_service();
+        let mut original = svc.create_note("orig").unwrap();
+        original.locked = true;
+        original.collapsed = true;
+        svc.save_note(original).unwrap();
+
+        let dup = svc.duplicate_note(0).unwrap();
+        assert!(!dup.locked);
+        assert!(!dup.collapsed);
+    }
+}
