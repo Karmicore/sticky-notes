@@ -6,8 +6,8 @@ import { invoke } from "@tauri-apps/api/core";
 
 export const commands = {
   "note.checkbox": {
-    label: "添加 Checkbox",
-    shortcut: "",
+    label: "添加待办",
+    shortcut: "Ctrl+1",
     run: (ctx) => ctx.insertCheckbox?.(),
   },
   "note.new": {
@@ -106,7 +106,6 @@ export const commands = {
 // MenuWindow renders from this; add/remove/reorder items here only.
 
 export const menuStructure = [
-  { id: "note.checkbox" },
   { id: "note.new" },
   { id: "window.show_all" },
   { id: "window.hide_all" },
@@ -121,6 +120,7 @@ export const menuStructure = [
   { id: "note.lock" },
   { id: "note.collapse.toggle" },
   "separator",
+  { id: "note.checkbox" },
   { id: "font.up" },
   { id: "font.down" },
   { id: "opacity.set", submenu: "op" },
@@ -131,6 +131,7 @@ export const menuStructure = [
 // Key combos use KeyboardEvent.code format (lowercase).
 
 export const keyMap = {
+  "ctrl+digit1":           "note.checkbox",
   "ctrl+n":                "note.new",
   "ctrl+d":                "note.duplicate",
   "ctrl+l":                "note.lock",
