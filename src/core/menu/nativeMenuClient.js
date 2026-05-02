@@ -1,12 +1,14 @@
 import { MenuItem, Submenu, PredefinedMenuItem } from "@tauri-apps/api/menu";
+import { LogicalPosition } from "@tauri-apps/api/dpi";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { commands, menuStructure } from "../../commands";
 import { COLORS, OPACITIES } from "../../constants";
 
 export async function popupNativeMenu(ctx, position) {
   const items = await buildMenuItems(ctx);
-  const root = await Submenu.new({ text: "", items });
-  await root.popup(position, getCurrentWindow());
+  const root = await Submenu.new({ text: "Menu", items });
+  const pos = new LogicalPosition(position.x, position.y);
+  await root.popup(pos, getCurrentWindow());
 }
 
 async function buildMenuItems(ctx) {

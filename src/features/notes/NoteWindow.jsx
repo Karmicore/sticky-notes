@@ -69,7 +69,9 @@ export default function NoteWindow({ noteId, note, update, saveNow }) {
 
   function handleMenuToggle(e) {
     const rect = e.currentTarget.getBoundingClientRect();
-    popupNativeMenu(getCtx(), { x: rect.left, y: rect.bottom }).catch(console.error);
+    popupNativeMenu(getCtx(), { x: rect.left, y: rect.bottom }).catch((err) => {
+      console.error("[menu] nativeMenuClient error:", err);
+    });
   }
 
   return (
