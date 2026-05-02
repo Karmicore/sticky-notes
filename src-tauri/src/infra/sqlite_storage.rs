@@ -36,9 +36,18 @@ impl SqliteStorage {
                 font_size       INTEGER NOT NULL DEFAULT 14,
                 opacity         REAL NOT NULL DEFAULT 1.0,
                 visible         INTEGER NOT NULL DEFAULT 1,
-                locked          INTEGER NOT NULL DEFAULT 0
+                locked          INTEGER NOT NULL DEFAULT 0,
+                collapsed       INTEGER NOT NULL DEFAULT 0,
+                expanded_height INTEGER NOT NULL DEFAULT 240
             )",
         ).expect("failed to create notes table");
+
+        // Migration: add columns for older databases
+        let _ = conn.execute_batch(
+            "ALTER TABLE notes ADD COLUMN collapsed INTEGER NOT NULL DEFAULT 0;
+             ALTER TABLE notes ADD COLUMN expanded_height INTEGER NOT NULL DEFAULT 240;
+             UPDATE notes SET expanded_height = height WHERE height > 80;",
+        );
 
         Self { conn: Mutex::new(conn) }
     }
@@ -58,6 +67,8 @@ impl SqliteStorage {
             opacity: row.get(10)?,
             visible: row.get::<_, i32>(11)? != 0,
             locked: row.get::<_, i32>(12)? != 0,
+            collapsed: row.get::<_, i32>(13)? != 0,
+            expanded_height: row.get::<_, u32>(14)?,
         })
     }
 }
@@ -66,7 +77,7 @@ impl NoteRepository for SqliteStorage {
     fn load_all(&self) -> Result<Vec<Note>, String> {
         let conn = self.conn.lock().map_err(|e| e.to_string())?;
         let mut stmt = conn
-            .prepare("SELECT id, title, content, color, pos_x, pos_y, width, height, is_always_on_top, font_size, opacity, visible, locked FROM notes")
+            .prepare("SELECT id, title, content, color, pos_x, pos_y, width, height, is_always_on_top, font_size, opacity, visible, locked, collapsed, expanded_height FROM notes")
             .map_err(|e| e.to_string())?;
 
         let notes = stmt
@@ -81,7 +92,7 @@ impl NoteRepository for SqliteStorage {
     fn load(&self, id: i32) -> Result<Note, String> {
         let conn = self.conn.lock().map_err(|e| e.to_string())?;
         conn.query_row(
-            "SELECT id, title, content, color, pos_x, pos_y, width, height, is_always_on_top, font_size, opacity, visible, locked FROM notes WHERE id = ?1",
+            "SELECT id, title, content, color, pos_x, pos_y, width, height, is_always_on_top, font_size, opacity, visible, locked, collapsed, expanded_height FROM notes WHERE id = ?1",
             params![id],
             Self::row_to_note,
         )
@@ -91,7 +102,7 @@ impl NoteRepository for SqliteStorage {
     fn save(&self, note: &Note) -> Result<(), String> {
         let conn = self.conn.lock().map_err(|e| e.to_string())?;
         conn.execute(
-            "INSERT OR REPLACE INTO notes (id, title, content, color, pos_x, pos_y, width, height, is_always_on_top, font_size, opacity, visible, locked) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
+            "INSERT OR REPLACE INTO notes (id, title, content, color, pos_x, pos_y, width, height, is_always_on_top, font_size, opacity, visible, locked, collapsed, expanded_height) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
             params![
                 note.id,
                 note.title,
@@ -106,6 +117,8 @@ impl NoteRepository for SqliteStorage {
                 note.opacity,
                 note.visible as i32,
                 note.locked as i32,
+                note.collapsed as i32,
+                note.expanded_height,
             ],
         )
         .map_err(|e| e.to_string())?;

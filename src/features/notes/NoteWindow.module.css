@@ -16,6 +16,7 @@
   right: 0;
   width: 14px;
   height: 14px;
+  pointer-events: none;
   cursor: se-resize;
   background:
     linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.12) 50%,

@@ -1,7 +1,11 @@
-use tauri::{AppHandle, Manager, WebviewWindow};
+use std::sync::Arc;
+
+use tauri::{AppHandle, Manager, State, WebviewWindow};
 use tauri::webview::WebviewWindowBuilder;
+use tauri::Size;
 
 use crate::app_core::note::Note;
+use crate::app_core::service::NoteService;
 
 // ── Shared helpers (used by both commands and tray) ──
 
@@ -63,4 +67,44 @@ pub fn show_all_notes(app: AppHandle) -> Result<(), String> {
 pub fn hide_all_notes(app: AppHandle) -> Result<(), String> {
     hide_all_note_windows(&app);
     Ok(())
+}
+
+const COLLAPSED_HEIGHT: u32 = 28;
+
+#[tauri::command]
+pub fn toggle_note_collapsed(
+    app: AppHandle,
+    note_id: i32,
+    svc: State<'_, Arc<NoteService>>,
+) -> Result<Note, String> {
+    let mut note = svc.get_note(note_id)?;
+    let label = format!("note-{}", note_id);
+    let window = app
+        .get_webview_window(&label)
+        .ok_or_else(|| format!("window {} not found", label))?;
+
+    if note.collapsed {
+        // Expand: restore saved height
+        let h = note.expanded_height.max(160);
+        window
+            .set_size(Size::Physical(tauri::PhysicalSize::new(note.width, h)))
+            .map_err(|e| e.to_string())?;
+        note.collapsed = false;
+        note.height = h;
+    } else {
+        // Collapse: save current window height, shrink to title bar
+        let current = window.inner_size().map_err(|e| e.to_string())?;
+        note.expanded_height = current.height.max(160);
+        window
+            .set_size(Size::Physical(tauri::PhysicalSize::new(
+                note.width,
+                COLLAPSED_HEIGHT,
+            )))
+            .map_err(|e| e.to_string())?;
+        note.collapsed = true;
+        note.height = COLLAPSED_HEIGHT;
+    }
+
+    svc.save_note(note.clone())?;
+    Ok(note)
 }

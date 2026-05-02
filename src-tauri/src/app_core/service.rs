@@ -81,6 +81,8 @@ impl NoteService {
             pos_x: x,
             pos_y: y,
             locked: false,
+            collapsed: false,
+            expanded_height: source.expanded_height,
         };
         self.repo.save(&new_note)?;
         Ok(new_note)

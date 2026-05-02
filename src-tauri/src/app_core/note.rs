@@ -22,6 +22,14 @@ pub struct Note {
     pub visible: bool,
     #[serde(default)]
     pub locked: bool,
+    #[serde(default)]
+    pub collapsed: bool,
+    #[serde(default = "default_expanded_height")]
+    pub expanded_height: u32,
+}
+
+fn default_expanded_height() -> u32 {
+    240
 }
 
 impl Default for Note {
@@ -40,6 +48,8 @@ impl Default for Note {
             opacity: 1.0,
             visible: true,
             locked: false,
+            collapsed: false,
+            expanded_height: 240,
         }
     }
 }

@@ -73,6 +73,15 @@ export const commands = {
     shortcut: "Ctrl+Shift+↓",
     run: (ctx) => ctx.changeOpacity(-10),
   },
+  "note.collapse.toggle": {
+    label: "折叠/展开",
+    shortcut: "",
+    run: async (ctx) => {
+      const updated = await invoke("toggle_note_collapsed", { noteId: ctx.noteId });
+      ctx.update(updated);
+    },
+    toggle: (ctx) => ctx.note.collapsed,
+  },
   "opacity.set": {
     label: "透明度",
     shortcut: "",
@@ -104,6 +113,7 @@ export const menuStructure = [
   "separator",
   { id: "note.pin" },
   { id: "note.lock" },
+  { id: "note.collapse.toggle" },
   "separator",
   { id: "font.up" },
   { id: "font.down" },

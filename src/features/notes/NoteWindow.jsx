@@ -52,6 +52,15 @@ export default function NoteWindow({ noteId, note, update, saveNow }) {
     update({ opacity: next / 100 });
   }, [update]);
 
+  const handleCollapseToggle = useCallback(async () => {
+    try {
+      const updated = await invoke("toggle_note_collapsed", { noteId: noteRef.current.id });
+      update(updated);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [update]);
+
   // Context builder — always reads fresh state from refs
   const getCtx = useCallback(() => ({
     noteId,
@@ -83,9 +92,14 @@ export default function NoteWindow({ noteId, note, update, saveNow }) {
   return (
     <div className={styles.noteWindow} style={{ backgroundColor: note.color, opacity: note.opacity, filter: focused ? "none" : "brightness(0.93)" }}>
       <TitleBar note={note} editingTitle={editingTitle} setEditingTitle={setEditingTitle}
-        commitTitle={commitTitle} onClose={handleClose} onMenuToggle={handleMenuToggle} />
-      <NoteEditor note={note} update={update} />
-      <div className={styles.resizeGrip} />
+        commitTitle={commitTitle} onClose={handleClose} onMenuToggle={handleMenuToggle}
+        onCollapseToggle={handleCollapseToggle} />
+      {!note.collapsed && (
+        <>
+          <NoteEditor note={note} update={update} />
+          <div className={styles.resizeGrip} />
+        </>
+      )}
     </div>
   );
 }
