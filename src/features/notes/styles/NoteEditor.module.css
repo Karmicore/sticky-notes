@@ -10,13 +10,14 @@
   border: none;
   padding: 6px 8px;
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-  color: #222;
+  color: transparent;
+  caret-color: #222;
   resize: none;
   outline: none;
   line-height: 1.5;
   word-break: break-all;
   white-space: pre-wrap;
-  overflow-y: auto;
+  overflow-y: scroll;
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }
@@ -61,67 +62,70 @@
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
   bottom: 0;
   padding: 6px 8px;
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  line-height: 1.5;
+  color: #222;
   pointer-events: none;
   overflow: hidden;
-  box-sizing: border-box;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
-.overlaySpacer {
-  width: 1px;
-  pointer-events: none;
+.line {
+  min-height: 1.5em;
+}
+
+.cbLine {
+  position: relative;
+  min-height: 1.5em;
+}
+
+.cbPrefix {
+  color: transparent;
 }
 
 .cbBox {
   position: absolute;
   left: 1px;
-  width: 42px;
+  top: calc(0.75em - 6.5px);
+  width: 13px;
   height: 13px;
+  border: 1.5px solid #999;
+  border-radius: 2px;
   pointer-events: auto;
   cursor: pointer;
   user-select: none;
 }
 
-.cbBox::before {
+.cbBox::after {
   content: "";
   position: absolute;
-  right: 0;
-  top: 0;
-  width: 13px;
-  height: 13px;
-  border: 1.5px solid #999;
-  border-radius: 2px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
-.cbProgress::before {
+.cbProgress {
   border-color: #c89b00;
 }
 
 .cbProgress::after {
-  content: "";
-  position: absolute;
-  right: 3px;
-  top: 50%;
   width: 7px;
+  height: 0;
   border-top: 2px solid #c89b00;
-  transform: translateY(-50%);
 }
 
-.cbDone::before {
+.cbDone {
   border-color: #1abc9c;
   background: #1abc9c;
 }
 
 .cbDone::after {
-  content: "";
-  position: absolute;
-  right: 4px;
-  top: 1px;
   width: 4px;
   height: 7px;
   border: solid #fff;
   border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
+  transform: translate(-50%, -60%) rotate(45deg);
 }

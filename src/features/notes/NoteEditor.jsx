@@ -3,7 +3,8 @@ import confetti from "canvas-confetti";
 import styles from "./styles/NoteEditor.module.css";
 import { CHECKBOX_RE, CHECKBOX_PREFIX, CB_LEN, CB_NEXT } from "./utils/checkbox";
 import { blendWithWhite } from "../../lib/color";
-import { measureVisualLines } from "./utils/measureLines";
+
+const NBSP = " ";
 
 export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
   const taRef = useRef(null);
@@ -12,11 +13,13 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
 
   const bgColor = useMemo(() => blendWithWhite(note.color, note.opacity), [note.color, note.opacity]);
 
-  // Track textarea content width for line-wrap measurement
+  // Track textarea content width so overlay matches exactly (fixes cursor misalignment)
   useEffect(() => {
     const ta = taRef.current;
     if (!ta) return;
-    const ro = new ResizeObserver(([entry]) => setTaWidth(entry.contentRect.width));
+    const sync = () => setTaWidth(ta.clientWidth);
+    sync();
+    const ro = new ResizeObserver(sync);
     ro.observe(ta);
     return () => ro.disconnect();
   }, []);
@@ -83,33 +86,10 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
   }, [note.content, setAndPreserve]);
 
   const handleScroll = useCallback(() => {
-    if (ovRef.current && taRef.current) {
-      ovRef.current.scrollTop = taRef.current.scrollTop;
-    }
+    if (ovRef.current && taRef.current) ovRef.current.scrollTop = taRef.current.scrollTop;
   }, []);
 
   const lines = note.content.split("\n");
-  const lineHeights = useMemo(
-    () => measureVisualLines(lines, note.fontSize, taWidth),
-    [lines, note.fontSize, taWidth]
-  );
-
-  // Total content height for scroll sync (text height + top/bottom padding)
-  const totalHeight = useMemo(() => {
-    const textH = lineHeights.reduce((s, h) => s + h, 0);
-    return textH + 12; // 6px padding top + 6px padding bottom
-  }, [lineHeights]);
-
-  // Compute cumulative Y offset for each logical line
-  const cbPositions = useMemo(() => {
-    const positions = [];
-    let y = 0;
-    for (let i = 0; i < lineHeights.length; i++) {
-      if (CHECKBOX_RE.test(lines[i])) positions.push({ idx: i, y });
-      y += lineHeights[i];
-    }
-    return positions;
-  }, [lines, lineHeights]);
 
   return (
     <div className={styles.editor} style={style}>
@@ -125,17 +105,23 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
         onKeyDown={handleKeyDown}
         onScroll={handleScroll}
       />
-      <div ref={ovRef} className={styles.overlay} style={{ fontSize: note.fontSize }}>
-        <div className={styles.overlaySpacer} style={{ height: totalHeight }} />
-        {cbPositions.map(({ idx, y }) => {
-          const st = lines[idx].match(CHECKBOX_RE)[1];
-          const cls = st === "x" ? styles.cbDone : st === "-" ? styles.cbProgress : "";
-          return (
-            <span key={idx}
-              className={styles.cbBox + (cls ? " " + cls : "")}
-              style={{ top: y + note.fontSize * 0.75 - 6.5, backgroundColor: bgColor }}
-              onClick={() => !note.locked && toggleCb(idx)} />
-          );
+      <div ref={ovRef} className={styles.overlay} style={{ fontSize: note.fontSize, width: taWidth }}>
+        {lines.map((line, i) => {
+          const m = line.match(CHECKBOX_RE);
+          if (m) {
+            const st = m[1];
+            const cls = st === "x" ? styles.cbDone : st === "-" ? styles.cbProgress : "";
+            const text = line.substring(CB_LEN);
+            return (
+              <div key={i} className={styles.cbLine}>
+                <span className={styles.cbPrefix}>{line.substring(0, CB_LEN)}</span>
+                <span>{text || NBSP}</span>
+                <span className={styles.cbBox + (cls ? " " + cls : "")}
+                  onClick={() => !note.locked && toggleCb(i)} />
+              </div>
+            );
+          }
+          return <div key={i} className={styles.line}>{line || NBSP}</div>;
         })}
       </div>
     </div>
