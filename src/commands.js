@@ -5,6 +5,11 @@ import { invoke } from "@tauri-apps/api/core";
 // To add a command: add one entry here, then add its id to menuStructure below.
 
 export const commands = {
+  "note.checkbox": {
+    label: "添加 Checkbox",
+    shortcut: "",
+    run: (ctx) => ctx.insertCheckbox?.(),
+  },
   "note.new": {
     label: "新建便签",
     shortcut: "Ctrl+N",
@@ -101,6 +106,7 @@ export const commands = {
 // MenuWindow renders from this; add/remove/reorder items here only.
 
 export const menuStructure = [
+  { id: "note.checkbox" },
   { id: "note.new" },
   { id: "window.show_all" },
   { id: "window.hide_all" },

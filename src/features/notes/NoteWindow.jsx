@@ -13,6 +13,7 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow }) {
   const [editingTitle, setEditingTitle] = useState(false);
   const [focused, setFocused] = useState(true);
   const noteRef = useRef(note);
+  const insertCheckboxRef = useRef(null);
   noteRef.current = note;
 
   useEffect(() => {
@@ -72,6 +73,7 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow }) {
     onDelete: handleDelete,
     onHide: () => appWindow.hide(),
     onPin: handlePin,
+    insertCheckbox: () => insertCheckboxRef.current?.(),
   }), [noteId, edit, changeFontSize, changeOpacity, handleDelete, handlePin]);
 
   useKeyboard(getCtx);
@@ -96,7 +98,7 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow }) {
         onCollapseToggle={handleCollapseToggle} />
       {!note.collapsed && (
         <>
-          <NoteEditor note={note} update={edit} />
+          <NoteEditor note={note} update={edit} insertCheckboxRef={insertCheckboxRef} />
           <div className={styles.resizeGrip} />
         </>
       )}

@@ -11,6 +11,25 @@
   line-height: 1.5;
   font-size: 13px;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+}
+
+.textContent::-webkit-scrollbar {
+  width: 4px;
+}
+
+.textContent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.textContent::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 2px;
+}
+
+.textContent::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .textContent::placeholder {
