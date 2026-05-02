@@ -1,11 +1,10 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useKeyboard } from "./useKeyboard";
 import TitleBar from "./TitleBar";
 import NoteEditor from "./NoteEditor";
-import { commands } from "../../commands";
+import { popupNativeMenu } from "../../core/menu/nativeMenuClient";
 import styles from "./NoteWindow.module.css";
 
 const appWindow = getCurrentWindow();
@@ -60,19 +59,7 @@ export default function NoteWindow({ noteId, note, update, saveNow }) {
     onPin: handlePin,
   }), [noteId, update, changeFontSize, changeOpacity, handleDelete, handlePin]);
 
-  const getCtxRef = useRef(getCtx);
-  getCtxRef.current = getCtx;
-
   useKeyboard(getCtx);
-
-  useEffect(() => {
-    const unlisten = listen("menu-action", (event) => {
-      const { cmdId, arg } = event.payload;
-      const cmd = commands[cmdId];
-      if (cmd) cmd.run(getCtxRef.current(), arg);
-    });
-    return () => { unlisten.then((fn) => fn()); };
-  }, []);
 
   function commitTitle(value) {
     const t = value.trim();
@@ -82,12 +69,7 @@ export default function NoteWindow({ noteId, note, update, saveNow }) {
 
   function handleMenuToggle(e) {
     const rect = e.currentTarget.getBoundingClientRect();
-    invoke("open_context_menu", {
-      x: e.screenX,
-      y: e.screenY + rect.height,
-      noteId,
-      note: noteRef.current,
-    }).catch(console.error);
+    popupNativeMenu(getCtx(), { x: rect.left, y: rect.bottom }).catch(console.error);
   }
 
   return (

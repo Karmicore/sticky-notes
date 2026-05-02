@@ -12,21 +12,20 @@ export default defineConfig(async () => ({
     rollupOptions: {
       input: {
         note: resolve(__dirname, "note.html"),
-        menu: resolve(__dirname, "menu.html"),
       },
     },
   },
 
   clearScreen: false,
   server: {
-    port: 1420,
+    port: 1424,
     strictPort: true,
     host: host || false,
     hmr: host
       ? {
           protocol: "ws",
           host,
-          port: 1421,
+          port: 1425,
         }
       : undefined,
     watch: {
