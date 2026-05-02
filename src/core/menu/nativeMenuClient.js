@@ -1,8 +1,36 @@
-import { MenuItem, Submenu, PredefinedMenuItem } from "@tauri-apps/api/menu";
+import { MenuItem, IconMenuItem, Submenu, PredefinedMenuItem } from "@tauri-apps/api/menu";
+import { Image } from "@tauri-apps/api/image";
 import { LogicalPosition } from "@tauri-apps/api/dpi";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { commands, menuStructure } from "../../commands";
 import { COLORS, OPACITIES } from "../../constants";
+
+const SIZE = 16;
+const colorIconCache = new Map();
+
+function hexToRgb(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+async function colorToIcon(hex) {
+  if (colorIconCache.has(hex)) return colorIconCache.get(hex);
+  const [r, g, b] = hexToRgb(hex);
+  const rgba = new Uint8Array(SIZE * SIZE * 4);
+  for (let i = 0; i < SIZE * SIZE; i++) {
+    const p = i * 4;
+    const x = i % SIZE;
+    const y = (i / SIZE) | 0;
+    const border = x === 0 || x === SIZE - 1 || y === 0 || y === SIZE - 1;
+    rgba[p] = border ? r * 0.8 : r;
+    rgba[p + 1] = border ? g * 0.8 : g;
+    rgba[p + 2] = border ? b * 0.8 : b;
+    rgba[p + 3] = 255;
+  }
+  const icon = await Image.new(rgba, SIZE, SIZE);
+  colorIconCache.set(hex, icon);
+  return icon;
+}
 
 export async function popupNativeMenu(ctx, position) {
   const items = await buildMenuItems(ctx);
@@ -12,7 +40,6 @@ export async function popupNativeMenu(ctx, position) {
 }
 
 async function buildMenuItems(ctx) {
-  const { note } = ctx;
   const items = [];
 
   for (const entry of menuStructure) {
@@ -68,11 +95,13 @@ async function buildOpacitySubmenu(ctx) {
 async function buildColorSubmenu(ctx) {
   const items = [];
   for (const { hex, name } of COLORS) {
+    const icon = await colorToIcon(hex);
+    const isCurrent = ctx.note.color === hex;
     items.push(
-      await MenuItem.new({
+      await IconMenuItem.new({
         id: `color.set:${hex}`,
-        text: name,
-        checked: ctx.note.color === hex,
+        text: isCurrent ? `✓ ${name}` : name,
+        icon,
         action: () => commands["color.set"].run(ctx, hex),
       })
     );
