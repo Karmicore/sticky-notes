@@ -1,12 +1,22 @@
-import { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback, useEffect, useMemo } from "react";
 import confetti from "canvas-confetti";
 import styles from "./styles/NoteEditor.module.css";
 import { CHECKBOX_RE, CHECKBOX_PREFIX, CB_LEN, CB_NEXT } from "./utils/checkbox";
-const NBSP = " ";
+
+function blendWithWhite(hex, opacity) {
+  const h = hex.startsWith("#") ? hex.slice(1) : hex;
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  const a = opacity;
+  return "rgb(" + Math.round(r * a + 255 * (1 - a)) + ", " + Math.round(g * a + 255 * (1 - a)) + ", " + Math.round(b * a + 255 * (1 - a)) + ")";
+}
 
 export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
   const taRef = useRef(null);
   const ovRef = useRef(null);
+
+  const bgColor = useMemo(() => blendWithWhite(note.color, note.opacity), [note.color, note.opacity]);
 
   const setAndPreserve = useCallback((val) => {
     const ta = taRef.current;
@@ -80,7 +90,7 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
       <textarea
         ref={taRef}
         className={styles.textarea}
-        style={{ fontSize: note.fontSize }}
+        style={{ fontSize: note.fontSize, backgroundColor: bgColor }}
         value={note.content}
         placeholder="输入内容..."
         readOnly={note.locked}
@@ -95,17 +105,15 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
           if (m) {
             const st = m[1];
             const cls = st === "x" ? styles.cbDone : st === "-" ? styles.cbProgress : "";
-            const text = line.substring(CB_LEN);
             return (
               <div key={i} className={styles.cbLine}>
-                <span className={styles.cbPrefix}>{line.substring(0, CB_LEN)}</span>
-                <span>{text || NBSP}</span>
-                <span className={`${styles.cbBox}${cls ? " " + cls : ""}`}
+                <span className={styles.cbBox + (cls ? " " + cls : "")}
+                  style={{ backgroundColor: bgColor }}
                   onClick={() => !note.locked && toggleCb(i)} />
               </div>
             );
           }
-          return <div key={i} className={styles.line}>{line || NBSP}</div>;
+          return null;
         })}
       </div>
     </div>

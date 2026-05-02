@@ -7,12 +7,10 @@
 .textarea {
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.45);
   border: none;
   padding: 6px 8px;
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-  color: transparent;
-  caret-color: #222;
+  color: #222;
   resize: none;
   outline: none;
   line-height: 1.5;
@@ -52,7 +50,7 @@
 
 .textarea:read-only {
   cursor: default;
-  background: rgba(255, 255, 255, 0.25);
+  opacity: 0.7;
 }
 
 .textarea::selection {
@@ -65,69 +63,64 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 6px 8px;
-  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-  line-height: 1.5;
-  color: #222;
   pointer-events: none;
   overflow: hidden;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
-.line {
-  min-height: 1.5em;
 }
 
 .cbLine {
   position: relative;
-  min-height: 1.5em;
-}
-
-.cbPrefix {
-  color: transparent;
+  height: 1.5em;
 }
 
 .cbBox {
   position: absolute;
   left: 1px;
   top: calc(0.75em - 6.5px);
-  width: 13px;
+  width: 42px;
   height: 13px;
-  border: 1.5px solid #999;
-  border-radius: 2px;
   pointer-events: auto;
   cursor: pointer;
   user-select: none;
 }
 
-.cbBox::after {
+.cbBox::before {
   content: "";
   position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  right: 0;
+  top: 0;
+  width: 13px;
+  height: 13px;
+  border: 1.5px solid #999;
+  border-radius: 2px;
 }
 
-.cbProgress {
+.cbProgress::before {
   border-color: #c89b00;
 }
 
 .cbProgress::after {
+  content: "";
+  position: absolute;
+  right: 3px;
+  top: 50%;
   width: 7px;
-  height: 0;
   border-top: 2px solid #c89b00;
+  transform: translateY(-50%);
 }
 
-.cbDone {
+.cbDone::before {
   border-color: #1abc9c;
   background: #1abc9c;
 }
 
 .cbDone::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  top: 1px;
   width: 4px;
   height: 7px;
   border: solid #fff;
   border-width: 0 2px 2px 0;
-  transform: translate(-50%, -60%) rotate(45deg);
+  transform: rotate(45deg);
 }
