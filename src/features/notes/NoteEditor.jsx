@@ -1,8 +1,7 @@
-import { useRef, useCallback, useEffect, useMemo, useState } from "react";
+import { useRef, useCallback, useEffect, useState } from "react";
 import confetti from "canvas-confetti";
 import styles from "./styles/NoteEditor.module.css";
 import { CHECKBOX_RE, CHECKBOX_PREFIX, CB_LEN, CB_NEXT } from "./utils/checkbox";
-import { blendWithWhite } from "../../lib/color";
 
 const NBSP = " ";
 
@@ -10,8 +9,6 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
   const taRef = useRef(null);
   const ovRef = useRef(null);
   const [taWidth, setTaWidth] = useState(0);
-
-  const bgColor = useMemo(() => blendWithWhite(note.color, note.opacity), [note.color, note.opacity]);
 
   // Track textarea content width so overlay matches exactly (fixes cursor misalignment)
   useEffect(() => {
@@ -96,7 +93,7 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
       <textarea
         ref={taRef}
         className={styles.textarea}
-        style={{ fontSize: note.fontSize, backgroundColor: bgColor }}
+        style={{ fontSize: note.fontSize }}
         value={note.content}
         placeholder="输入内容..."
         readOnly={note.locked}
