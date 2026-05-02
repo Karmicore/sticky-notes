@@ -66,14 +66,19 @@ describe("snapAxis", () => {
     expect(result).toBeNull();
   });
 
-  it("right-to-right snap can cause window overlap (potential issue)", () => {
+  it("rejects right-to-right snap that would place window inside larger target", () => {
     // val=200, size=100 → edges [200, 250, 300]
     // target pos=100, size=200 → edges [100, 200, 300]
-    // right edges match: |300-300|=0 → snap!
-    // best = 300 - 100 = 200
-    // Window at [200,300] overlaps target [100,300] — not useful!
+    // right edges match: |300-300|=0 → snap would be 200
+    // But window [200,300] is strictly inside target [100,300] → rejected
     const result = snapAxis(200, 100, [{ pos: 100, size: 200 }]);
-    expect(result).toBe(200); // BUG: causes overlap
+    expect(result).toBeNull();
+  });
+
+  it("allows same-size same-edge snap (legitimate alignment)", () => {
+    // Same size windows, left-to-left alignment → allowed even though they overlap
+    const result = snapAxis(98, 100, [{ pos: 100, size: 100 }]);
+    expect(result).toBe(100);
   });
 
   it("snaps left edge to target right edge", () => {

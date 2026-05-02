@@ -7,6 +7,14 @@ import NoteEditor from "./NoteEditor";
 import { popupNativeMenu } from "../../lib/nativeMenu";
 import styles from "./styles/NoteWindow.module.css";
 
+function hexToRgba(hex, alpha) {
+  const h = hex.startsWith("#") ? hex.slice(1) : hex;
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 const appWindow = getCurrentWindow();
 
 export default function NoteWindow({ noteId, note, update, edit, saveNow }) {
@@ -92,7 +100,7 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow }) {
   }
 
   return (
-    <div className={styles.noteWindow} style={{ backgroundColor: note.color, opacity: note.opacity, filter: focused ? "none" : "brightness(0.93)" }}>
+    <div className={styles.noteWindow} style={{ backgroundColor: hexToRgba(note.color, note.opacity), filter: focused ? "none" : "brightness(0.93)" }}>
       <TitleBar note={note} editingTitle={editingTitle} setEditingTitle={setEditingTitle}
         commitTitle={commitTitle} onClose={handleClose} onMenuToggle={handleMenuToggle}
         onCollapseToggle={handleCollapseToggle} />

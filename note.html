@@ -17,10 +17,8 @@
   <body>
     <div id="root"></div>
     <script>
-      // Set background color immediately from URL hash to avoid white flash
-      var hash = location.hash;
-      var m = hash.match(/color=([A-Fa-f0-9]{6})/);
-      if (m) document.body.style.background = '#' + m[1];
+      // Keep body transparent so Tauri window transparency works.
+      // The React component handles background color with opacity.
     </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>

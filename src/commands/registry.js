@@ -68,12 +68,12 @@ export const commands = {
     run: (ctx) => ctx.changeFontSize(-1),
   },
   "opacity.up": {
-    label: "",
+    label: "透明度增大",
     shortcut: "Ctrl+Shift+↑",
     run: (ctx) => ctx.changeOpacity(10),
   },
   "opacity.down": {
-    label: "",
+    label: "透明度减小",
     shortcut: "Ctrl+Shift+↓",
     run: (ctx) => ctx.changeOpacity(-10),
   },

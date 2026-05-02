@@ -4,14 +4,11 @@ import { keyMap } from "./keys";
 
 describe("commands registry", () => {
   it("every command has a label or is a submenu", () => {
-    const emptyLabel = [];
     for (const [id, cmd] of Object.entries(commands)) {
-      if (!cmd.submenu && !cmd.label) {
-        emptyLabel.push(id);
+      if (!cmd.submenu) {
+        expect(cmd.label).toBeTruthy();
       }
     }
-    // These commands have empty labels — menu items will be invisible
-    expect(emptyLabel).toEqual(["opacity.up", "opacity.down"]);
   });
 
   it("every command has a run function", () => {
