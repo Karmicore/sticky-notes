@@ -11,3 +11,20 @@ html, body, #root {
   background: transparent;
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
 }
+
+textarea::-webkit-scrollbar {
+  width: 1px;
+}
+
+textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 2px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
