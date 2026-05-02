@@ -49,8 +49,12 @@ pub fn run() {
                     })
                     .build(),
             )?;
-            handle.global_shortcut().register(show_shortcut)?;
-            handle.global_shortcut().register(hide_shortcut)?;
+            if let Err(e) = handle.global_shortcut().register(show_shortcut) {
+                eprintln!("Failed to register Alt+S: {}", e);
+            }
+            if let Err(e) = handle.global_shortcut().register(hide_shortcut) {
+                eprintln!("Failed to register Alt+H: {}", e);
+            }
 
             // Spawn windows for existing notes
             let notes = repo_for_setup.load_all().unwrap_or_default();
