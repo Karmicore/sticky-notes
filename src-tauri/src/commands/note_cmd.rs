@@ -1,10 +1,20 @@
 use std::sync::Arc;
 
+use serde::Serialize;
 use tauri::{AppHandle, Manager, State};
 
 use crate::app_core::note::Note;
 use crate::app_core::service::NoteService;
 use crate::commands::window_cmd::spawn_note_window;
+
+#[derive(Serialize)]
+pub struct NoteRect {
+    pub id: i32,
+    pub x: i32,
+    pub y: i32,
+    pub width: u32,
+    pub height: u32,
+}
 
 #[tauri::command]
 pub fn get_note(id: i32, svc: State<Arc<NoteService>>) -> Result<Note, String> {
@@ -49,4 +59,23 @@ pub async fn close_note_window(app: AppHandle, id: i32) -> Result<(), String> {
         window.close().map_err(|e| e.to_string())?;
     }
     Ok(())
+}
+
+#[tauri::command]
+pub fn get_all_notes_rect(
+    exclude_id: i32,
+    svc: State<Arc<NoteService>>,
+) -> Result<Vec<NoteRect>, String> {
+    let notes = svc.load_all_visible()?;
+    Ok(notes
+        .into_iter()
+        .filter(|n| n.id != exclude_id && !n.collapsed)
+        .map(|n| NoteRect {
+            id: n.id,
+            x: n.pos_x,
+            y: n.pos_y,
+            width: n.width,
+            height: n.height,
+        })
+        .collect())
 }

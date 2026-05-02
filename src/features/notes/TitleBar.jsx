@@ -1,9 +1,30 @@
 import { useRef, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { LogicalPosition } from "@tauri-apps/api/dpi";
 import styles from "./TitleBar.module.css";
 
 const appWindow = getCurrentWindow();
+const SNAP_THRESHOLD = 10;
+
+function snapAxis(val, size, targets) {
+  let best = null;
+  let bestDist = SNAP_THRESHOLD + 1;
+  const edges = [val, val + size / 2, val + size];
+  for (const t of targets) {
+    const tEdges = [t.pos, t.pos + t.size / 2, t.pos + t.size];
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        const dist = Math.abs(edges[i] - tEdges[j]);
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = tEdges[j] - [0, size / 2, size][i];
+        }
+      }
+    }
+  }
+  return best;
+}
 
 export default function TitleBar({ note, editingTitle, setEditingTitle, commitTitle, onClose, onMenuToggle, onCollapseToggle }) {
   const ref = useRef(null);
@@ -57,21 +78,30 @@ export default function TitleBar({ note, editingTitle, setEditingTitle, commitTi
 
     function onMouseUp() {
       mouseDown = false;
-      // Don't clear dragTimer — the timer callback checks mouseDown
-      // and won't start dragging if the button is already released.
-      // This keeps the timer alive for double-click detection.
     }
 
     function startNativeDrag(refScreenX, refScreenY) {
       dragActive = true;
-      appWindow.outerPosition().then((pos) => {
+      Promise.all([
+        appWindow.outerPosition(),
+        appWindow.innerSize(),
+        invoke("get_all_notes_rect", { excludeId: note.id }),
+      ]).then(([pos, size, rects]) => {
         startWinX = pos.x;
         startWinY = pos.y;
+        const xTargets = rects.map((r) => ({ pos: r.x, size: r.width }));
+        const yTargets = rects.map((r) => ({ pos: r.y, size: r.height }));
 
         function onMove(ev) {
           const dx = ev.screenX - refScreenX;
           const dy = ev.screenY - refScreenY;
-          appWindow.setPosition(new LogicalPosition(startWinX + dx, startWinY + dy));
+          let newX = startWinX + dx;
+          let newY = startWinY + dy;
+          const sx = snapAxis(newX, size.width, xTargets);
+          const sy = snapAxis(newY, size.height, yTargets);
+          if (sx !== null) newX = sx;
+          if (sy !== null) newY = sy;
+          appWindow.setPosition(new LogicalPosition(newX, newY));
         }
 
         function onUp() {
@@ -94,7 +124,7 @@ export default function TitleBar({ note, editingTitle, setEditingTitle, commitTi
       window.removeEventListener("mouseup", onMouseUp);
       clearTimeout(dragTimer);
     };
-  }, [onCollapseToggle]);
+  }, [onCollapseToggle, note.id]);
 
   return (
     <div className={styles.titleBar} ref={ref}>

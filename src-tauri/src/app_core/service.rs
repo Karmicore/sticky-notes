@@ -63,6 +63,10 @@ impl NoteService {
         Ok(note)
     }
 
+    pub fn load_all_visible(&self) -> Result<Vec<Note>, String> {
+        Ok(self.repo.load_all()?.into_iter().filter(|n| n.visible).collect())
+    }
+
     pub fn duplicate_note(&self, source_id: i32) -> Result<Note, String> {
         let source = self.get_note(source_id)?;
         let x = source.pos_x + 30;
