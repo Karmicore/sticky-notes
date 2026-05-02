@@ -32,7 +32,7 @@ export default function NoteWindow({ noteId, note, update, saveNow }) {
 
   const handleClose = useCallback(async () => {
     await saveNow();
-    appWindow.close();
+    appWindow.hide();
   }, [saveNow]);
 
   const changeFontSize = useCallback((delta) => {
