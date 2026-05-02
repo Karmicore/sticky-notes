@@ -9,11 +9,7 @@
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   user-select: none;
   flex-shrink: 0;
-  cursor: grab;
-}
-
-.titleBar:active {
-  cursor: grabbing;
+  cursor: default;
 }
 
 .titleBtn {

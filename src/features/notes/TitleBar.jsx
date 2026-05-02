@@ -12,61 +12,29 @@ export default function TitleBar({ note, editingTitle, setEditingTitle, commitTi
     if (!el) return;
 
     let dragTimer = null;
-    let dragStarted = false;
-    let mouseDownX = 0;
-    let mouseDownY = 0;
 
     function onMouseDown(e) {
       if (e.button !== 0) return;
       if (e.target.closest("button") || e.target.closest("input")) return;
 
       if (dragTimer) {
-        // Second click within window → collapse
+        // Second click → collapse/expand
         clearTimeout(dragTimer);
         dragTimer = null;
         onCollapseToggle();
         return;
       }
 
-      dragStarted = false;
-      mouseDownX = e.screenX;
-      mouseDownY = e.screenY;
-
-      // Start drag after timeout (if no move detected first)
+      // Single click → wait 300ms, then drag (double-click window)
       dragTimer = setTimeout(() => {
         dragTimer = null;
-        if (!dragStarted) {
-          dragStarted = true;
-          appWindow.startDragging();
-        }
+        appWindow.startDragging();
       }, 300);
     }
 
-    function onMouseMove(e) {
-      if (!dragTimer || dragStarted) return;
-      // Moved >3px → user wants to drag, start immediately
-      if (Math.abs(e.screenX - mouseDownX) > 3 || Math.abs(e.screenY - mouseDownY) > 3) {
-        clearTimeout(dragTimer);
-        dragTimer = null;
-        dragStarted = true;
-        appWindow.startDragging();
-      }
-    }
-
-    function onMouseUp() {
-      if (dragTimer) {
-        clearTimeout(dragTimer);
-        dragTimer = null;
-      }
-    }
-
     el.addEventListener("mousedown", onMouseDown);
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
     return () => {
       el.removeEventListener("mousedown", onMouseDown);
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
       clearTimeout(dragTimer);
     };
   }, [onCollapseToggle]);

@@ -1,29 +1,36 @@
 import { useRef, useCallback, useEffect } from "react";
 import styles from "./NoteEditor.module.css";
 
-const CHECKBOX_RE = /^- \[([ x])\] /;
+const CHECKBOX_RE = /^- \[([ \-x])\] /;
 const CHECKBOX_PREFIX = "- [ ] ";
+const CB_LEN = CHECKBOX_PREFIX.length;
+const CB_NEXT = { " ": "-", "-": "x", "x": " " };
 
 export default function NoteEditor({ note, update, insertCheckboxRef }) {
-  const textareaRef = useRef(null);
+  const taRef = useRef(null);
+  const ovRef = useRef(null);
+
+  const setAndPreserve = useCallback((val) => {
+    const ta = taRef.current;
+    if (!ta) return;
+    const s = ta.selectionStart;
+    const e = ta.selectionEnd;
+    update({ content: val });
+    requestAnimationFrame(() => { ta.selectionStart = s; ta.selectionEnd = e; });
+  }, [update]);
 
   const insertCheckbox = useCallback(() => {
-    const ta = textareaRef.current;
+    const ta = taRef.current;
     if (!ta) return;
-    const val = ta.value;
-    const pos = ta.selectionStart;
-    const lineStart = val.lastIndexOf("\n", pos - 1) + 1;
-    const lineEnd = val.indexOf("\n", pos);
-    const line = val.substring(lineStart, lineEnd === -1 ? val.length : lineEnd);
-
+    const v = ta.value;
+    const p = ta.selectionStart;
+    const ls = v.lastIndexOf("\n", p - 1) + 1;
+    const le = v.indexOf("\n", p);
+    const line = v.substring(ls, le === -1 ? v.length : le);
     if (CHECKBOX_RE.test(line)) return;
-
-    const newVal = val.substring(0, lineStart) + CHECKBOX_PREFIX + val.substring(lineStart);
-    update({ content: newVal });
-    requestAnimationFrame(() => {
-      ta.selectionStart = pos + CHECKBOX_PREFIX.length;
-      ta.selectionEnd = pos + CHECKBOX_PREFIX.length;
-    });
+    const nv = v.substring(0, ls) + CHECKBOX_PREFIX + v.substring(ls);
+    update({ content: nv });
+    requestAnimationFrame(() => { ta.selectionStart = p + CB_LEN; ta.selectionEnd = p + CB_LEN; });
   }, [update]);
 
   useEffect(() => {
@@ -33,48 +40,70 @@ export default function NoteEditor({ note, update, insertCheckboxRef }) {
   const handleKeyDown = useCallback((e) => {
     if (e.key !== "Enter") return;
     const ta = e.target;
-    const val = ta.value;
-    const pos = ta.selectionStart;
-    const lineStart = val.lastIndexOf("\n", pos - 1) + 1;
-    const line = val.substring(lineStart, pos);
-
-    const match = line.match(CHECKBOX_RE);
-    if (!match) return;
-
+    const v = ta.value;
+    const p = ta.selectionStart;
+    const ls = v.lastIndexOf("\n", p - 1) + 1;
+    const line = v.substring(ls, p);
+    const m = line.match(CHECKBOX_RE);
+    if (!m) return;
     e.preventDefault();
-    const textAfterCb = line.substring(CHECKBOX_PREFIX.length);
-
-    if (textAfterCb.length === 0) {
-      // empty checkbox → remove prefix, go to next line
-      const before = val.substring(0, lineStart);
-      const after = val.substring(pos);
-      update({ content: before + after });
-      requestAnimationFrame(() => {
-        ta.selectionStart = lineStart;
-        ta.selectionEnd = lineStart;
-      });
+    const rest = line.substring(CB_LEN);
+    if (rest.length === 0) {
+      update({ content: v.substring(0, ls) + v.substring(p) });
+      requestAnimationFrame(() => { ta.selectionStart = ls; ta.selectionEnd = ls; });
     } else {
-      // has content → insert new checkbox line
-      const insertion = "\n" + CHECKBOX_PREFIX;
-      const newVal = val.substring(0, pos) + insertion + val.substring(pos);
-      update({ content: newVal });
-      requestAnimationFrame(() => {
-        const newPos = pos + insertion.length;
-        ta.selectionStart = newPos;
-        ta.selectionEnd = newPos;
-      });
+      const ins = "\n" + CHECKBOX_PREFIX;
+      update({ content: v.substring(0, p) + ins + v.substring(p) });
+      requestAnimationFrame(() => { ta.selectionStart = p + ins.length; ta.selectionEnd = p + ins.length; });
     }
   }, [update]);
 
+  const toggleCb = useCallback((idx) => {
+    const lines = note.content.split("\n");
+    const line = lines[idx];
+    if (!line) return;
+    const cur = line[3];
+    const next = CB_NEXT[cur] || " ";
+    lines[idx] = line.substring(0, 3) + next + line.substring(4);
+    setAndPreserve(lines.join("\n"));
+  }, [note.content, setAndPreserve]);
+
+  const handleScroll = useCallback(() => {
+    if (ovRef.current && taRef.current) ovRef.current.scrollTop = taRef.current.scrollTop;
+  }, []);
+
+  const lines = note.content.split("\n");
+
   return (
-    <textarea
-      ref={textareaRef}
-      className={styles.textContent}
-      value={note.content}
-      placeholder="输入内容..."
-      readOnly={note.locked}
-      onChange={(e) => !note.locked && update({ content: e.target.value })}
-      onKeyDown={handleKeyDown}
-    />
+    <div className={styles.editor}>
+      <textarea
+        ref={taRef}
+        className={styles.textarea}
+        value={note.content}
+        placeholder="输入内容..."
+        readOnly={note.locked}
+        spellCheck={false}
+        onChange={(e) => !note.locked && update({ content: e.target.value })}
+        onKeyDown={handleKeyDown}
+        onScroll={handleScroll}
+      />
+      <div ref={ovRef} className={styles.overlay}>
+        {lines.map((line, i) => {
+          const m = line.match(CHECKBOX_RE);
+          if (m) {
+            const st = m[1];
+            const icon = st === "x" ? "☑" : st === "-" ? "◫" : "☐";
+            const strike = st !== " ";
+            return (
+              <div key={i} className={styles.cbLine}>
+                <span className={styles.cb} onClick={() => !note.locked && toggleCb(i)}>{icon}</span>
+                <span className={strike ? styles.done : undefined}>{line.substring(CB_LEN) || " "}</span>
+              </div>
+            );
+          }
+          return <div key={i} className={styles.line}>{line || " "}</div>;
+        })}
+      </div>
+    </div>
   );
 }

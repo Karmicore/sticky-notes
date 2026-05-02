@@ -1,11 +1,18 @@
-.textContent {
+.editor {
+  position: relative;
   flex: 1;
   min-height: 0;
+}
+
+.textarea {
+  width: 100%;
+  height: 100%;
   background: rgba(255, 255, 255, 0.45);
   border: none;
   padding: 6px 8px;
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-  color: #222;
+  color: transparent;
+  caret-color: #222;
   resize: none;
   outline: none;
   line-height: 1.5;
@@ -15,29 +22,69 @@
   scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }
 
-.textContent::-webkit-scrollbar {
+.textarea::-webkit-scrollbar {
   width: 1px;
 }
 
-.textContent::-webkit-scrollbar-track {
+.textarea::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.textContent::-webkit-scrollbar-thumb {
+.textarea::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.15);
   border-radius: 2px;
 }
 
-.textContent::-webkit-scrollbar-thumb:hover {
+.textarea::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.3);
 }
 
-.textContent::placeholder {
+.textarea::placeholder {
   color: #999;
   font-style: italic;
 }
 
-.textContent:read-only {
+.textarea:read-only {
   cursor: default;
   background: rgba(255, 255, 255, 0.25);
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 6px 8px;
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #222;
+  pointer-events: none;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.line {
+  min-height: 1.5em;
+}
+
+.cbLine {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-height: 1.5em;
+}
+
+.cb {
+  pointer-events: auto;
+  cursor: pointer;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.done {
+  text-decoration: line-through;
+  opacity: 0.5;
 }
