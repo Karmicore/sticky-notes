@@ -79,6 +79,8 @@ pub fn run() {
             commands::window_cmd::show_all_notes,
             commands::window_cmd::hide_all_notes,
             commands::window_cmd::toggle_note_collapsed,
+            commands::window_cmd::collapse_all_notes,
+            commands::window_cmd::expand_all_notes,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -139,6 +139,24 @@ pub fn expand_all_note_windows(app: &AppHandle, svc: &NoteService) {
 }
 
 #[tauri::command]
+pub fn collapse_all_notes(
+    app: AppHandle,
+    svc: State<'_, Arc<NoteService>>,
+) -> Result<(), String> {
+    collapse_all_note_windows(&app, &svc);
+    Ok(())
+}
+
+#[tauri::command]
+pub fn expand_all_notes(
+    app: AppHandle,
+    svc: State<'_, Arc<NoteService>>,
+) -> Result<(), String> {
+    expand_all_note_windows(&app, &svc);
+    Ok(())
+}
+
+#[tauri::command]
 pub fn toggle_note_collapsed(
     app: AppHandle,
     note_id: i32,
