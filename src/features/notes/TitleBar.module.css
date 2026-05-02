@@ -1,4 +1,5 @@
 .titleBar {
+  position: relative;
   display: flex;
   align-items: center;
   height: 28px;
@@ -52,7 +53,9 @@
 }
 
 .titleText {
-  flex: 1;
+  position: absolute;
+  left: 30px;
+  right: 30px;
   text-align: center;
   font-size: 17px;
   font-weight: 600;
@@ -61,12 +64,14 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: default;
-  padding: 0 2px;
   line-height: 28px;
+  pointer-events: none;
 }
 
 .titleInput {
-  flex: 1;
+  position: absolute;
+  left: 30px;
+  right: 30px;
   border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 2px;
   padding: 1px 4px;
@@ -77,6 +82,8 @@
   outline: none;
   text-align: center;
   cursor: text;
+  height: 22px;
+  top: 3px;
 }
 
 .titleActions {
