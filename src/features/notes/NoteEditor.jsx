@@ -93,14 +93,15 @@ export default function NoteEditor({ note, update, insertCheckboxRef }) {
           const m = line.match(CHECKBOX_RE);
           if (m) {
             const st = m[1];
-            const icon = st === "x" ? "☑" : st === "-" ? "◫" : "☐";
-            const strike = st !== " ";
+            const icon = st === "x" ? "☑" : st === "-" ? "⊟" : "☐";
+            const cls = st === "x" ? styles.cbDone : st === "-" ? styles.cbProgress : "";
             const text = line.substring(CB_LEN);
             return (
               <div key={i} className={styles.cbLine}>
                 <span className={styles.cbPrefix}>{line.substring(0, CB_LEN)}</span>
-                <span className={strike ? styles.done : undefined}>{text || NBSP}</span>
-                <span className={styles.cbIcon} onClick={() => !note.locked && toggleCb(i)}>{icon}</span>
+                <span>{text || NBSP}</span>
+                <span className={`${styles.cbIcon}${cls ? " " + cls : ""}`}
+                  onClick={() => !note.locked && toggleCb(i)}>{icon}</span>
               </div>
             );
           }
