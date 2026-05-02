@@ -15,6 +15,15 @@ export function useWindowLifecycle(noteId, saveNow, update) {
     return () => { unlisten.then((fn) => fn()); };
   }, [noteId, update, appWindow]);
 
+  // Sync window size to note state (for duplicate & save)
+  useEffect(() => {
+    if (noteId === null) return;
+    const unlisten = appWindow.onResized(({ payload: size }) => {
+      update({ width: size.width, height: size.height });
+    });
+    return () => { unlisten.then((fn) => fn()); };
+  }, [noteId, update, appWindow]);
+
   // Save on tray quit
   useEffect(() => {
     if (noteId === null) return;
