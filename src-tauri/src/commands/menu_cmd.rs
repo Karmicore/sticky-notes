@@ -41,7 +41,8 @@ pub fn open_context_menu(
         opacity: note.opacity,
     };
     let note_json = serde_json::to_string(&menu_data).unwrap_or_default();
-    let url = format!("menu.html#menu/{}/{}", note_id, note_json);
+    let encoded = urlencoding::encode(&note_json);
+    let url = format!("menu.html#menu/{}/{}", note_id, encoded);
 
     WebviewWindowBuilder::new(&app, &label, tauri::WebviewUrl::App(url.into()))
         .title("")

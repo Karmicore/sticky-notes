@@ -60,16 +60,19 @@ export default function NoteWindow({ noteId, note, update, saveNow }) {
     onPin: handlePin,
   }), [noteId, update, changeFontSize, changeOpacity, handleDelete, handlePin]);
 
+  const getCtxRef = useRef(getCtx);
+  getCtxRef.current = getCtx;
+
   useKeyboard(getCtx);
 
   useEffect(() => {
     const unlisten = listen("menu-action", (event) => {
       const { cmdId, arg } = event.payload;
       const cmd = commands[cmdId];
-      if (cmd) cmd.run(getCtx(), arg);
+      if (cmd) cmd.run(getCtxRef.current(), arg);
     });
     return () => { unlisten.then((fn) => fn()); };
-  }, [getCtx]);
+  }, []);
 
   function commitTitle(value) {
     const t = value.trim();

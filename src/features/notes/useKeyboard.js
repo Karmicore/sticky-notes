@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { commands, keyMap } from "../../commands";
 
 function matchKey(e) {
@@ -20,6 +20,9 @@ function matchKey(e) {
 }
 
 export function useKeyboard(getCtx) {
+  const ref = useRef(getCtx);
+  ref.current = getCtx;
+
   useEffect(() => {
     function onKey(e) {
       const cmdId = matchKey(e);
@@ -27,10 +30,10 @@ export function useKeyboard(getCtx) {
       const cmd = commands[cmdId];
       if (!cmd) return;
       e.preventDefault();
-      cmd.run(getCtx());
+      cmd.run(ref.current());
     }
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [getCtx]);
+  }, []);
 }

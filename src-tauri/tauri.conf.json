@@ -10,15 +10,7 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "windows": [
-      {
-        "label": "main",
-        "visible": false,
-        "skipTaskbar": true,
-        "width": 1,
-        "height": 1
-      }
-    ],
+    "windows": [],
     "security": {
       "csp": null
     }

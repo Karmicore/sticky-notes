@@ -9,11 +9,17 @@ const appWindow = getCurrentWindow();
 
 function parseHash() {
   const hash = window.location.hash.slice(1);
-  const parts = hash.split("/");
-  if (parts[0] !== "menu") return null;
-  const noteId = parseInt(parts[1], 10);
+  const slashIdx = hash.indexOf("/");
+  if (slashIdx === -1) return null;
+  const prefix = hash.slice(0, slashIdx);
+  if (prefix !== "menu") return null;
+  const rest = hash.slice(slashIdx + 1);
+  const slash2 = rest.indexOf("/");
+  if (slash2 === -1) return null;
+  const noteId = parseInt(rest.slice(0, slash2), 10);
+  if (isNaN(noteId)) return null;
   try {
-    const note = JSON.parse(parts.slice(2).join("/"));
+    const note = JSON.parse(decodeURIComponent(rest.slice(slash2 + 1)));
     return { noteId, note };
   } catch {
     return null;
