@@ -1,4 +1,5 @@
 import { useRef, useCallback, useEffect } from "react";
+import confetti from "canvas-confetti";
 import styles from "./NoteEditor.module.css";
 
 const CHECKBOX_RE = /^- \[([ \-x])\] /;
@@ -66,6 +67,9 @@ export default function NoteEditor({ note, update, insertCheckboxRef }) {
     const cur = line[3];
     const next = CB_NEXT[cur] || " ";
     lines[idx] = line.substring(0, 3) + next + line.substring(4);
+    if (next === "x") {
+      confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+    }
     setAndPreserve(lines.join("\n"));
   }, [note.content, setAndPreserve]);
 
