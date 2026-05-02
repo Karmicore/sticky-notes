@@ -49,10 +49,6 @@
   background: rgba(255, 255, 255, 0.25);
 }
 
-.textarea::selection {
-  background: transparent;
-}
-
 .overlay {
   position: absolute;
   top: 0;
@@ -72,11 +68,6 @@
 
 .line {
   min-height: 1.5em;
-}
-
-.selHighlight {
-  background: rgba(51, 133, 255, 0.3);
-  border-radius: 1px;
 }
 
 .cbLine {

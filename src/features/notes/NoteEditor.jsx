@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useState } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import confetti from "canvas-confetti";
 import styles from "./NoteEditor.module.css";
 
@@ -11,7 +11,6 @@ const NBSP = " ";
 export default function NoteEditor({ note, update, insertCheckboxRef }) {
   const taRef = useRef(null);
   const ovRef = useRef(null);
-  const [sel, setSel] = useState({ start: 0, end: 0 });
 
   const setAndPreserve = useCallback((val) => {
     const ta = taRef.current;
@@ -80,18 +79,6 @@ export default function NoteEditor({ note, update, insertCheckboxRef }) {
 
   const lines = note.content.split("\n");
 
-  function renderSel(text, lineStart) {
-    const s = Math.max(0, sel.start - lineStart);
-    const e = Math.min(text.length, sel.end - lineStart);
-    if (s >= e || (s === 0 && e === 0)) return text;
-    const before = text.substring(0, s);
-    const selected = text.substring(s, e);
-    const after = text.substring(e);
-    return <>{before}<span className={styles.selHighlight}>{selected}</span>{after}</>;
-  }
-
-  let offset = 0;
-
   return (
     <div className={styles.editor}>
       <textarea
@@ -104,16 +91,9 @@ export default function NoteEditor({ note, update, insertCheckboxRef }) {
         onChange={(e) => !note.locked && update({ content: e.target.value })}
         onKeyDown={handleKeyDown}
         onScroll={handleScroll}
-        onSelect={(e) => {
-          const s = e.target.selectionStart;
-          const en = e.target.selectionEnd;
-          setSel((prev) => prev.start === s && prev.end === en ? prev : { start: s, end: en });
-        }}
       />
       <div ref={ovRef} className={styles.overlay}>
         {lines.map((line, i) => {
-          const lineStart = offset;
-          offset += line.length + 1; // +1 for \n
           const m = line.match(CHECKBOX_RE);
           if (m) {
             const st = m[1];
@@ -122,13 +102,13 @@ export default function NoteEditor({ note, update, insertCheckboxRef }) {
             return (
               <div key={i} className={styles.cbLine}>
                 <span className={styles.cbPrefix}>{line.substring(0, CB_LEN)}</span>
-                <span>{text ? renderSel(text, lineStart + CB_LEN) : NBSP}</span>
+                <span>{text || NBSP}</span>
                 <span className={`${styles.cbBox}${cls ? " " + cls : ""}`}
                   onClick={() => !note.locked && toggleCb(i)} />
               </div>
             );
           }
-          return <div key={i} className={styles.line}>{line ? renderSel(line, lineStart) : NBSP}</div>;
+          return <div key={i} className={styles.line}>{line || NBSP}</div>;
         })}
       </div>
     </div>
