@@ -87,7 +87,7 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
   }, []);
 
   const lines = note.content.split("\n");
-  const { lineHeights } = useMemo(
+  const lineHeights = useMemo(
     () => measureVisualLines(lines, note.fontSize, taWidth),
     [lines, note.fontSize, taWidth]
   );

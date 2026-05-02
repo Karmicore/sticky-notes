@@ -1,53 +1,56 @@
 /**
- * Measure how many visual lines each logical line occupies in a word-wrapping context.
- * Uses canvas to approximate the browser's text layout.
+ * Measure how many visual lines each logical line occupies using the browser's
+ * own text layout engine (hidden div + character spans).
  *
  * @param {string[]} lines - logical lines (split by \n)
  * @param {number} fontSize - current font size in px
- * @param {number} contentWidth - textarea inner content width in px
- * @param {string} [fontFamily] - CSS font-family string
- * @returns {{ charWidths: number[][], lineHeights: number[] }}
- *   charWidths[i] = pixel width of each character in logical line i
- *   lineHeights[i] = total visual height in px for logical line i
+ * @param {number} contentWidth - textarea inner content width in px (clientWidth - padding)
+ * @returns {number[]} lineHeights[i] = total visual height in px for logical line i
  */
-export function measureVisualLines(lines, fontSize, contentWidth, fontFamily = '"Segoe UI", "Microsoft YaHei", sans-serif') {
-  if (!contentWidth || contentWidth <= 0) {
-    const lh = fontSize * 1.5;
-    return { charWidths: lines.map(() => []), lineHeights: lines.map(() => lh) };
-  }
-
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  ctx.font = `${fontSize}px ${fontFamily}`;
-
-  const charWidths = [];
-  const lineHeights = [];
+export function measureVisualLines(lines, fontSize, contentWidth) {
   const lineHeight = fontSize * 1.5;
 
-  for (const line of lines) {
-    if (line.length === 0) {
-      charWidths.push([]);
-      lineHeights.push(lineHeight);
-      continue;
-    }
+  if (!contentWidth || contentWidth <= 0) {
+    return lines.map(() => lineHeight);
+  }
 
-    const widths = new Array(line.length);
-    let acc = 0;
-    let visualLines = 1;
+  const el = document.createElement("div");
+  el.style.cssText =
+    "position:absolute;visibility:hidden;pointer-events:none;" +
+    "word-break:break-all;white-space:pre-wrap;overflow-wrap:break-word;" +
+    `font-size:${fontSize}px;font-family:"Segoe UI","Microsoft YaHei",sans-serif;` +
+    `line-height:1.5;padding:0;margin:0;border:0;` +
+    `width:${contentWidth}px;`;
 
+  document.body.appendChild(el);
+
+  const lineHeights = lines.map((line) => {
+    if (line.length === 0) return lineHeight;
+
+    el.textContent = "";
+    const frag = document.createDocumentFragment();
     for (let i = 0; i < line.length; i++) {
-      const w = ctx.measureText(line[i]).width;
-      widths[i] = w;
-      acc += w;
-      if (acc > contentWidth) {
+      const span = document.createElement("span");
+      span.textContent = line[i];
+      frag.appendChild(span);
+    }
+    el.appendChild(frag);
+
+    const spans = el.children;
+    let visualLines = 1;
+    let prevTop = spans[0].offsetTop;
+
+    for (let i = 1; i < spans.length; i++) {
+      const top = spans[i].offsetTop;
+      if (top > prevTop) {
         visualLines++;
-        acc = w;
+        prevTop = top;
       }
     }
 
-    charWidths.push(widths);
-    lineHeights.push(visualLines * lineHeight);
-  }
+    return visualLines * lineHeight;
+  });
 
-  return { charWidths, lineHeights };
+  document.body.removeChild(el);
+  return lineHeights;
 }
