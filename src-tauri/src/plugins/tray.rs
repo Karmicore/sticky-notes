@@ -65,7 +65,13 @@ impl TrayPlugin {
                         }
                     }
                 }
-                "new" => { app.emit("create-note", ()).ok(); }
+                "new" => {
+                    if let Some(svc) = app.try_state::<Arc<NoteService>>() {
+                        if let Ok(note) = svc.create_note("便签") {
+                            window_cmd::spawn_note_window(app, &note).ok();
+                        }
+                    }
+                }
                 "quit" => { app.emit("quit-app", ()).ok(); }
                 _ => {}
             })

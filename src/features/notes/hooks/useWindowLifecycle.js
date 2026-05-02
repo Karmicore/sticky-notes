@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
@@ -53,12 +52,4 @@ export function useWindowLifecycle(noteId, saveNow, update) {
     });
     return () => { unlisten.then((fn) => fn()); };
   }, [noteId, saveNow]);
-
-  // Tray "新建便签" event
-  useEffect(() => {
-    const unlisten = listen("create-note", () => {
-      invoke("create_note_window").catch(console.error);
-    });
-    return () => { unlisten.then((fn) => fn()); };
-  }, []);
 }
