@@ -81,7 +81,7 @@ export default function NoteWindow({ noteId, note, update, saveNow }) {
   }
 
   return (
-    <div className={styles.noteWindow} style={{ backgroundColor: note.color, opacity: note.opacity, filter: focused ? "none" : "brightness(0.75)" }}>
+    <div className={styles.noteWindow} style={{ backgroundColor: note.color, opacity: note.opacity, filter: focused ? "none" : "brightness(0.93)" }}>
       <TitleBar note={note} editingTitle={editingTitle} setEditingTitle={setEditingTitle}
         commitTitle={commitTitle} onClose={handleClose} onMenuToggle={handleMenuToggle} />
       <NoteEditor note={note} update={update} />
