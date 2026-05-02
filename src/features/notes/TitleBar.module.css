@@ -54,8 +54,8 @@
 
 .titleText {
   position: absolute;
-  left: 30px;
-  right: 30px;
+  left: 3px;
+  right: 54px;
   text-align: center;
   font-size: 17px;
   font-weight: 600;
@@ -70,8 +70,8 @@
 
 .titleInput {
   position: absolute;
-  left: 30px;
-  right: 30px;
+  left: 3px;
+  right: 54px;
   border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 2px;
   padding: 1px 4px;

@@ -25,7 +25,6 @@ export default function TitleBar({ note, editingTitle, setEditingTitle, commitTi
 
   return (
     <div className={styles.titleBar} ref={ref}>
-      <button className={`${styles.titleBtn} ${styles.menuBtn}`} onClick={(e) => onMenuToggle(e)}>⋮</button>
       {editingTitle ? (
         <input className={styles.titleInput} type="text" defaultValue={note.title} autoFocus
           onBlur={(e) => commitTitle(e.target.value)}
@@ -37,6 +36,7 @@ export default function TitleBar({ note, editingTitle, setEditingTitle, commitTi
         <span className={styles.titleText} onDoubleClick={() => setEditingTitle(true)}>{note.title}</span>
       )}
       <div className={styles.titleActions}>
+        <button className={`${styles.titleBtn} ${styles.menuBtn}`} onClick={(e) => onMenuToggle(e)}>⋮</button>
         <button className={`${styles.titleBtn} ${styles.closeBtn}`} onClick={onClose}>×</button>
       </div>
     </div>
