@@ -16,7 +16,6 @@
   resize: none;
   outline: none;
   line-height: 1.5;
-  font-size: 13px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
@@ -66,7 +65,6 @@
   bottom: 0;
   padding: 6px 8px;
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-  font-size: 13px;
   line-height: 1.5;
   color: #222;
   pointer-events: none;

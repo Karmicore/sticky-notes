@@ -95,11 +95,11 @@ pub fn collapse_all_note_windows(app: &AppHandle, svc: &NoteService) {
             Ok(s) => s,
             Err(_) => continue,
         };
-        note.expanded_width = current.width.max(180);
-        note.expanded_height = current.height.max(160);
+        note.expanded_width = current.width;
+        note.expanded_height = current.height;
         window
             .set_size(Size::Physical(tauri::PhysicalSize::new(
-                note.expanded_width,
+                current.width,
                 COLLAPSED_HEIGHT,
             )))
             .ok();
@@ -186,16 +186,16 @@ pub fn toggle_note_collapsed(
     } else {
         // Collapse: save actual window dimensions, shrink to title bar
         let current = window.inner_size().map_err(|e| e.to_string())?;
-        note.expanded_width = current.width.max(180);
-        note.expanded_height = current.height.max(160);
+        note.expanded_width = current.width;
+        note.expanded_height = current.height;
         window
             .set_size(Size::Physical(tauri::PhysicalSize::new(
-                note.expanded_width,
+                current.width,
                 COLLAPSED_HEIGHT,
             )))
             .map_err(|e| e.to_string())?;
         note.collapsed = true;
-        note.width = note.expanded_width;
+        note.width = current.width;
         note.height = COLLAPSED_HEIGHT;
     }
 

@@ -80,6 +80,7 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
       <textarea
         ref={taRef}
         className={styles.textarea}
+        style={{ fontSize: note.fontSize }}
         value={note.content}
         placeholder="输入内容..."
         readOnly={note.locked}
@@ -88,7 +89,7 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
         onKeyDown={handleKeyDown}
         onScroll={handleScroll}
       />
-      <div ref={ovRef} className={styles.overlay}>
+      <div ref={ovRef} className={styles.overlay} style={{ fontSize: note.fontSize }}>
         {lines.map((line, i) => {
           const m = line.match(CHECKBOX_RE);
           if (m) {
