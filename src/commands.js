@@ -33,17 +33,17 @@ export const commands = {
   },
   "window.show_all": {
     label: "显示全部",
-    shortcut: "Ctrl+Shift+S",
+    shortcut: "Alt+S",
     run: () => invoke("show_all_notes"),
   },
   "window.hide_all": {
     label: "隐藏全部",
-    shortcut: "Ctrl+Shift+H",
+    shortcut: "Alt+H",
     run: () => invoke("hide_all_notes"),
   },
   "note.pin": {
     label: "始终置顶",
-    shortcut: "",
+    shortcut: "Alt+T",
     run: (ctx) => ctx.onPin(),
     toggle: (ctx) => ctx.note.isAlwaysOnTop,
   },
@@ -125,6 +125,7 @@ export const keyMap = {
   "ctrl+minus":            "font.down",
   "ctrl+numpadsubtract":   "font.down",
   "f2":                    "note.rename",
-  "ctrl+shift+keyh":       "window.hide_all",
-  "ctrl+shift+keys":       "window.show_all",
+  "alt+s":                 "window.show_all",
+  "alt+h":                 "window.hide_all",
+  "alt+t":                 "note.pin",
 };

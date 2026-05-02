@@ -4,6 +4,7 @@ import { commands, keyMap } from "../../commands";
 function matchKey(e) {
   const parts = [];
   if (e.ctrlKey || e.metaKey) parts.push("ctrl");
+  if (e.altKey) parts.push("alt");
   if (e.shiftKey) parts.push("shift");
   parts.push(e.code.toLowerCase());
   const combo = parts.join("+");
