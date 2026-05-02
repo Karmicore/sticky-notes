@@ -27,11 +27,30 @@ pub fn run() {
     // ── Build Tauri app ──
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_global_shortcut::init())
         .manage(service)
         .setup(move |app| {
             let handle = app.handle().clone();
 
             tray.build(&handle).expect("tray build failed");
+
+            // Global shortcuts: Alt+S → show all, Alt+H → hide all
+            use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut};
+            let show_shortcut = Shortcut::new(Some(Modifiers::ALT), Code::KeyS);
+            let hide_shortcut = Shortcut::new(Some(Modifiers::ALT), Code::KeyH);
+            handle.plugin(
+                tauri_plugin_global_shortcut::Builder::new()
+                    .with_handler(move |_app, shortcut, _event| {
+                        if shortcut == &show_shortcut {
+                            window_cmd::show_all_note_windows(&_app.app_handle());
+                        } else if shortcut == &hide_shortcut {
+                            window_cmd::hide_all_note_windows(&_app.app_handle());
+                        }
+                    })
+                    .build(),
+            )?;
+            handle.global_shortcut().register(show_shortcut)?;
+            handle.global_shortcut().register(hide_shortcut)?;
 
             // Spawn windows for existing notes
             let notes = repo_for_setup.load_all().unwrap_or_default();

@@ -34,7 +34,7 @@ export const commands = {
   "window.show_all": {
     label: "显示全部",
     shortcut: "Alt+S",
-    run: () => { console.log("[cmd] show_all_notes"); invoke("show_all_notes").then(() => console.log("[cmd] show_all_notes OK")).catch(console.error); },
+    run: () => invoke("show_all_notes").catch(console.error),
   },
   "window.hide_all": {
     label: "隐藏全部",
@@ -125,8 +125,6 @@ export const keyMap = {
   "ctrl+minus":            "font.down",
   "ctrl+numpadsubtract":   "font.down",
   "f2":                    "note.rename",
-  "alt+s":                 "window.show_all",
-  "alt+h":                 "window.hide_all",
   "alt+t":                 "note.pin",
   "alt+delete":            "note.delete",
   "alt+f4":                "note.hide",

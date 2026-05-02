@@ -8,13 +8,8 @@ use crate::app_core::note::Note;
 pub fn show_all_note_windows(app: &AppHandle) {
     for (label, window) in app.webview_windows() {
         if label.starts_with("note-") {
-            println!("[show_all] showing {}", label);
-            if let Err(e) = window.show() {
-                eprintln!("[show_all] show {} error: {}", label, e);
-            }
-            if let Err(e) = window.set_focus() {
-                eprintln!("[show_all] focus {} error: {}", label, e);
-            }
+            window.show().ok();
+            window.set_focus().ok();
         }
     }
 }
