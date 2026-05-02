@@ -1,4 +1,4 @@
-import { MenuItem, IconMenuItem, Submenu, PredefinedMenuItem } from "@tauri-apps/api/menu";
+import { MenuItem, CheckMenuItem, IconMenuItem, Submenu, PredefinedMenuItem } from "@tauri-apps/api/menu";
 import { Image } from "@tauri-apps/api/image";
 import { LogicalPosition } from "@tauri-apps/api/dpi";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -62,15 +62,26 @@ async function buildMenuItems(ctx) {
 
     const isToggle = cmd.toggle ? cmd.toggle(ctx) : undefined;
 
-    items.push(
-      await MenuItem.new({
-        id: entry.id,
-        text: cmd.label,
-        checked: isToggle !== undefined ? isToggle : undefined,
-        accelerator: cmd.shortcut || undefined,
-        action: () => cmd.run(ctx),
-      })
-    );
+    if (isToggle !== undefined) {
+      items.push(
+        await CheckMenuItem.new({
+          id: entry.id,
+          text: cmd.label,
+          checked: isToggle,
+          accelerator: cmd.shortcut || undefined,
+          action: () => cmd.run(ctx),
+        })
+      );
+    } else {
+      items.push(
+        await MenuItem.new({
+          id: entry.id,
+          text: cmd.label,
+          accelerator: cmd.shortcut || undefined,
+          action: () => cmd.run(ctx),
+        })
+      );
+    }
   }
 
   return items;
