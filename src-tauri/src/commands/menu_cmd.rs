@@ -1,5 +1,5 @@
 use serde::Serialize;
-use tauri::{Manager, WebviewWindow};
+use tauri::Manager;
 use tauri::webview::WebviewWindowBuilder;
 
 use crate::app_core::note::Note;
@@ -20,7 +20,6 @@ struct MenuNoteData {
 #[tauri::command]
 pub fn open_context_menu(
     app: tauri::AppHandle,
-    window: WebviewWindow,
     x: f64,
     y: f64,
     note_id: i32,
@@ -50,10 +49,9 @@ pub fn open_context_menu(
         .position(x, y)
         .decorations(false)
         .resizable(false)
-        .parent(&window).map_err(|e| e.to_string())?
+        .always_on_top(true)
         .skip_taskbar(true)
         .focused(true)
-        .transparent(true)
         .build()
         .map_err(|e| e.to_string())?;
 

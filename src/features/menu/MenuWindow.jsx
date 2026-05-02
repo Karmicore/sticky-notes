@@ -31,6 +31,14 @@ export default function MenuWindow() {
   const [sub, setSub] = useState(null);
   const ref = useRef(null);
 
+  // DEBUG: show parseHash result directly on screen
+  if (!data) {
+    return <div style={{color:"white",padding:10,fontSize:12,background:"#2b2b2b",width:"100%",height:"100%"}}>
+      DEBUG: parseHash returned null<br/>
+      hash: {window.location.hash}
+    </div>;
+  }
+
   // Close when note window loses focus
   useEffect(() => {
     const unlisten = appWindow.onFocusChanged(({ payload: focused }) => {
