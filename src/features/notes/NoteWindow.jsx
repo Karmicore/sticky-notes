@@ -1,11 +1,11 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { useKeyboard } from "./useKeyboard";
+import { useKeyboard } from "./hooks/useKeyboard";
 import TitleBar from "./TitleBar";
 import NoteEditor from "./NoteEditor";
-import { popupNativeMenu } from "../../core/menu/nativeMenuClient";
-import styles from "./NoteWindow.module.css";
+import { popupNativeMenu } from "../../lib/nativeMenu";
+import styles from "./styles/NoteWindow.module.css";
 
 const appWindow = getCurrentWindow();
 

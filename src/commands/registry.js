@@ -1,8 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 
-// ── Command Registry ──
-// Single source of truth for all commands, keyboard shortcuts, and menu structure.
-// To add a command: add one entry here, then add its id to menuStructure below.
+// Single source of truth for all commands.
+// To add a command: add one entry here, then add its id to menuStructure in menu.js.
 
 export const commands = {
   "note.checkbox": {
@@ -99,50 +98,4 @@ export const commands = {
     run: (ctx, color) => ctx.update({ color }),
     submenu: true,
   },
-};
-
-// ── Menu Structure ──
-// Declarative layout: command IDs, separators, submenus.
-// MenuWindow renders from this; add/remove/reorder items here only.
-
-export const menuStructure = [
-  { id: "note.new" },
-  { id: "window.show_all" },
-  { id: "window.hide_all" },
-  "separator",
-  { id: "note.duplicate" },
-  { id: "note.rename" },
-  "separator",
-  { id: "note.delete" },
-  { id: "note.hide" },
-  "separator",
-  { id: "note.pin" },
-  { id: "note.lock" },
-  { id: "note.collapse.toggle" },
-  "separator",
-  { id: "note.checkbox" },
-  { id: "font.up" },
-  { id: "font.down" },
-  { id: "opacity.set", submenu: "op" },
-  { id: "color.set", submenu: "co" },
-];
-
-// ── Keyboard Map ──
-// Key combos use KeyboardEvent.code format (lowercase).
-
-export const keyMap = {
-  "ctrl+digit1":           "note.checkbox",
-  "ctrl+n":                "note.new",
-  "ctrl+d":                "note.duplicate",
-  "ctrl+l":                "note.lock",
-  "ctrl+shift+arrowup":    "opacity.up",
-  "ctrl+shift+arrowdown":  "opacity.down",
-  "ctrl+equal":            "font.up",
-  "ctrl+numpadadd":        "font.up",
-  "ctrl+minus":            "font.down",
-  "ctrl+numpadsubtract":   "font.down",
-  "f2":                    "note.rename",
-  "alt+t":                 "note.pin",
-  "alt+delete":            "note.delete",
-  "alt+f4":                "note.hide",
 };

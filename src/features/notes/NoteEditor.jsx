@@ -1,6 +1,6 @@
 import { useRef, useCallback, useEffect } from "react";
 import confetti from "canvas-confetti";
-import styles from "./NoteEditor.module.css";
+import styles from "./styles/NoteEditor.module.css";
 
 const CHECKBOX_RE = /^- \[([ \-x])\] /;
 const CHECKBOX_PREFIX = "- [ ] ";

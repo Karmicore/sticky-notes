@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import { commands, keyMap } from "../../commands";
+import { commands } from "../../../commands/registry";
+import { keyMap } from "../../../commands/keys";
 
 function normalizeCode(code) {
   // "KeyN" → "n", "ArrowUp" → "arrowup", "Equal" → "equal"

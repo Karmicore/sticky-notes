@@ -2,8 +2,9 @@ import { MenuItem, CheckMenuItem, IconMenuItem, Submenu, PredefinedMenuItem } fr
 import { Image } from "@tauri-apps/api/image";
 import { LogicalPosition } from "@tauri-apps/api/dpi";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { commands, menuStructure } from "../../commands";
-import { COLORS, OPACITIES } from "../../constants";
+import { commands } from "../commands/registry";
+import { menuStructure } from "../commands/menu";
+import { COLORS, OPACITIES } from "../constants";
 
 const SIZE = 16;
 const colorIconCache = new Map();

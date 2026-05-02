@@ -4,8 +4,8 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
-import { useNote, useAutoSave } from "./features/notes/useNote";
-import { useWindowLifecycle } from "./features/notes/useWindowLifecycle";
+import { useNote, useAutoSave } from "./features/notes/hooks/useNote";
+import { useWindowLifecycle } from "./features/notes/hooks/useWindowLifecycle";
 import NoteWindow from "./features/notes/NoteWindow";
 
 function getNoteId() {
