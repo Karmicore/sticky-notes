@@ -83,7 +83,9 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
   }, [note.content, setAndPreserve]);
 
   const handleScroll = useCallback(() => {
-    if (ovRef.current && taRef.current) ovRef.current.scrollTop = taRef.current.scrollTop;
+    if (ovRef.current && taRef.current) {
+      ovRef.current.scrollTop = taRef.current.scrollTop;
+    }
   }, []);
 
   const lines = note.content.split("\n");
@@ -91,6 +93,12 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
     () => measureVisualLines(lines, note.fontSize, taWidth),
     [lines, note.fontSize, taWidth]
   );
+
+  // Total content height for scroll sync (text height + top/bottom padding)
+  const totalHeight = useMemo(() => {
+    const textH = lineHeights.reduce((s, h) => s + h, 0);
+    return textH + 12; // 6px padding top + 6px padding bottom
+  }, [lineHeights]);
 
   // Compute cumulative Y offset for each logical line
   const cbPositions = useMemo(() => {
@@ -118,6 +126,7 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
         onScroll={handleScroll}
       />
       <div ref={ovRef} className={styles.overlay} style={{ fontSize: note.fontSize }}>
+        <div className={styles.overlaySpacer} style={{ height: totalHeight }} />
         {cbPositions.map(({ idx, y }) => {
           const st = lines[idx].match(CHECKBOX_RE)[1];
           const cls = st === "x" ? styles.cbDone : st === "-" ? styles.cbProgress : "";

@@ -66,6 +66,12 @@
   padding: 6px 8px;
   pointer-events: none;
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+.overlaySpacer {
+  width: 1px;
+  pointer-events: none;
 }
 
 .cbBox {
