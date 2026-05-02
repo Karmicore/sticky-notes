@@ -17,7 +17,7 @@ function NoteRoute() {
   const noteId = getNoteId();
   const { note, update } = useNote(noteId);
   const { saveNow } = useAutoSave(note);
-  useWindowLifecycle(noteId, saveNow);
+  useWindowLifecycle(noteId, saveNow, update);
 
   // Listen for tray "新建便签" event
   useEffect(() => {
