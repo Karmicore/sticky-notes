@@ -11,6 +11,7 @@ export function useNote(noteId) {
       .catch(console.error);
   }, [noteId]);
 
+  // Raw state update (no auto-save trigger)
   const update = useCallback((changes) => {
     setNote((prev) => (prev ? { ...prev, ...changes } : prev));
   }, []);
@@ -18,26 +19,38 @@ export function useNote(noteId) {
   return { note, update, setNote };
 }
 
-export function useAutoSave(note, delay = 800) {
+export function useAutoSave(note, update, delay = 800) {
   const timer = useRef(null);
   const noteRef = useRef(null);
+  const dirtyRef = useRef(false);
 
   useEffect(() => { noteRef.current = note; }, [note]);
 
+  const markDirty = useCallback(() => { dirtyRef.current = true; }, []);
+
   useEffect(() => {
-    if (!note) return;
+    if (!note || !dirtyRef.current) return;
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
-      invoke("save_note", { note }).catch(() => {});
+      dirtyRef.current = false;
+      invoke("save_note", { note: noteRef.current }).catch(() => {});
     }, delay);
     return () => clearTimeout(timer.current);
   }, [note, delay]);
 
   const saveNow = useCallback(async () => {
     if (noteRef.current) {
+      clearTimeout(timer.current);
+      dirtyRef.current = false;
       await invoke("save_note", { note: noteRef.current }).catch(() => {});
     }
   }, []);
 
-  return { saveNow };
+  // User edit — marks dirty + updates state (triggers auto-save)
+  const edit = useCallback((changes) => {
+    markDirty();
+    update(changes);
+  }, [update, markDirty]);
+
+  return { saveNow, edit };
 }

@@ -40,51 +40,38 @@ export async function popupNativeMenu(ctx, position) {
 }
 
 async function buildMenuItems(ctx) {
-  const items = [];
+  return Promise.all(
+    menuStructure.map((entry) => {
+      if (entry === "separator") {
+        return PredefinedMenuItem.new({ item: "Separator" });
+      }
 
-  for (const entry of menuStructure) {
-    if (entry === "separator") {
-      items.push(await PredefinedMenuItem.new({ item: "Separator" }));
-      continue;
-    }
+      const cmd = commands[entry.id];
+      if (!cmd) return null;
 
-    const cmd = commands[entry.id];
-    if (!cmd) continue;
+      if (entry.submenu === "op") return buildOpacitySubmenu(ctx);
+      if (entry.submenu === "co") return buildColorSubmenu(ctx);
 
-    if (entry.submenu === "op") {
-      items.push(await buildOpacitySubmenu(ctx));
-      continue;
-    }
-    if (entry.submenu === "co") {
-      items.push(await buildColorSubmenu(ctx));
-      continue;
-    }
+      const isToggle = cmd.toggle ? cmd.toggle(ctx) : undefined;
 
-    const isToggle = cmd.toggle ? cmd.toggle(ctx) : undefined;
-
-    if (isToggle !== undefined) {
-      items.push(
-        await CheckMenuItem.new({
+      if (isToggle !== undefined) {
+        return CheckMenuItem.new({
           id: entry.id,
           text: cmd.label,
           checked: isToggle,
           accelerator: cmd.shortcut || undefined,
           action: () => cmd.run(ctx),
-        })
-      );
-    } else {
-      items.push(
-        await MenuItem.new({
-          id: entry.id,
-          text: cmd.label,
-          accelerator: cmd.shortcut || undefined,
-          action: () => cmd.run(ctx),
-        })
-      );
-    }
-  }
+        });
+      }
 
-  return items;
+      return MenuItem.new({
+        id: entry.id,
+        text: cmd.label,
+        accelerator: cmd.shortcut || undefined,
+        action: () => cmd.run(ctx),
+      });
+    })
+  ).then((items) => items.filter(Boolean));
 }
 
 async function buildOpacitySubmenu(ctx) {

@@ -16,8 +16,8 @@ function getNoteId() {
 function NoteRoute() {
   const noteId = getNoteId();
   const { note, update } = useNote(noteId);
-  const { saveNow } = useAutoSave(note);
-  useWindowLifecycle(noteId, saveNow, update);
+  const { saveNow, edit } = useAutoSave(note, update);
+  useWindowLifecycle(noteId, saveNow, edit);
 
   // Listen for tray "新建便签" event
   useEffect(() => {
@@ -27,7 +27,7 @@ function NoteRoute() {
     return () => { unlisten.then((fn) => fn()); };
   }, []);
   if (!note) return null;
-  return <NoteWindow noteId={noteId} note={note} update={update} saveNow={saveNow} />;
+  return <NoteWindow noteId={noteId} note={note} update={update} edit={edit} saveNow={saveNow} />;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<NoteRoute />);
