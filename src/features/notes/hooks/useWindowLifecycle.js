@@ -31,11 +31,14 @@ export function useWindowLifecycle(noteId, saveNow, update) {
   }, [noteId, update]);
 
   // Sync collapsed state from backend (tray collapse/expand all / toggle)
+  // Payload is [targetNoteId, collapsed]. Filter by noteId to ignore
+  // events intended for other note windows.
   useEffect(() => {
     if (noteId === null) return;
-    const unlisten = listen("note-collapsed-changed", ({ payload }) => {
+    const unlisten = listen("note-collapsed-changed", ({ payload: [targetId, collapsed] }) => {
+      if (targetId !== noteId) return;
       transitioning.current = true;
-      update({ collapsed: payload });
+      update({ collapsed });
       setTimeout(() => { transitioning.current = false; }, 200);
     });
     return () => { unlisten.then((fn) => fn()); };

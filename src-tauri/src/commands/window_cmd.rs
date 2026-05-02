@@ -108,7 +108,7 @@ pub fn collapse_all_note_windows(app: &AppHandle, svc: &NoteService) {
         note.height = COLLAPSED_HEIGHT;
         let collapsed = note.collapsed;
         svc.save_note(note).ok();
-        window.emit("note-collapsed-changed", collapsed).ok();
+        window.emit("note-collapsed-changed", (id, collapsed)).ok();
     }
 }
 
@@ -139,7 +139,7 @@ pub fn expand_all_note_windows(app: &AppHandle, svc: &NoteService) {
         note.height = h;
         let collapsed = note.collapsed;
         svc.save_note(note).ok();
-        window.emit("note-collapsed-changed", collapsed).ok();
+        window.emit("note-collapsed-changed", (id, collapsed)).ok();
     }
 }
 
@@ -200,6 +200,6 @@ pub fn toggle_note_collapsed(
     }
 
     svc.save_note(note.clone())?;
-    window.emit("note-collapsed-changed", note.collapsed).ok();
+    window.emit("note-collapsed-changed", (note_id, note.collapsed)).ok();
     Ok(note)
 }
