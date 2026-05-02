@@ -48,7 +48,7 @@ export default function TitleBar({ note, editingTitle, setEditingTitle, commitTi
 
     function onMouseMove(e) {
       if (!mouseDown || dragActive || !dragTimer) return;
-      if (Math.abs(e.screenX - startScreenX) > 3 || Math.abs(e.screenY - startScreenY) > 3) {
+      if (Math.abs(e.screenX - startScreenX) > 10 || Math.abs(e.screenY - startScreenY) > 10) {
         clearTimeout(dragTimer);
         dragTimer = null;
         startNativeDrag(startScreenX, startScreenY);
