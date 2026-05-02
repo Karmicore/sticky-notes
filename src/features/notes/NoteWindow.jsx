@@ -10,7 +10,7 @@ import styles from "./styles/NoteWindow.module.css";
 
 const appWindow = getCurrentWindow();
 
-export default function NoteWindow({ noteId, note, update, edit, saveNow }) {
+export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel }) {
   const [editingTitle, setEditingTitle] = useState(false);
   const [focused, setFocused] = useState(true);
   const noteRef = useRef(note);
@@ -25,12 +25,13 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow }) {
   // Stable callbacks — read from refs, never stale
   const handleDelete = useCallback(async () => {
     try {
+      cancel();
       await invoke("delete_note", { id: noteRef.current.id });
       await appWindow.close();
     } catch (e) {
       console.error(e);
     }
-  }, []);
+  }, [cancel]);
 
   const handlePin = useCallback(async () => {
     const val = !noteRef.current.isAlwaysOnTop;

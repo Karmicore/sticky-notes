@@ -14,11 +14,11 @@ const noteId = (() => {
 
 function NoteRoute() {
   const { note, update } = useNote(noteId);
-  const { saveNow, edit } = useAutoSave(note, update);
+  const { saveNow, edit, cancel } = useAutoSave(note, update);
   useWindowLifecycle(noteId, saveNow, edit);
 
   if (!note) return null;
-  return <NoteWindow noteId={noteId} note={note} update={update} edit={edit} saveNow={saveNow} />;
+  return <NoteWindow noteId={noteId} note={note} update={update} edit={edit} saveNow={saveNow} cancel={cancel} />;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<NoteRoute />);

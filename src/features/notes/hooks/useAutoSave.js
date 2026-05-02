@@ -34,5 +34,12 @@ export function useAutoSave(note, update, delay = 800) {
     update(changes);
   }, [update, markDirty]);
 
-  return { saveNow, edit };
+  // Cancel all pending saves — call before delete to prevent re-insertion
+  const cancel = useCallback(() => {
+    clearTimeout(timer.current);
+    dirtyRef.current = false;
+    noteRef.current = null;
+  }, []);
+
+  return { saveNow, edit, cancel };
 }
