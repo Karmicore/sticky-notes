@@ -365,6 +365,131 @@ mod tests {
     }
 
     #[test]
+    fn collapse_state_roundtrip() {
+        let db = SqliteStorage::new_memory();
+        let note = Note {
+            id: 1,
+            collapsed: true,
+            expanded_width: 300,
+            expanded_height: 400,
+            width: 300,
+            height: 28, // collapsed height
+            ..sample_note(1)
+        };
+        db.save(&note).unwrap();
+        let loaded = db.load(1).unwrap();
+        assert!(loaded.collapsed);
+        assert_eq!(loaded.expanded_width, 300);
+        assert_eq!(loaded.expanded_height, 400);
+        assert_eq!(loaded.height, 28);
+    }
+
+    #[test]
+    fn collapse_expand_dimensions_preserved() {
+        // Simulate: user has 200x250 window, collapses, then expands
+        let db = SqliteStorage::new_memory();
+        let mut note = sample_note(1);
+        note.width = 200;
+        note.height = 250;
+        db.save(&note).unwrap();
+
+        // Collapse: save real dimensions, shrink height
+        let mut loaded = db.load(1).unwrap();
+        loaded.expanded_width = loaded.width;  // 200
+        loaded.expanded_height = loaded.height; // 250
+        loaded.width = loaded.expanded_width;
+        loaded.height = 28;
+        loaded.collapsed = true;
+        db.save(&loaded).unwrap();
+
+        // Expand: restore saved dimensions
+        let mut loaded = db.load(1).unwrap();
+        assert_eq!(loaded.expanded_width, 200);
+        assert_eq!(loaded.expanded_height, 250);
+        loaded.width = loaded.expanded_width;
+        loaded.height = loaded.expanded_height;
+        loaded.collapsed = false;
+        db.save(&loaded).unwrap();
+
+        let final_note = db.load(1).unwrap();
+        assert!(!final_note.collapsed);
+        assert_eq!(final_note.width, 200);
+        assert_eq!(final_note.height, 250);
+    }
+
+    #[test]
+    fn narrow_window_dimensions_preserved() {
+        // Regression: window narrower than min_width should not be clamped on save
+        let db = SqliteStorage::new_memory();
+        let note = Note {
+            id: 1,
+            width: 120,
+            height: 200,
+            expanded_width: 120,
+            expanded_height: 200,
+            collapsed: false,
+            ..sample_note(1)
+        };
+        db.save(&note).unwrap();
+        let loaded = db.load(1).unwrap();
+        assert_eq!(loaded.width, 120);
+        assert_eq!(loaded.expanded_width, 120);
+        assert_eq!(loaded.expanded_height, 200);
+    }
+
+    #[test]
+    fn save_update_save_preserves_data() {
+        // Simulate: create note, edit content, save again
+        let db = SqliteStorage::new_memory();
+        let note = sample_note(1);
+        db.save(&note).unwrap();
+
+        let mut loaded = db.load(1).unwrap();
+        loaded.content = "updated content".into();
+        loaded.font_size = 20;
+        loaded.opacity = 0.7;
+        db.save(&loaded).unwrap();
+
+        let final_note = db.load(1).unwrap();
+        assert_eq!(final_note.content, "updated content");
+        assert_eq!(final_note.font_size, 20);
+        assert!((final_note.opacity - 0.7).abs() < f64::EPSILON);
+        // Original fields preserved
+        assert_eq!(final_note.title, "Test 1");
+        assert_eq!(final_note.color, "#FFEB3B");
+        assert_eq!(final_note.pos_x, 100);
+    }
+
+    #[test]
+    fn large_content_persistence() {
+        let db = SqliteStorage::new_memory();
+        let big_content = "x".repeat(50_000);
+        let note = Note {
+            id: 1,
+            content: big_content.clone(),
+            ..sample_note(1)
+        };
+        db.save(&note).unwrap();
+        let loaded = db.load(1).unwrap();
+        assert_eq!(loaded.content.len(), 50_000);
+        assert_eq!(loaded.content, big_content);
+    }
+
+    #[test]
+    fn all_fields_independent_after_load() {
+        // Changing one loaded field should not affect the DB
+        let db = SqliteStorage::new_memory();
+        db.save(&sample_note(1)).unwrap();
+
+        let mut loaded = db.load(1).unwrap();
+        loaded.title = "Modified".into();
+        // Don't save — just drop it
+
+        let from_db = db.load(1).unwrap();
+        assert_eq!(from_db.title, "Test 1"); // unchanged
+    }
+
+    #[test]
     fn concurrent_saves() {
         use std::sync::Arc;
         use std::thread;

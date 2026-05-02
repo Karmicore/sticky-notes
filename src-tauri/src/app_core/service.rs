@@ -206,4 +206,53 @@ mod tests {
         assert!(!dup.locked);
         assert!(!dup.collapsed);
     }
+
+    #[test]
+    fn save_then_load_preserves_all_fields() {
+        let svc = make_service();
+        let mut note = svc.create_note("test").unwrap();
+        note.content = "important data".into();
+        note.color = "#BBDEFB".into();
+        note.font_size = 20;
+        note.opacity = 0.5;
+        note.locked = true;
+        note.collapsed = true;
+        note.expanded_width = 300;
+        note.expanded_height = 400;
+        svc.save_note(note).unwrap();
+
+        let loaded = svc.get_note(0).unwrap();
+        assert_eq!(loaded.content, "important data");
+        assert_eq!(loaded.color, "#BBDEFB");
+        assert_eq!(loaded.font_size, 20);
+        assert!((loaded.opacity - 0.5).abs() < f64::EPSILON);
+        assert!(loaded.locked);
+        assert!(loaded.collapsed);
+        assert_eq!(loaded.expanded_width, 300);
+        assert_eq!(loaded.expanded_height, 400);
+    }
+
+    #[test]
+    fn edit_content_does_not_affect_other_notes() {
+        let svc = make_service();
+        svc.create_note("A").unwrap();
+        let mut b = svc.create_note("B").unwrap();
+        b.content = "B's content".into();
+        svc.save_note(b).unwrap();
+
+        let a = svc.get_note(0).unwrap();
+        assert_eq!(a.title, "A");
+        assert_eq!(a.content, "");
+    }
+
+    #[test]
+    fn create_note_default_dimensions() {
+        let svc = make_service();
+        let note = svc.create_note("new").unwrap();
+        assert_eq!(note.width, 260);
+        assert_eq!(note.height, 320);
+        assert_eq!(note.expanded_width, 260);
+        assert_eq!(note.expanded_height, 240);
+        assert!(!note.collapsed);
+    }
 }

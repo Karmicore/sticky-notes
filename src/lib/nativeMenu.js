@@ -5,14 +5,10 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { commands } from "../commands/registry";
 import { menuStructure } from "../commands/menu";
 import { COLORS, OPACITIES } from "../constants";
+import { hexToRgb } from "./color";
 
 const SIZE = 16;
 const colorIconCache = new Map();
-
-function hexToRgb(hex) {
-  const n = parseInt(hex.slice(1), 16);
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-}
 
 async function colorToIcon(hex) {
   if (colorIconCache.has(hex)) return colorIconCache.get(hex);

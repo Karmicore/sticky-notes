@@ -200,5 +200,6 @@ pub fn toggle_note_collapsed(
     }
 
     svc.save_note(note.clone())?;
+    window.emit("note-collapsed-changed", note.collapsed).ok();
     Ok(note)
 }

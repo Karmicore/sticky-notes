@@ -2,15 +2,7 @@ import { useRef, useCallback, useEffect, useMemo } from "react";
 import confetti from "canvas-confetti";
 import styles from "./styles/NoteEditor.module.css";
 import { CHECKBOX_RE, CHECKBOX_PREFIX, CB_LEN, CB_NEXT } from "./utils/checkbox";
-
-function blendWithWhite(hex, opacity) {
-  const h = hex.startsWith("#") ? hex.slice(1) : hex;
-  const r = parseInt(h.substring(0, 2), 16);
-  const g = parseInt(h.substring(2, 4), 16);
-  const b = parseInt(h.substring(4, 6), 16);
-  const a = opacity;
-  return "rgb(" + Math.round(r * a + 255 * (1 - a)) + ", " + Math.round(g * a + 255 * (1 - a)) + ", " + Math.round(b * a + 255 * (1 - a)) + ")";
-}
+import { blendWithWhite } from "../../lib/color";
 
 export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
   const taRef = useRef(null);

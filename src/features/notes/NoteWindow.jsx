@@ -5,15 +5,8 @@ import { useKeyboard } from "./hooks/useKeyboard";
 import TitleBar from "./TitleBar";
 import NoteEditor from "./NoteEditor";
 import { popupNativeMenu } from "../../lib/nativeMenu";
+import { hexToRgba } from "../../lib/color";
 import styles from "./styles/NoteWindow.module.css";
-
-function hexToRgba(hex, alpha) {
-  const h = hex.startsWith("#") ? hex.slice(1) : hex;
-  const r = parseInt(h.substring(0, 2), 16);
-  const g = parseInt(h.substring(2, 4), 16);
-  const b = parseInt(h.substring(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
 
 const appWindow = getCurrentWindow();
 
@@ -63,12 +56,12 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow }) {
 
   const handleCollapseToggle = useCallback(async () => {
     try {
-      const updated = await invoke("toggle_note_collapsed", { noteId: noteRef.current.id });
-      update(updated); // server response — already saved in Rust, no auto-save
+      await invoke("toggle_note_collapsed", { noteId: noteRef.current.id });
+      // State update handled by "note-collapsed-changed" event in useWindowLifecycle
     } catch (e) {
       console.error(e);
     }
-  }, [update]);
+  }, []);
 
   // Context builder — always reads fresh state from refs
   const getCtx = useCallback(() => ({
