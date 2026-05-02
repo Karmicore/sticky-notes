@@ -22,13 +22,13 @@ export const commands = {
   },
   "note.delete": {
     label: "删除便签",
-    shortcut: "",
+    shortcut: "Alt+Delete",
     run: (ctx) => ctx.onDelete(),
     danger: true,
   },
   "note.hide": {
     label: "隐藏便签",
-    shortcut: "",
+    shortcut: "Alt+F4",
     run: (ctx) => ctx.onHide(),
   },
   "window.show_all": {
@@ -55,7 +55,7 @@ export const commands = {
   },
   "font.up": {
     label: "字体增大",
-    shortcut: "Ctrl++",
+    shortcut: "Ctrl+=",
     run: (ctx) => ctx.changeFontSize(1),
   },
   "font.down": {
@@ -128,4 +128,6 @@ export const keyMap = {
   "alt+s":                 "window.show_all",
   "alt+h":                 "window.hide_all",
   "alt+t":                 "note.pin",
+  "alt+delete":            "note.delete",
+  "alt+f4":                "note.hide",
 };
