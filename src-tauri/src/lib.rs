@@ -11,6 +11,7 @@ use app_core::service::NoteService;
 use commands::window_cmd;
 use infra::sqlite_storage::SqliteStorage;
 use plugins::tray::TrayPlugin;
+use tauri::Manager;
 
 pub fn run() {
     env_logger::init();
@@ -27,7 +28,6 @@ pub fn run() {
     // ── Build Tauri app ──
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_global_shortcut::init())
         .manage(service)
         .setup(move |app| {
             let handle = app.handle().clone();
