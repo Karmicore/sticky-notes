@@ -1,14 +1,25 @@
-import { useRef, useCallback, useEffect, useMemo } from "react";
+import { useRef, useCallback, useEffect, useMemo, useState } from "react";
 import confetti from "canvas-confetti";
 import styles from "./styles/NoteEditor.module.css";
 import { CHECKBOX_RE, CHECKBOX_PREFIX, CB_LEN, CB_NEXT } from "./utils/checkbox";
 import { blendWithWhite } from "../../lib/color";
+import { measureVisualLines } from "./utils/measureLines";
 
 export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
   const taRef = useRef(null);
   const ovRef = useRef(null);
+  const [taWidth, setTaWidth] = useState(0);
 
   const bgColor = useMemo(() => blendWithWhite(note.color, note.opacity), [note.color, note.opacity]);
+
+  // Track textarea content width for line-wrap measurement
+  useEffect(() => {
+    const ta = taRef.current;
+    if (!ta) return;
+    const ro = new ResizeObserver(([entry]) => setTaWidth(entry.contentRect.width));
+    ro.observe(ta);
+    return () => ro.disconnect();
+  }, []);
 
   const setAndPreserve = useCallback((val) => {
     const ta = taRef.current;
@@ -76,6 +87,21 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
   }, []);
 
   const lines = note.content.split("\n");
+  const { lineHeights } = useMemo(
+    () => measureVisualLines(lines, note.fontSize, taWidth),
+    [lines, note.fontSize, taWidth]
+  );
+
+  // Compute cumulative Y offset for each logical line
+  const cbPositions = useMemo(() => {
+    const positions = [];
+    let y = 0;
+    for (let i = 0; i < lineHeights.length; i++) {
+      if (CHECKBOX_RE.test(lines[i])) positions.push({ idx: i, y });
+      y += lineHeights[i];
+    }
+    return positions;
+  }, [lines, lineHeights]);
 
   return (
     <div className={styles.editor} style={style}>
@@ -92,20 +118,15 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
         onScroll={handleScroll}
       />
       <div ref={ovRef} className={styles.overlay} style={{ fontSize: note.fontSize }}>
-        {lines.map((line, i) => {
-          const m = line.match(CHECKBOX_RE);
-          if (m) {
-            const st = m[1];
-            const cls = st === "x" ? styles.cbDone : st === "-" ? styles.cbProgress : "";
-            return (
-              <div key={i} className={styles.cbLine}>
-                <span className={styles.cbBox + (cls ? " " + cls : "")}
-                  style={{ backgroundColor: bgColor }}
-                  onClick={() => !note.locked && toggleCb(i)} />
-              </div>
-            );
-          }
-          return null;
+        {cbPositions.map(({ idx, y }) => {
+          const st = lines[idx].match(CHECKBOX_RE)[1];
+          const cls = st === "x" ? styles.cbDone : st === "-" ? styles.cbProgress : "";
+          return (
+            <span key={idx}
+              className={styles.cbBox + (cls ? " " + cls : "")}
+              style={{ top: y + note.fontSize * 0.75 - 6.5, backgroundColor: bgColor }}
+              onClick={() => !note.locked && toggleCb(idx)} />
+          );
         })}
       </div>
     </div>

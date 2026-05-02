@@ -63,19 +63,14 @@
   left: 0;
   right: 0;
   bottom: 0;
+  padding: 6px 8px;
   pointer-events: none;
   overflow: hidden;
-}
-
-.cbLine {
-  position: relative;
-  height: 1.5em;
 }
 
 .cbBox {
   position: absolute;
   left: 1px;
-  top: calc(0.75em - 6.5px);
   width: 42px;
   height: 13px;
   pointer-events: auto;
