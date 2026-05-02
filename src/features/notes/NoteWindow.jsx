@@ -96,12 +96,10 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow }) {
       <TitleBar note={note} editingTitle={editingTitle} setEditingTitle={setEditingTitle}
         commitTitle={commitTitle} onClose={handleClose} onMenuToggle={handleMenuToggle}
         onCollapseToggle={handleCollapseToggle} />
-      {!note.collapsed && (
-        <>
-          <NoteEditor note={note} update={edit} insertCheckboxRef={insertCheckboxRef} />
-          <div className={styles.resizeGrip} />
-        </>
-      )}
+      <NoteEditor note={note} update={edit} insertCheckboxRef={insertCheckboxRef}
+        style={{ display: note.collapsed ? "none" : undefined }} />
+      <div className={styles.resizeGrip}
+        style={{ display: note.collapsed ? "none" : undefined }} />
     </div>
   );
 }

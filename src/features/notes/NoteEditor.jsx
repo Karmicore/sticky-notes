@@ -8,7 +8,7 @@ const CB_LEN = CHECKBOX_PREFIX.length;
 const CB_NEXT = { " ": "-", "-": "x", "x": " " };
 const NBSP = " ";
 
-export default function NoteEditor({ note, update, insertCheckboxRef }) {
+export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
   const taRef = useRef(null);
   const ovRef = useRef(null);
 
@@ -80,7 +80,7 @@ export default function NoteEditor({ note, update, insertCheckboxRef }) {
   const lines = note.content.split("\n");
 
   return (
-    <div className={styles.editor}>
+    <div className={styles.editor} style={style}>
       <textarea
         ref={taRef}
         className={styles.textarea}
