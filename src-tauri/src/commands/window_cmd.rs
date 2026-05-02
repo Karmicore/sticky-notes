@@ -84,24 +84,28 @@ pub fn toggle_note_collapsed(
         .ok_or_else(|| format!("window {} not found", label))?;
 
     if note.collapsed {
-        // Expand: restore saved height
+        // Expand: restore saved dimensions
+        let w = note.expanded_width.max(180);
         let h = note.expanded_height.max(160);
         window
-            .set_size(Size::Physical(tauri::PhysicalSize::new(note.width, h)))
+            .set_size(Size::Physical(tauri::PhysicalSize::new(w, h)))
             .map_err(|e| e.to_string())?;
         note.collapsed = false;
+        note.width = w;
         note.height = h;
     } else {
-        // Collapse: save current window height, shrink to title bar
+        // Collapse: save actual window dimensions, shrink to title bar
         let current = window.inner_size().map_err(|e| e.to_string())?;
+        note.expanded_width = current.width.max(180);
         note.expanded_height = current.height.max(160);
         window
             .set_size(Size::Physical(tauri::PhysicalSize::new(
-                note.width,
+                note.expanded_width,
                 COLLAPSED_HEIGHT,
             )))
             .map_err(|e| e.to_string())?;
         note.collapsed = true;
+        note.width = note.expanded_width;
         note.height = COLLAPSED_HEIGHT;
     }
 

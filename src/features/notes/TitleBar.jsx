@@ -6,6 +6,7 @@ const appWindow = getCurrentWindow();
 
 export default function TitleBar({ note, editingTitle, setEditingTitle, commitTitle, onClose, onMenuToggle, onCollapseToggle }) {
   const ref = useRef(null);
+  const clickTimer = useRef(null);
 
   useEffect(() => {
     const el = ref.current;
@@ -14,16 +15,27 @@ export default function TitleBar({ note, editingTitle, setEditingTitle, commitTi
     function onMouseDown(e) {
       if (e.buttons !== 1) return;
       if (e.target.closest("button") || e.target.closest("input")) return;
-      if (e.detail === 2) {
+
+      if (clickTimer.current) {
+        // Second click within 250ms → collapse toggle
+        clearTimeout(clickTimer.current);
+        clickTimer.current = null;
         onCollapseToggle();
       } else {
-        appWindow.startDragging();
+        // First click → wait to see if double-click follows
+        clickTimer.current = setTimeout(() => {
+          clickTimer.current = null;
+          appWindow.startDragging();
+        }, 250);
       }
     }
 
     el.addEventListener("mousedown", onMouseDown);
-    return () => el.removeEventListener("mousedown", onMouseDown);
-  }, []);
+    return () => {
+      el.removeEventListener("mousedown", onMouseDown);
+      clearTimeout(clickTimer.current);
+    };
+  }, [onCollapseToggle]);
 
   return (
     <div className={styles.titleBar} ref={ref}>
