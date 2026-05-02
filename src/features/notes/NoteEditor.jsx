@@ -5,6 +5,7 @@ const CHECKBOX_RE = /^- \[([ \-x])\] /;
 const CHECKBOX_PREFIX = "- [ ] ";
 const CB_LEN = CHECKBOX_PREFIX.length;
 const CB_NEXT = { " ": "-", "-": "x", "x": " " };
+const NBSP = " ";
 
 export default function NoteEditor({ note, update, insertCheckboxRef }) {
   const taRef = useRef(null);
@@ -94,14 +95,16 @@ export default function NoteEditor({ note, update, insertCheckboxRef }) {
             const st = m[1];
             const icon = st === "x" ? "☑" : st === "-" ? "◫" : "☐";
             const strike = st !== " ";
+            const text = line.substring(CB_LEN);
             return (
               <div key={i} className={styles.cbLine}>
-                <span className={styles.cb} onClick={() => !note.locked && toggleCb(i)}>{icon}</span>
-                <span className={strike ? styles.done : undefined}>{line.substring(CB_LEN) || " "}</span>
+                <span className={styles.cbPrefix}>{line.substring(0, CB_LEN)}</span>
+                <span className={strike ? styles.done : undefined}>{text || NBSP}</span>
+                <span className={styles.cbIcon} onClick={() => !note.locked && toggleCb(i)}>{icon}</span>
               </div>
             );
           }
-          return <div key={i} className={styles.line}>{line || " "}</div>;
+          return <div key={i} className={styles.line}>{line || NBSP}</div>;
         })}
       </div>
     </div>

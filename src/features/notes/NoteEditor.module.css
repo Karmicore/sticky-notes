@@ -71,17 +71,20 @@
 }
 
 .cbLine {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
+  position: relative;
   min-height: 1.5em;
 }
 
-.cb {
+.cbPrefix {
+  color: transparent;
+}
+
+.cbIcon {
+  position: absolute;
+  left: 0;
+  top: 0;
   pointer-events: auto;
   cursor: pointer;
-  margin: 0;
-  flex-shrink: 0;
 }
 
 .done {
