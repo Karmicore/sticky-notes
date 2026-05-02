@@ -32,6 +32,7 @@ export function useKeyboard(getCtx) {
   useEffect(() => {
     function onKey(e) {
       const cmdId = matchKey(e);
+      console.log("[key]", e.code, e.key, e.altKey, e.ctrlKey, e.shiftKey, "→", cmdId);
       if (!cmdId) return;
       const cmd = commands[cmdId];
       if (!cmd) return;

@@ -34,7 +34,7 @@ export const commands = {
   "window.show_all": {
     label: "显示全部",
     shortcut: "Alt+S",
-    run: () => invoke("show_all_notes"),
+    run: () => { console.log("[cmd] show_all_notes"); invoke("show_all_notes").then(() => console.log("[cmd] show_all_notes OK")).catch(console.error); },
   },
   "window.hide_all": {
     label: "隐藏全部",
