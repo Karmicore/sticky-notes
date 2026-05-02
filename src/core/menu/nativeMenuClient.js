@@ -67,11 +67,11 @@ async function buildOpacitySubmenu(ctx) {
 
 async function buildColorSubmenu(ctx) {
   const items = [];
-  for (const hex of COLORS) {
+  for (const { hex, name } of COLORS) {
     items.push(
       await MenuItem.new({
         id: `color.set:${hex}`,
-        text: hex,
+        text: name,
         checked: ctx.note.color === hex,
         action: () => commands["color.set"].run(ctx, hex),
       })
