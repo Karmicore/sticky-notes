@@ -48,7 +48,11 @@ pub async fn duplicate_note(
     svc: State<'_, Arc<NoteService>>,
 ) -> Result<Note, String> {
     let note = svc.duplicate_note(source_id)?;
-    spawn_note_window(&app, &note)?;
+    let app2 = app.clone();
+    let note2 = note.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        spawn_note_window(&app2, &note2).ok();
+    });
     Ok(note)
 }
 

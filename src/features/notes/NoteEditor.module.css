@@ -23,7 +23,7 @@
 }
 
 .textarea::-webkit-scrollbar {
-  width: 1px;
+  width: 6px;
 }
 
 .textarea::-webkit-scrollbar-track {
@@ -37,6 +37,11 @@
 
 .textarea::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.3);
+}
+
+.textarea::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
 }
 
 .textarea::placeholder {

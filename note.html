@@ -16,6 +16,12 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Set background color immediately from URL hash to avoid white flash
+      var hash = location.hash;
+      var m = hash.match(/color=([A-Fa-f0-9]{6})/);
+      if (m) document.body.style.background = '#' + m[1];
+    </script>
     <script type="module" src="/src/note-main.jsx"></script>
   </body>
 </html>

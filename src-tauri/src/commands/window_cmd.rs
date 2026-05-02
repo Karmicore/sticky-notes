@@ -34,7 +34,8 @@ pub fn spawn_note_window(app: &AppHandle, note: &Note) -> Result<(), String> {
         return Ok(());
     }
 
-    WebviewWindowBuilder::new(app, &label, tauri::WebviewUrl::App("note.html".into()))
+    let url = format!("note.html#color={}", note.color.trim_start_matches('#'));
+    WebviewWindowBuilder::new(app, &label, tauri::WebviewUrl::App(url.into()))
         .title(&note.title)
         .inner_size(note.width as f64, note.height as f64)
         .position(note.pos_x as f64, note.pos_y as f64)
