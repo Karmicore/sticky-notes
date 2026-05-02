@@ -71,6 +71,73 @@ pub fn hide_all_notes(app: AppHandle) -> Result<(), String> {
 
 const COLLAPSED_HEIGHT: u32 = 28;
 
+// ── Collapse / Expand all ──
+
+pub fn collapse_all_note_windows(app: &AppHandle, svc: &NoteService) {
+    for (label, window) in app.webview_windows() {
+        if !label.starts_with("note-") {
+            continue;
+        }
+        let id_str = &label[5..];
+        let id: i32 = match id_str.parse() {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+        let mut note = match svc.get_note(id) {
+            Ok(n) => n,
+            Err(_) => continue,
+        };
+        if note.collapsed {
+            continue;
+        }
+        let current = match window.inner_size() {
+            Ok(s) => s,
+            Err(_) => continue,
+        };
+        note.expanded_width = current.width.max(180);
+        note.expanded_height = current.height.max(160);
+        window
+            .set_size(Size::Physical(tauri::PhysicalSize::new(
+                note.expanded_width,
+                COLLAPSED_HEIGHT,
+            )))
+            .ok();
+        note.collapsed = true;
+        note.width = note.expanded_width;
+        note.height = COLLAPSED_HEIGHT;
+        svc.save_note(note).ok();
+    }
+}
+
+pub fn expand_all_note_windows(app: &AppHandle, svc: &NoteService) {
+    for (label, window) in app.webview_windows() {
+        if !label.starts_with("note-") {
+            continue;
+        }
+        let id_str = &label[5..];
+        let id: i32 = match id_str.parse() {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+        let mut note = match svc.get_note(id) {
+            Ok(n) => n,
+            Err(_) => continue,
+        };
+        if !note.collapsed {
+            continue;
+        }
+        let w = note.expanded_width.max(180);
+        let h = note.expanded_height.max(160);
+        window
+            .set_size(Size::Physical(tauri::PhysicalSize::new(w, h)))
+            .ok();
+        note.collapsed = false;
+        note.width = w;
+        note.height = h;
+        svc.save_note(note).ok();
+    }
+}
+
 #[tauri::command]
 pub fn toggle_note_collapsed(
     app: AppHandle,

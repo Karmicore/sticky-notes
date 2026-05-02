@@ -112,8 +112,8 @@
 }
 
 .cbDone {
-  border-color: #2e7d32;
-  background: #2e7d32;
+  border-color: #1abc9c;
+  background: #1abc9c;
 }
 
 .cbDone::after {
