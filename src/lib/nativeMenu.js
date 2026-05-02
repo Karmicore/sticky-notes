@@ -34,13 +34,21 @@ async function colorToIcon(hex) {
 }
 
 export async function popupNativeMenu(ctx, position) {
-  const items = await buildMenuItems(ctx);
-  const root = await Submenu.new({ text: "Menu", items });
+  const win = getCurrentWindow();
   const pos = new LogicalPosition(position.x, position.y);
-  await root.popup(pos, getCurrentWindow());
+
+  async function rePopup() {
+    const items = await buildMenuItems(ctx, rePopup);
+    const root = await Submenu.new({ text: "Menu", items });
+    await root.popup(pos, win);
+  }
+
+  const items = await buildMenuItems(ctx, rePopup);
+  const root = await Submenu.new({ text: "Menu", items });
+  await root.popup(pos, win);
 }
 
-async function buildMenuItems(ctx) {
+async function buildMenuItems(ctx, rePopup) {
   return Promise.all(
     menuStructure.map((entry) => {
       if (entry === "separator") {
@@ -50,8 +58,8 @@ async function buildMenuItems(ctx) {
       const cmd = commands[entry.id];
       if (!cmd) return null;
 
-      if (entry.submenu === "op") return buildOpacitySubmenu(ctx);
-      if (entry.submenu === "co") return buildColorSubmenu(ctx);
+      if (entry.submenu === "op") return buildOpacitySubmenu(ctx, rePopup);
+      if (entry.submenu === "co") return buildColorSubmenu(ctx, rePopup);
 
       const isToggle = cmd.toggle ? cmd.toggle(ctx) : undefined;
 
@@ -75,7 +83,7 @@ async function buildMenuItems(ctx) {
   ).then((items) => items.filter(Boolean));
 }
 
-async function buildOpacitySubmenu(ctx) {
+async function buildOpacitySubmenu(ctx, rePopup) {
   const current = Math.round(ctx.note.opacity * 100);
   const items = [];
   for (const v of OPACITIES) {
@@ -84,14 +92,14 @@ async function buildOpacitySubmenu(ctx) {
         id: `opacity.set:${v}`,
         text: `${v}%`,
         checked: current === v,
-        action: () => commands["opacity.set"].run(ctx, v),
+        action: () => { commands["opacity.set"].run(ctx, v); rePopup(); },
       })
     );
   }
   return Submenu.new({ text: "透明度", items });
 }
 
-async function buildColorSubmenu(ctx) {
+async function buildColorSubmenu(ctx, rePopup) {
   const items = [];
   for (const { hex, name } of COLORS) {
     const icon = await colorToIcon(hex);
@@ -101,7 +109,7 @@ async function buildColorSubmenu(ctx) {
         id: `color.set:${hex}`,
         text: isCurrent ? `✓ ${name}` : name,
         icon,
-        action: () => commands["color.set"].run(ctx, hex),
+        action: () => { commands["color.set"].run(ctx, hex); rePopup(); },
       })
     );
   }
