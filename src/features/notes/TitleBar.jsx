@@ -57,10 +57,9 @@ export default function TitleBar({ note, editingTitle, setEditingTitle, commitTi
 
     function onMouseUp() {
       mouseDown = false;
-      if (dragTimer) {
-        clearTimeout(dragTimer);
-        dragTimer = null;
-      }
+      // Don't clear dragTimer — the timer callback checks mouseDown
+      // and won't start dragging if the button is already released.
+      // This keeps the timer alive for double-click detection.
     }
 
     function startNativeDrag(refScreenX, refScreenY) {

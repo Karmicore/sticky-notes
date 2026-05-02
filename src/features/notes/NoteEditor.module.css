@@ -79,25 +79,47 @@
   color: transparent;
 }
 
-.cbIcon {
+.cbBox {
   position: absolute;
-  left: 0;
-  top: 0;
+  left: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 13px;
+  height: 13px;
+  border: 1.5px solid #999;
+  border-radius: 2px;
   pointer-events: auto;
   cursor: pointer;
   user-select: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.2em;
-  height: 1.5em;
-  font-size: 14px;
 }
 
-.cbIcon.cbProgress {
-  color: #c89b00;
+.cbBox::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
-.cbIcon.cbDone {
-  color: #2e7d32;
+.cbProgress {
+  border-color: #c89b00;
+}
+
+.cbProgress::after {
+  width: 7px;
+  height: 0;
+  border-top: 2px solid #c89b00;
+}
+
+.cbDone {
+  border-color: #2e7d32;
+  background: #2e7d32;
+}
+
+.cbDone::after {
+  width: 4px;
+  height: 7px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: translate(-50%, -60%) rotate(45deg);
 }
