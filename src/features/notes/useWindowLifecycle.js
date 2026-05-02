@@ -24,6 +24,15 @@ export function useWindowLifecycle(noteId, saveNow, update) {
     return () => { unlisten.then((fn) => fn()); };
   }, [noteId, update, appWindow]);
 
+  // Sync collapsed state from backend (tray collapse/expand all)
+  useEffect(() => {
+    if (noteId === null) return;
+    const unlisten = listen("note-collapsed-changed", ({ payload }) => {
+      update({ collapsed: payload });
+    });
+    return () => { unlisten.then((fn) => fn()); };
+  }, [noteId, update]);
+
   // Save on tray quit
   useEffect(() => {
     if (noteId === null) return;

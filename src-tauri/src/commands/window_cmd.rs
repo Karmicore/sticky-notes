@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use tauri::{AppHandle, Manager, State, WebviewWindow};
+use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
 use tauri::webview::WebviewWindowBuilder;
 use tauri::Size;
 
@@ -106,7 +106,9 @@ pub fn collapse_all_note_windows(app: &AppHandle, svc: &NoteService) {
         note.collapsed = true;
         note.width = note.expanded_width;
         note.height = COLLAPSED_HEIGHT;
+        let collapsed = note.collapsed;
         svc.save_note(note).ok();
+        window.emit("note-collapsed-changed", collapsed).ok();
     }
 }
 
@@ -135,7 +137,9 @@ pub fn expand_all_note_windows(app: &AppHandle, svc: &NoteService) {
         note.collapsed = false;
         note.width = w;
         note.height = h;
+        let collapsed = note.collapsed;
         svc.save_note(note).ok();
+        window.emit("note-collapsed-changed", collapsed).ok();
     }
 }
 
