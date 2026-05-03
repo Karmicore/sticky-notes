@@ -9,12 +9,14 @@ pub struct AppConfig {
     pub export_selected_ids: Vec<i32>,
 }
 
-fn config_path() -> PathBuf {
-    let dir = dirs::home_dir()
+fn config_dir() -> PathBuf {
+    dirs::home_dir()
         .unwrap_or_else(|| PathBuf::from("."))
-        .join(".stickynotes");
-    fs::create_dir_all(&dir).ok();
-    dir.join("config.json")
+        .join(".stickynotes")
+}
+
+fn config_path() -> PathBuf {
+    config_dir().join("config.json")
 }
 
 fn load_config() -> AppConfig {
@@ -29,7 +31,9 @@ fn load_config() -> AppConfig {
 }
 
 fn save_config(config: &AppConfig) -> Result<(), String> {
-    let path = config_path();
+    let dir = config_dir();
+    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let path = dir.join("config.json");
     let json = serde_json::to_string_pretty(config).map_err(|e| e.to_string())?;
     fs::write(&path, json).map_err(|e| e.to_string())
 }

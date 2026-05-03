@@ -3,9 +3,18 @@ use std::sync::Arc;
 use tauri::State;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 
+use crate::app_core::note::Note;
 use crate::app_core::service::NoteService;
 
-fn notes_to_markdown(notes: &[crate::app_core::note::Note]) -> String {
+fn fetch_notes(ids: &[i32], svc: &NoteService) -> Result<Vec<Note>, String> {
+    let notes: Vec<Note> = ids.iter().filter_map(|id| svc.get_note(*id).ok()).collect();
+    if notes.is_empty() {
+        return Err("No notes to export".to_string());
+    }
+    Ok(notes)
+}
+
+fn notes_to_markdown(notes: &[Note]) -> String {
     let parts: Vec<String> = notes
         .iter()
         .map(|n| {
@@ -25,26 +34,11 @@ pub async fn export_notes_copy(
     app: tauri::AppHandle,
     svc: State<'_, Arc<NoteService>>,
 ) -> Result<(), String> {
-    let mut notes = Vec::new();
-    for id in &ids {
-        match svc.get_note(*id) {
-            Ok(note) => notes.push(note),
-            Err(_) => continue,
-        }
-    }
-
-    if notes.is_empty() {
-        return Err("No notes to export".to_string());
-    }
-
+    let notes = fetch_notes(&ids, &svc)?;
     let markdown = notes_to_markdown(&notes);
-
-    // 复制到剪贴板
     app.clipboard()
         .write_text(markdown)
-        .map_err(|e| e.to_string())?;
-
-    Ok(())
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -53,21 +47,9 @@ pub async fn export_notes_cut(
     app: tauri::AppHandle,
     svc: State<'_, Arc<NoteService>>,
 ) -> Result<(), String> {
-    let mut notes = Vec::new();
-    for id in &ids {
-        match svc.get_note(*id) {
-            Ok(note) => notes.push(note),
-            Err(_) => continue,
-        }
-    }
-
-    if notes.is_empty() {
-        return Err("No notes to export".to_string());
-    }
-
+    let notes = fetch_notes(&ids, &svc)?;
     let markdown = notes_to_markdown(&notes);
 
-    // 复制到剪贴板
     app.clipboard()
         .write_text(markdown)
         .map_err(|e| e.to_string())?;
@@ -76,7 +58,7 @@ pub async fn export_notes_cut(
     for id in &ids {
         if let Ok(mut note) = svc.get_note(*id) {
             note.content = String::new();
-            svc.save_note(note).ok();
+            svc.save_note(note).map_err(|e| format!("Failed to clear note {}: {}", id, e))?;
         }
     }
 
@@ -86,7 +68,6 @@ pub async fn export_notes_cut(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::app_core::note::Note;
 
     fn sample_note(id: i32, title: &str, content: &str) -> Note {
         Note {

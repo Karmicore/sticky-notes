@@ -30,7 +30,7 @@ function App() {
     return <NoteRoute noteId={noteId} />;
   }
 
-  return null;
+  return <div style={{ padding: 16, color: "#999" }}>Unknown window: {label}</div>;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);

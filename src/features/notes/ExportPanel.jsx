@@ -54,26 +54,28 @@ export default function ExportPanel() {
   );
 
   // 切换选择
-  const toggleSelect = useCallback(
-    (id) => {
-      setSelectedIds((prev) => {
-        const next = prev.includes(id)
-          ? prev.filter((i) => i !== id)
-          : [...prev, id];
-        saveSelection(next);
-        return next;
-      });
-    },
-    [saveSelection]
-  );
+  const toggleSelect = useCallback((id) => {
+    setSelectedIds((prev) => {
+      const next = prev.includes(id)
+        ? prev.filter((i) => i !== id)
+        : [...prev, id];
+      return next;
+    });
+  }, []);
 
   // 全选/取消全选
   const toggleAll = useCallback(() => {
-    const next =
-      selectedIds.length === notes.length ? [] : notes.map((n) => n.id);
-    setSelectedIds(next);
-    saveSelection(next);
-  }, [notes, selectedIds, saveSelection]);
+    setSelectedIds((prev) =>
+      prev.length === notes.length ? [] : notes.map((n) => n.id)
+    );
+  }, [notes]);
+
+  // 选择变化时自动保存（使用 useEffect 替代 state updater 中的副作用）
+  useEffect(() => {
+    if (selectedIds.length > 0 || notes.length > 0) {
+      saveSelection(selectedIds);
+    }
+  }, [selectedIds, saveSelection, notes.length]);
 
   // 复制式导出
   const doCopyExport = useCallback(async () => {
