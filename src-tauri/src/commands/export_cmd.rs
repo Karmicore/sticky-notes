@@ -18,10 +18,12 @@ fn notes_to_markdown(notes: &[Note]) -> String {
     let parts: Vec<String> = notes
         .iter()
         .map(|n| {
-            if n.content.is_empty() {
-                format!("```\n{}\n```", n.title)
+            let title = n.title.trim();
+            let content = n.content.trim();
+            if content.is_empty() {
+                format!("```\n{}\n```", title)
             } else {
-                format!("```\n{}\n{}\n```", n.title, n.content)
+                format!("```\n{}\n{}\n```", title, content)
             }
         })
         .collect();
@@ -103,5 +105,19 @@ mod tests {
         let notes = vec![sample_note(1, "Title", "")];
         let md = notes_to_markdown(&notes);
         assert_eq!(md, "```\nTitle\n```");
+    }
+
+    #[test]
+    fn markdown_trims_whitespace() {
+        let notes = vec![sample_note(1, "  Title  ", "  Content  ")];
+        let md = notes_to_markdown(&notes);
+        assert_eq!(md, "```\nTitle\nContent\n```");
+    }
+
+    #[test]
+    fn markdown_trims_multiline_content() {
+        let notes = vec![sample_note(1, "Title", "  Line1\n  Line2  ")];
+        let md = notes_to_markdown(&notes);
+        assert_eq!(md, "```\nTitle\nLine1\n  Line2\n```");
     }
 }
