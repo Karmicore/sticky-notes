@@ -2,6 +2,7 @@ import { useRef, useCallback, useEffect, useState } from "react";
 import confetti from "canvas-confetti";
 import styles from "./styles/NoteEditor.module.css";
 import { CHECKBOX_RE, CHECKBOX_PREFIX, CB_LEN, CB_NEXT } from "./utils/checkbox";
+import { t } from "../../lib/i18n";
 
 const NBSP = " ";
 
@@ -95,7 +96,7 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
         className={styles.textarea}
         style={{ fontSize: note.fontSize }}
         value={note.content}
-        placeholder="输入内容..."
+        placeholder={t("editor.placeholder")}
         readOnly={note.locked}
         spellCheck={false}
         onChange={(e) => !note.locked && update({ content: e.target.value })}

@@ -13,12 +13,12 @@ export const commands = {
   "note.new": {
     label: () => t("menu.note.new"),
     shortcut: "Ctrl+N",
-    run: () => invoke("create_note_window"),
+    run: () => invoke("create_note_window", { title: t("note.defaultTitle") }),
   },
   "note.duplicate": {
     label: () => t("menu.note.duplicate"),
     shortcut: "Ctrl+D",
-    run: (ctx) => invoke("duplicate_note", { sourceId: ctx.noteId }),
+    run: (ctx) => invoke("duplicate_note", { sourceId: ctx.noteId, suffix: t("note.duplicateSuffix") }),
   },
   "note.rename": {
     label: () => t("menu.note.rename"),

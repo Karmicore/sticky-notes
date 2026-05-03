@@ -35,9 +35,9 @@ pub fn delete_note(id: i32, svc: State<Arc<NoteService>>) -> Result<(), String> 
 pub async fn create_note_window(
     app: AppHandle,
     svc: State<'_, Arc<NoteService>>,
+    title: Option<String>,
 ) -> Result<Note, String> {
-    // 通过前端传递语言信息，或使用默认中文
-    let note = svc.create_note("便签")?;
+    let note = svc.create_note(&title.unwrap_or_else(|| "Note".into()))?;
     spawn_note_window(&app, &note)?;
     Ok(note)
 }
@@ -47,8 +47,9 @@ pub async fn duplicate_note(
     app: AppHandle,
     source_id: i32,
     svc: State<'_, Arc<NoteService>>,
+    suffix: Option<String>,
 ) -> Result<Note, String> {
-    let note = svc.duplicate_note(source_id)?;
+    let note = svc.duplicate_note(source_id, &suffix.unwrap_or_else(|| "(copy)".into()))?;
     let app2 = app.clone();
     let note2 = note.clone();
     tauri::async_runtime::spawn_blocking(move || {

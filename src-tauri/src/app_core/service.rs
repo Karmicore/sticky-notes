@@ -71,13 +71,13 @@ impl NoteService {
         Ok(self.repo.load_all()?.into_iter().filter(|n| n.visible).collect())
     }
 
-    pub fn duplicate_note(&self, source_id: i32) -> Result<Note, String> {
+    pub fn duplicate_note(&self, source_id: i32, suffix: &str) -> Result<Note, String> {
         let source = self.get_note(source_id)?;
         let x = source.pos_x + 30;
         let y = source.pos_y + 30;
         let new_note = Note {
             id: self.alloc_id(),
-            title: format!("{} (副本)", source.title),
+            title: format!("{} {}", source.title, suffix),
             content: source.content,
             color: source.color,
             font_size: source.font_size,
@@ -163,7 +163,7 @@ mod tests {
         original.font_size = 20;
         svc.save_note(original).unwrap();
 
-        let dup = svc.duplicate_note(0).unwrap();
+        let dup = svc.duplicate_note(0, "(副本)").unwrap();
         assert_eq!(dup.content, "important text");
         assert_eq!(dup.color, "#BBDEFB");
         assert_eq!(dup.font_size, 20);
@@ -174,7 +174,7 @@ mod tests {
     #[test]
     fn duplicate_nonexistent_fails() {
         let svc = make_service();
-        assert!(svc.duplicate_note(999).is_err());
+        assert!(svc.duplicate_note(999, "(副本)").is_err());
     }
 
     #[test]
@@ -206,7 +206,7 @@ mod tests {
         original.collapsed = true;
         svc.save_note(original).unwrap();
 
-        let dup = svc.duplicate_note(0).unwrap();
+        let dup = svc.duplicate_note(0, "(副本)").unwrap();
         assert!(!dup.locked);
         assert!(!dup.collapsed);
     }

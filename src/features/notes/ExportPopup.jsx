@@ -42,22 +42,20 @@ export default function ExportPopup() {
   }, []);
 
   const toggleSelect = useCallback((id) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  }, []);
+    setSelectedIds((prev) => {
+      const next = prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id];
+      saveSelection(next);
+      return next;
+    });
+  }, [saveSelection]);
 
   const toggleAll = useCallback(() => {
-    setSelectedIds((prev) =>
-      prev.length === notes.length ? [] : notes.map((n) => n.id)
-    );
-  }, [notes]);
-
-  useEffect(() => {
-    if (selectedIds.length > 0 || notes.length > 0) {
-      saveSelection(selectedIds);
-    }
-  }, [selectedIds, saveSelection, notes.length]);
+    setSelectedIds((prev) => {
+      const next = prev.length === notes.length ? [] : notes.map((n) => n.id);
+      saveSelection(next);
+      return next;
+    });
+  }, [notes, saveSelection]);
 
   const doCopyExport = useCallback(async () => {
     try {
@@ -77,6 +75,9 @@ export default function ExportPopup() {
       setMessage(t("export.cutSuccess"));
       setShowCutConfirm(false);
       setTimeout(() => setMessage(""), 2000);
+      // 剪切后清空选择并重新加载便签
+      setSelectedIds([]);
+      saveSelection([]);
       const allNotes = await invoke("load_all_notes");
       setNotes(allNotes);
     } catch (e) {
@@ -84,7 +85,7 @@ export default function ExportPopup() {
       setMessage(t("export.failed"));
       setTimeout(() => setMessage(""), 2000);
     }
-  }, [selectedIds]);
+  }, [selectedIds, saveSelection]);
 
   if (loading) {
     return <div className={styles.panel}>{t("export.loading")}</div>;

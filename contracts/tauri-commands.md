@@ -30,15 +30,15 @@ Parameter names use **camelCase** in JS, mapped to **snake_case** in Rust by Tau
 - **Source**: `commands/note_cmd.rs`
 
 ### create_note_window
-- **Args**: none
+- **Args**: `{ title?: string }`
 - **Returns**: `Note`
-- **Behavior**: Creates note in DB + spawns a new window
+- **Behavior**: Creates note in DB + spawns a new window. Defaults title to "Note" if omitted.
 - **Source**: `commands/note_cmd.rs`
 
 ### duplicate_note
-- **Args**: `{ sourceId: number }`
+- **Args**: `{ sourceId: number, suffix?: string }`
 - **Returns**: `Note`
-- **Behavior**: Copies content/color/size, offsets position by +30px, resets locked/collapsed
+- **Behavior**: Copies content/color/size, offsets position by +30px, resets locked/collapsed. Appends suffix to title (defaults to "(copy)").
 - **Source**: `commands/note_cmd.rs`
 
 ### close_note_window
@@ -155,7 +155,7 @@ interface NoteRect {
 import { invoke } from "@tauri-apps/api/core";
 
 // Create a new note and get its data
-const note = await invoke("create_note_window");
+const note = await invoke("create_note_window", { title: "My Note" });
 
 // Save with updated content
 await invoke("save_note", { note: { ...note, content: "new text" } });
