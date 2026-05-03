@@ -6,6 +6,7 @@ import { commands } from "../commands/registry";
 import { menuStructure } from "../commands/menu";
 import { COLORS, OPACITIES } from "../constants";
 import { hexToRgb } from "./color";
+import { t } from "./i18n";
 
 const SIZE = 16;
 const colorIconCache = new Map();
@@ -58,11 +59,12 @@ async function buildMenuItems(ctx, rePopup) {
       if (entry.submenu === "co") return buildColorSubmenu(ctx, rePopup);
 
       const isToggle = cmd.toggle ? cmd.toggle(ctx) : undefined;
+      const text = typeof cmd.label === "function" ? cmd.label() : cmd.label;
 
       if (isToggle !== undefined) {
         return CheckMenuItem.new({
           id: entry.id,
-          text: cmd.label,
+          text,
           checked: isToggle,
           accelerator: cmd.shortcut || undefined,
           action: () => cmd.run(ctx),
@@ -71,7 +73,7 @@ async function buildMenuItems(ctx, rePopup) {
 
       return MenuItem.new({
         id: entry.id,
-        text: cmd.label,
+        text,
         accelerator: cmd.shortcut || undefined,
         action: () => cmd.run(ctx),
       });
@@ -92,21 +94,22 @@ async function buildOpacitySubmenu(ctx, rePopup) {
       })
     );
   }
-  return Submenu.new({ text: "透明度", items });
+  return Submenu.new({ text: t("menu.opacity"), items });
 }
 
 async function buildColorSubmenu(ctx, rePopup) {
   const items = [];
   for (const { hex, name } of COLORS) {
     const icon = await colorToIcon(hex);
+    const text = typeof name === "function" ? name() : name;
     items.push(
       await IconMenuItem.new({
         id: `color.set:${hex}`,
-        text: name,
+        text,
         icon,
         action: () => { commands["color.set"].run(ctx, hex); rePopup(); },
       })
     );
   }
-  return Submenu.new({ text: "颜色", items });
+  return Submenu.new({ text: t("menu.color"), items });
 }
