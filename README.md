@@ -23,7 +23,9 @@
 
 ## 📸 截图
 
-> _TODO: 添加截图_
+![桌面视图](docs/images/desktop-view.png)
+
+![功能演示](docs/images/features-demo.gif)
 
 ## 🚀 安装
 
