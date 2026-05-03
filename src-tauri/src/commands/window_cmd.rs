@@ -26,6 +26,20 @@ pub fn hide_all_note_windows(app: &AppHandle) {
     }
 }
 
+pub fn any_collapsed(app: &AppHandle) -> bool {
+    for (label, window) in app.webview_windows() {
+        if !label.starts_with("note-") {
+            continue;
+        }
+        if let Ok(size) = window.inner_size() {
+            if size.height <= 30 {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 // ── Window spawning ──
 
 pub fn spawn_note_window(app: &AppHandle, note: &Note) -> Result<(), String> {

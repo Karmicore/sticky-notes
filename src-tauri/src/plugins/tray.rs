@@ -34,7 +34,7 @@ pub struct TrayPlugin;
 impl TrayPlugin {
     pub fn new() -> Self { Self }
 
-    fn build_menu(app: &AppHandle) -> Result<Menu<tauri::Wry>, String> {
+    fn build_menu(app: &AppHandle, toggle_collapse: &MenuItem<tauri::Wry>) -> Result<Menu<tauri::Wry>, String> {
         let lang = config_cmd::load_language();
 
         let show = MenuItem::with_id(app, "show", t("显示全部", "Show All"), true, Some("Alt+S"))
@@ -67,22 +67,39 @@ impl TrayPlugin {
         let quit = MenuItem::with_id(app, "quit", t("退出", "Quit"), true, None::<&str>)
             .map_err(|e| e.to_string())?;
 
-        Menu::with_items(app, &[&show, &hide, &new_note, &export_menu, &lang_menu, &quit])
+        Menu::with_items(app, &[&show, &hide, toggle_collapse, &new_note, &export_menu, &lang_menu, &quit])
             .map_err(|e| e.to_string())
     }
 
     fn rebuild_menu(app: &AppHandle) {
-        if let Ok(menu) = Self::build_menu(app) {
-            if let Some(h) = app.try_state::<TrayHandle>() {
-                if let Ok(tray) = h.0.lock() {
-                    tray.set_menu(Some(menu)).ok();
+        let toggle_text = if window_cmd::any_collapsed(app) {
+            t("展开全部", "Expand All")
+        } else {
+            t("折叠全部", "Collapse All")
+        };
+        let toggle = MenuItem::with_id(app, "toggle_collapse", toggle_text, true, None::<&str>);
+        if let Ok(toggle) = toggle {
+            if let Ok(menu) = Self::build_menu(app, &toggle) {
+                if let Some(h) = app.try_state::<TrayHandle>() {
+                    if let Ok(tray) = h.0.lock() {
+                        tray.set_menu(Some(menu)).ok();
+                    }
                 }
             }
         }
     }
 
     pub fn build(&self, app: &AppHandle) -> Result<(), String> {
-        let tray_menu = Self::build_menu(app)?;
+        let toggle_text = if window_cmd::any_collapsed(app) {
+            t("展开全部", "Expand All")
+        } else {
+            t("折叠全部", "Collapse All")
+        };
+        let toggle_collapse = MenuItem::with_id(app, "toggle_collapse", toggle_text, true, None::<&str>)
+            .map_err(|e| e.to_string())?;
+        let toggle_collapse_handle = toggle_collapse.clone();
+
+        let tray_menu = Self::build_menu(app, &toggle_collapse)?;
 
         let tray = TrayIconBuilder::new()
             .icon(app.default_window_icon().unwrap().clone())
@@ -91,6 +108,17 @@ impl TrayPlugin {
             .on_menu_event(move |app, event| match event.id.as_ref() {
                 "show" => window_cmd::show_all_note_windows(app),
                 "hide" => window_cmd::hide_all_note_windows(app),
+                "toggle_collapse" => {
+                    if let Some(svc) = app.try_state::<Arc<NoteService>>() {
+                        if window_cmd::any_collapsed(app) {
+                            window_cmd::expand_all_note_windows(app, &svc);
+                            toggle_collapse_handle.set_text(t("折叠全部", "Collapse All")).ok();
+                        } else {
+                            window_cmd::collapse_all_note_windows(app, &svc);
+                            toggle_collapse_handle.set_text(t("展开全部", "Expand All")).ok();
+                        }
+                    }
+                }
                 "new" => {
                     if let Some(svc) = app.try_state::<Arc<NoteService>>() {
                         if let Ok(note) = svc.create_note(&t("便签", "Note")) {
