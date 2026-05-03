@@ -1,51 +1,19 @@
-import { MenuItem, CheckMenuItem, IconMenuItem, Submenu, PredefinedMenuItem } from "@tauri-apps/api/menu";
-import { Image } from "@tauri-apps/api/image";
+import { MenuItem, CheckMenuItem, Submenu, PredefinedMenuItem } from "@tauri-apps/api/menu";
 import { LogicalPosition } from "@tauri-apps/api/dpi";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { commands } from "../commands/registry";
 import { menuStructure } from "../commands/menu";
-import { COLORS, OPACITIES } from "../constants";
-import { hexToRgb } from "./color";
 import { t } from "./i18n";
-
-const SIZE = 16;
-const colorIconCache = new Map();
-
-async function colorToIcon(hex) {
-  if (colorIconCache.has(hex)) return colorIconCache.get(hex);
-  const [r, g, b] = hexToRgb(hex);
-  const rgba = new Uint8Array(SIZE * SIZE * 4);
-  for (let i = 0; i < SIZE * SIZE; i++) {
-    const p = i * 4;
-    const x = i % SIZE;
-    const y = (i / SIZE) | 0;
-    const border = x === 0 || x === SIZE - 1 || y === 0 || y === SIZE - 1;
-    rgba[p] = border ? r * 0.8 : r;
-    rgba[p + 1] = border ? g * 0.8 : g;
-    rgba[p + 2] = border ? b * 0.8 : b;
-    rgba[p + 3] = 255;
-  }
-  const icon = await Image.new(rgba, SIZE, SIZE);
-  colorIconCache.set(hex, icon);
-  return icon;
-}
 
 export async function popupNativeMenu(ctx, position) {
   const win = getCurrentWindow();
   const pos = new LogicalPosition(position.x, position.y);
-
-  async function rePopup() {
-    const items = await buildMenuItems(ctx, rePopup);
-    const root = await Submenu.new({ text: "Menu", items });
-    await root.popup(pos, win);
-  }
-
-  const items = await buildMenuItems(ctx, rePopup);
+  const items = await buildMenuItems(ctx);
   const root = await Submenu.new({ text: "Menu", items });
   await root.popup(pos, win);
 }
 
-async function buildMenuItems(ctx, rePopup) {
+async function buildMenuItems(ctx) {
   return Promise.all(
     menuStructure.map((entry) => {
       if (entry === "separator") {
@@ -55,8 +23,20 @@ async function buildMenuItems(ctx, rePopup) {
       const cmd = commands[entry.id];
       if (!cmd) return null;
 
-      if (entry.submenu === "op") return buildOpacitySubmenu(ctx, rePopup);
-      if (entry.submenu === "co") return buildColorSubmenu(ctx, rePopup);
+      if (entry.submenu === "op") {
+        return MenuItem.new({
+          id: "opacity.open",
+          text: t("menu.opacity"),
+          action: () => ctx.showOpacityPanel?.(),
+        });
+      }
+      if (entry.submenu === "co") {
+        return MenuItem.new({
+          id: "color.open",
+          text: t("menu.color"),
+          action: () => ctx.showColorPanel?.(),
+        });
+      }
 
       const isToggle = cmd.toggle ? cmd.toggle(ctx) : undefined;
       const text = typeof cmd.label === "function" ? cmd.label() : cmd.label;
@@ -79,37 +59,4 @@ async function buildMenuItems(ctx, rePopup) {
       });
     })
   ).then((items) => items.filter(Boolean));
-}
-
-async function buildOpacitySubmenu(ctx, rePopup) {
-  const current = Math.round(ctx.note.opacity * 100);
-  const items = [];
-  for (const v of OPACITIES) {
-    items.push(
-      await MenuItem.new({
-        id: `opacity.set:${v}`,
-        text: `${v}%`,
-        checked: current === v,
-        action: () => { commands["opacity.set"].run(ctx, v); rePopup(); },
-      })
-    );
-  }
-  return Submenu.new({ text: t("menu.opacity"), items });
-}
-
-async function buildColorSubmenu(ctx, rePopup) {
-  const items = [];
-  for (const { hex, name } of COLORS) {
-    const icon = await colorToIcon(hex);
-    const text = typeof name === "function" ? name() : name;
-    items.push(
-      await IconMenuItem.new({
-        id: `color.set:${hex}`,
-        text,
-        icon,
-        action: () => { commands["color.set"].run(ctx, hex); rePopup(); },
-      })
-    );
-  }
-  return Submenu.new({ text: t("menu.color"), items });
 }
