@@ -58,6 +58,7 @@ export function useDragSnap(ref, { noteId, onCollapseToggle }) {
 
     function startNativeDrag(refScreenX, refScreenY) {
       dragActive = true;
+      window.dispatchEvent(new CustomEvent("note-drag-start"));
       Promise.all([
         appWindow.outerPosition(),
         appWindow.innerSize(),
@@ -84,6 +85,12 @@ export function useDragSnap(ref, { noteId, onCollapseToggle }) {
           document.removeEventListener("mousemove", onMove);
           document.removeEventListener("mouseup", onUp);
           dragActive = false;
+          // Save final position directly to avoid onMoved re-renders during drag
+          appWindow.outerPosition().then((pos) => {
+            window.dispatchEvent(new CustomEvent("note-drag-end", {
+              detail: { id: noteId, x: pos.x, y: pos.y },
+            }));
+          });
         }
 
         document.addEventListener("mousemove", onMove);
