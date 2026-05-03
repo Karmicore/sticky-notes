@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Note",
+  "description": "Core note data structure. Source of truth: src-tauri/src/app_core/note.rs",
+  "type": "object",
+  "required": ["id", "title", "content", "color", "x", "y", "width", "height", "isAlwaysOnTop", "fontSize", "opacity", "visible"],
+  "properties": {
+    "id":          { "type": "integer", "description": "Auto-incrementing note ID" },
+    "title":       { "type": "string",  "description": "Note title, default '便签'" },
+    "content":     { "type": "string",  "description": "Note body text, supports newlines" },
+    "color":       { "type": "string",  "description": "Hex color, e.g. '#FFEB3B'" },
+    "x":           { "type": "integer", "description": "Window position X (serde rename of pos_x)" },
+    "y":           { "type": "integer", "description": "Window position Y (serde rename of pos_y)" },
+    "width":       { "type": "integer", "minimum": 180, "description": "Window width in px" },
+    "height":      { "type": "integer", "minimum": 100, "description": "Window height in px" },
+    "isAlwaysOnTop": { "type": "boolean", "description": "Pin window on top" },
+    "fontSize":    { "type": "integer", "description": "Font size in px, default 14" },
+    "opacity":     { "type": "number",  "minimum": 0, "maximum": 1, "description": "Window opacity 0.0-1.0" },
+    "visible":     { "type": "boolean", "description": "Whether note is visible (not hidden by tray)" },
+    "locked":      { "type": "boolean", "default": false, "description": "Lock note (prevent editing)" },
+    "collapsed":   { "type": "boolean", "default": false, "description": "Collapse to title bar only" },
+    "expanded_height": { "type": "integer", "default": 240, "description": "Height before collapse (restored on expand)" },
+    "expanded_width":  { "type": "integer", "default": 260, "description": "Width before collapse (restored on expand)" }
+  },
+  "additionalProperties": false
+}
