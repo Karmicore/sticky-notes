@@ -4,6 +4,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useKeyboard } from "./hooks/useKeyboard";
 import TitleBar from "./TitleBar";
 import NoteEditor from "./NoteEditor";
+import ColorPanel from "./ColorPanel";
 import { popupNativeMenu } from "../../lib/nativeMenu";
 import { hexToRgba } from "../../lib/color";
 import styles from "./styles/NoteWindow.module.css";
@@ -13,6 +14,7 @@ const appWindow = getCurrentWindow();
 export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel }) {
   const [editingTitle, setEditingTitle] = useState(false);
   const [focused, setFocused] = useState(true);
+  const [activePanel, setActivePanel] = useState(null);
   const noteRef = useRef(note);
   const insertCheckboxRef = useRef(null);
   noteRef.current = note;
@@ -76,6 +78,8 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
     onHide: () => appWindow.hide(),
     onPin: handlePin,
     insertCheckbox: () => insertCheckboxRef.current?.(),
+    showColorPanel: () => setActivePanel("color"),
+    showOpacityPanel: () => setActivePanel("opacity"),
   }), [noteId, edit, changeFontSize, changeOpacity, handleDelete, handlePin]);
 
   useKeyboard(getCtx);
@@ -98,6 +102,9 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
       <TitleBar note={note} editingTitle={editingTitle} setEditingTitle={setEditingTitle}
         commitTitle={commitTitle} onClose={handleClose} onMenuToggle={handleMenuToggle}
         onCollapseToggle={handleCollapseToggle} />
+      {activePanel && (
+        <ColorPanel note={note} update={edit} onClose={() => setActivePanel(null)} />
+      )}
       <NoteEditor note={note} update={edit} insertCheckboxRef={insertCheckboxRef}
         style={{ display: note.collapsed ? "none" : undefined }} />
       <div className={styles.resizeGrip}

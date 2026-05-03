@@ -58,34 +58,3 @@
 .textarea::selection {
   background: rgba(0, 0, 0, 0.12);
 }
-
-.cbOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 6px 8px;
-  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-  line-height: 1.5;
-  pointer-events: none;
-  overflow: hidden;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
-.cbLine {
-  min-height: 1.5em;
-}
-
-.cbEmpty {
-  color: #999;
-}
-
-.cbProgress {
-  color: #c89b00;
-}
-
-.cbDone {
-  color: #1abc9c;
-}

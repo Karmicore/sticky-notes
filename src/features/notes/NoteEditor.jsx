@@ -6,12 +6,6 @@ import { t } from "../../lib/i18n";
 
 export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
   const taRef = useRef(null);
-  const ovRef = useRef(null);
-
-  // Sync overlay scroll with textarea
-  const handleScroll = useCallback(() => {
-    if (ovRef.current && taRef.current) ovRef.current.scrollTop = taRef.current.scrollTop;
-  }, []);
 
   const setAndPreserve = useCallback((val) => {
     const ta = taRef.current;
@@ -65,10 +59,10 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
     const lines = note.content.split("\n");
     const line = lines[idx];
     if (!line) return;
-    const cur = line[0];
-    const next = CB_NEXT[cur] || "☐";
-    lines[idx] = next + line.substring(1);
-    if (next === "☑") {
+    const cur = line.substring(0, CB_LEN);
+    const next = CB_NEXT[cur] || CHECKBOX_PREFIX;
+    lines[idx] = next + line.substring(CB_LEN);
+    if (next === "✅ ") {
       confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
     }
     setAndPreserve(lines.join("\n"));
@@ -81,16 +75,13 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
     const val = ta.value;
     const lineStart = val.lastIndexOf("\n", cursorPos - 1) + 1;
     const charInLine = cursorPos - lineStart;
-    // Only toggle if click landed on the checkbox character itself (first char)
-    if (charInLine > 1) return;
+    if (charInLine > CB_LEN) return;
     const lineEnd = val.indexOf("\n", cursorPos);
     const line = val.substring(lineStart, lineEnd === -1 ? val.length : lineEnd);
     if (!CHECKBOX_RE.test(line)) return;
     const lineIdx = val.substring(0, cursorPos).split("\n").length - 1;
     toggleCb(lineIdx);
   }, [note.locked, toggleCb]);
-
-  const lines = note.content.split("\n");
 
   return (
     <div className={styles.editor} style={style}>
@@ -105,21 +96,7 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
         onChange={(e) => !note.locked && update({ content: e.target.value })}
         onKeyDown={handleKeyDown}
         onClick={handleTextareaClick}
-        onScroll={handleScroll}
       />
-      <div ref={ovRef} className={styles.cbOverlay} style={{ fontSize: note.fontSize }}>
-        {lines.map((line, i) => {
-          const m = line.match(CHECKBOX_RE);
-          if (!m) return <div key={i} className={styles.cbLine}>&nbsp;</div>;
-          const sym = m[1];
-          const cls = sym === "☑" ? styles.cbDone : sym === "☒" ? styles.cbProgress : styles.cbEmpty;
-          return (
-            <div key={i} className={styles.cbLine}>
-              <span className={cls}>{sym}</span>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }

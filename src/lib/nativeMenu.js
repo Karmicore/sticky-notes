@@ -20,23 +20,16 @@ async function buildMenuItems(ctx) {
         return PredefinedMenuItem.new({ item: "Separator" });
       }
 
-      const cmd = commands[entry.id];
-      if (!cmd) return null;
-
-      if (entry.submenu === "op") {
+      if (entry.submenu === "appearance") {
         return MenuItem.new({
-          id: "opacity.open",
-          text: t("menu.opacity"),
-          action: () => ctx.showOpacityPanel?.(),
-        });
-      }
-      if (entry.submenu === "co") {
-        return MenuItem.new({
-          id: "color.open",
-          text: t("menu.color"),
+          id: "appearance.open",
+          text: t("menu.appearance"),
           action: () => ctx.showColorPanel?.(),
         });
       }
+
+      const cmd = commands[entry.id];
+      if (!cmd) return null;
 
       const isToggle = cmd.toggle ? cmd.toggle(ctx) : undefined;
       const text = typeof cmd.label === "function" ? cmd.label() : cmd.label;

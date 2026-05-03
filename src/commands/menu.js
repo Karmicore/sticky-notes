@@ -19,6 +19,5 @@ export const menuStructure = [
   { id: "note.checkbox" },
   { id: "font.up" },
   { id: "font.down" },
-  { id: "opacity.set", submenu: "op" },
-  { id: "color.set", submenu: "co" },
+  { id: "appearance", submenu: "appearance" },
 ];

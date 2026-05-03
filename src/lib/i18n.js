@@ -17,6 +17,7 @@ const texts = {
   'menu.opacity.down': { zh: '透明度减小', en: 'Decrease Opacity' },
   'menu.opacity': { zh: '透明度', en: 'Opacity' },
   'menu.color': { zh: '颜色', en: 'Color' },
+  'menu.appearance': { zh: '外观', en: 'Appearance' },
   'menu.window.show_all': { zh: '显示全部', en: 'Show All' },
   'menu.window.hide_all': { zh: '隐藏全部', en: 'Hide All' },
 
