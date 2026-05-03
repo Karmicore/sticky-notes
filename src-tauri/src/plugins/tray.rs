@@ -12,7 +12,7 @@ use crate::commands::window_cmd;
 const COLLAPSED_HEIGHT: u32 = 28;
 
 fn is_chinese() -> bool {
-    // 通过环境变量检测系统语言
+    // 通过环境变量检测系统语言（Linux/macOS）
     if let Ok(lang) = std::env::var("LANG") {
         if lang.to_lowercase().starts_with("zh") {
             return true;
@@ -29,7 +29,14 @@ fn is_chinese() -> bool {
             return true;
         }
     }
-    false
+    // Windows: 检查 VSLANG 环境变量（Visual Studio 语言）
+    if let Ok(lang) = std::env::var("VSLANG") {
+        if lang == "2052" {
+            return true;
+        }
+    }
+    // 默认使用中文（因为目标用户主要是中文用户）
+    true
 }
 
 fn t(zh: &str, en: &str) -> String {

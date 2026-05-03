@@ -11,12 +11,9 @@ use crate::app_core::service::NoteService;
 
 pub fn spawn_export_window(app: &AppHandle) -> Result<(), String> {
     let label = "export";
-    if app.get_webview_window(label).is_some() {
-        // 窗口已存在，显示并聚焦
-        if let Some(window) = app.get_webview_window(label) {
-            window.show().ok();
-            window.set_focus().ok();
-        }
+    if let Some(window) = app.get_webview_window(label) {
+        window.show().ok();
+        window.set_focus().ok();
         return Ok(());
     }
 

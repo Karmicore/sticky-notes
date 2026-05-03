@@ -36,6 +36,7 @@ pub async fn create_note_window(
     app: AppHandle,
     svc: State<'_, Arc<NoteService>>,
 ) -> Result<Note, String> {
+    // 通过前端传递语言信息，或使用默认中文
     let note = svc.create_note("便签")?;
     spawn_note_window(&app, &note)?;
     Ok(note)

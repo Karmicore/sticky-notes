@@ -62,6 +62,14 @@ const texts = {
   'export.cutConfirm': { zh: '剪切导出，便签将为空', en: 'Cut export, notes will be emptied' },
   'export.success': { zh: '已复制到剪贴板', en: 'Copied to clipboard' },
   'export.cutSuccess': { zh: '已剪切到剪贴板', en: 'Cut to clipboard' },
+  'export.loading': { zh: '加载中...', en: 'Loading...' },
+  'export.failed': { zh: '导出失败', en: 'Export failed' },
+  'export.noNotes': { zh: '没有可导出的便签', en: 'No notes to export' },
+  'export.windowTitle': { zh: '导出便签', en: 'Export Notes' },
+
+  // 默认便签标题
+  'note.defaultTitle': { zh: '便签', en: 'Note' },
+  'note.duplicateSuffix': { zh: '(副本)', en: '(copy)' },
 };
 
 /**

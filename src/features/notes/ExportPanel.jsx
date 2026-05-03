@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { t } from "../../lib/i18n";
 import styles from "./styles/ExportPanel.module.css";
 
