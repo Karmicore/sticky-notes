@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use tauri::State;
+use tauri::{Emitter, State};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 
 use crate::app_core::note::Note;
@@ -61,6 +61,8 @@ pub async fn export_notes_cut(
         if let Ok(mut note) = svc.get_note(*id) {
             note.content = String::new();
             svc.save_note(note).map_err(|e| format!("Failed to clear note {}: {}", id, e))?;
+            // 通知便签窗口刷新本地状态
+            app.emit("note-content-cleared", *id).ok();
         }
     }
 
