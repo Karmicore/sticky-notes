@@ -1,9 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import "./App.css";
-import { setLocale } from "./lib/locale";
+import { getLocale, setLocale } from "./lib/locale";
 import { useNote } from "./features/notes/hooks/useNote";
 import { useAutoSave } from "./features/notes/hooks/useAutoSave";
 import { useWindowLifecycle } from "./features/notes/hooks/useWindowLifecycle";
@@ -23,18 +23,6 @@ function NoteRoute({ noteId }) {
 }
 
 function App() {
-  // Reload all windows when language changes so t() picks up the new locale
-  useEffect(() => {
-    const unlisten = listen("language-changed", ({ payload: lang }) => {
-      const resolved = lang === "auto"
-        ? (navigator.language || "en").toLowerCase().startsWith("zh") ? "zh" : "en"
-        : lang;
-      setLocale(resolved);
-      window.location.reload();
-    });
-    return () => { unlisten.then((fn) => fn()); };
-  }, []);
-
   if (label === "export") {
     return <ExportPopup />;
   }
@@ -47,4 +35,26 @@ function App() {
   return <div style={{ padding: 16, color: "#999" }}>Unknown window: {label}</div>;
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+function Root() {
+  // Force full remount when language changes
+  const [langKey, setLangKey] = useState(0);
+
+  useEffect(() => {
+    // Initialize locale from config
+    getLocale();
+
+    const unlisten = listen("language-changed", ({ payload: lang }) => {
+      const resolved = lang === "auto"
+        ? (navigator.language || "en").toLowerCase().startsWith("zh") ? "zh" : "en"
+        : lang;
+      setLocale(resolved);
+      // Bump key → React unmounts entire tree and remounts with new locale
+      setLangKey((k) => k + 1);
+    });
+    return () => { unlisten.then((fn) => fn()); };
+  }, []);
+
+  return <App key={langKey} />;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Root />);
