@@ -3,10 +3,26 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     #[serde(default)]
     pub export_selected_ids: Vec<i32>,
+    /// "auto" | "zh" | "en"
+    #[serde(default = "default_language")]
+    pub language: String,
+}
+
+fn default_language() -> String {
+    "auto".to_string()
+}
+
+impl Default for AppConfig {
+    fn default() -> Self {
+        Self {
+            export_selected_ids: Vec::new(),
+            language: "auto".to_string(),
+        }
+    }
 }
 
 fn config_dir() -> PathBuf {
@@ -39,6 +55,23 @@ fn save_config(config: &AppConfig) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn get_language() -> Result<String, String> {
+    Ok(load_config().language)
+}
+
+#[tauri::command]
+pub fn set_language(lang: String) -> Result<(), String> {
+    let mut config = load_config();
+    config.language = lang;
+    save_config(&config)
+}
+
+/// Public helper for tray menu
+pub fn load_language() -> String {
+    load_config().language
+}
+
+#[tauri::command]
 pub fn get_export_selected_ids() -> Result<Vec<i32>, String> {
     let config = load_config();
     Ok(config.export_selected_ids)
@@ -56,18 +89,28 @@ mod tests {
     use super::*;
 
     #[test]
-    fn default_config_is_empty() {
+    fn default_config() {
         let config = AppConfig::default();
         assert!(config.export_selected_ids.is_empty());
+        assert_eq!(config.language, "auto");
     }
 
     #[test]
     fn serde_roundtrip() {
         let config = AppConfig {
             export_selected_ids: vec![1, 2, 3],
+            language: "zh".to_string(),
         };
         let json = serde_json::to_string(&config).unwrap();
         let loaded: AppConfig = serde_json::from_str(&json).unwrap();
         assert_eq!(loaded.export_selected_ids, vec![1, 2, 3]);
+        assert_eq!(loaded.language, "zh");
+    }
+
+    #[test]
+    fn serde_missing_language_defaults_to_auto() {
+        let json = r#"{"export_selected_ids":[1]}"#;
+        let loaded: AppConfig = serde_json::from_str(json).unwrap();
+        assert_eq!(loaded.language, "auto");
     }
 }

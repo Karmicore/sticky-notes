@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use tauri::{
-    menu::{Menu, MenuItem, Submenu},
+    menu::{CheckMenuItem, Menu, MenuItem, Submenu},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager,
 };
@@ -9,74 +9,80 @@ use tauri::{
 use crate::app_core::service::NoteService;
 use crate::commands::{config_cmd, export_cmd, window_cmd};
 
-/// Wrapper to store the TrayIcon handle in app state for window positioning.
 pub struct TrayHandle(pub Mutex<TrayIcon>);
 
-fn is_chinese() -> bool {
+fn resolved_language() -> String {
+    let pref = config_cmd::load_language();
+    if pref != "auto" {
+        return pref;
+    }
     sys_locale::get_locale()
-        .map(|l| l.to_lowercase().starts_with("zh"))
-        .unwrap_or(false)
+        .map(|l| if l.to_lowercase().starts_with("zh") { "zh" } else { "en" }.to_string())
+        .unwrap_or_else(|| "en".to_string())
+}
+
+fn is_chinese() -> bool {
+    resolved_language() == "zh"
 }
 
 fn t(zh: &str, en: &str) -> String {
-    if is_chinese() {
-        zh.to_string()
-    } else {
-        en.to_string()
-    }
+    if is_chinese() { zh.to_string() } else { en.to_string() }
 }
 
 pub struct TrayPlugin;
 
 impl TrayPlugin {
-    pub fn new() -> Self {
-        Self
-    }
+    pub fn new() -> Self { Self }
 
-    pub fn build(&self, app: &AppHandle) -> Result<(), String> {
+    fn build_menu(app: &AppHandle) -> Result<Menu<tauri::Wry>, String> {
+        let lang = config_cmd::load_language();
+
         let show = MenuItem::with_id(app, "show", t("显示全部", "Show All"), true, Some("Alt+S"))
             .map_err(|e| e.to_string())?;
         let hide = MenuItem::with_id(app, "hide", t("隐藏全部", "Hide All"), true, Some("Alt+H"))
             .map_err(|e| e.to_string())?;
-        let new_note =
-            MenuItem::with_id(app, "new", t("新建便签", "New Note"), true, Some("Alt+N"))
-                .map_err(|e| e.to_string())?;
-        let export_copy = MenuItem::with_id(
-            app,
-            "export_copy",
-            t("复制导出", "Copy Export"),
-            true,
-            None::<&str>,
-        )
-        .map_err(|e| e.to_string())?;
-        let export_cut = MenuItem::with_id(
-            app,
-            "export_cut",
-            t("剪切导出", "Cut Export"),
-            true,
-            None::<&str>,
-        )
-        .map_err(|e| e.to_string())?;
-        let export_settings = MenuItem::with_id(
-            app,
-            "export_settings",
-            t("导出设置...", "Export Settings..."),
-            true,
-            None::<&str>,
-        )
-        .map_err(|e| e.to_string())?;
-        let export_menu = Submenu::with_items(
-            app,
-            t("导出", "Export"),
-            true,
-            &[&export_copy, &export_cut, &export_settings],
-        )
-        .map_err(|e| e.to_string())?;
+        let new_note = MenuItem::with_id(app, "new", t("新建便签", "New Note"), true, Some("Alt+N"))
+            .map_err(|e| e.to_string())?;
+
+        // Export submenu
+        let export_copy = MenuItem::with_id(app, "export_copy", t("复制导出", "Copy Export"), true, None::<&str>)
+            .map_err(|e| e.to_string())?;
+        let export_cut = MenuItem::with_id(app, "export_cut", t("剪切导出", "Cut Export"), true, None::<&str>)
+            .map_err(|e| e.to_string())?;
+        let export_settings = MenuItem::with_id(app, "export_settings", t("导出设置...", "Export Settings..."), true, None::<&str>)
+            .map_err(|e| e.to_string())?;
+        let export_menu = Submenu::with_items(app, t("导出", "Export"), true, &[&export_copy, &export_cut, &export_settings])
+            .map_err(|e| e.to_string())?;
+
+        // Language submenu
+        let lang_auto = CheckMenuItem::with_id(app, "lang_auto", t("自动", "Auto"), true, lang == "auto", None::<&str>)
+            .map_err(|e| e.to_string())?;
+        let lang_zh = CheckMenuItem::with_id(app, "lang_zh", "中文", true, lang == "zh", None::<&str>)
+            .map_err(|e| e.to_string())?;
+        let lang_en = CheckMenuItem::with_id(app, "lang_en", "English", true, lang == "en", None::<&str>)
+            .map_err(|e| e.to_string())?;
+        let lang_menu = Submenu::with_items(app, t("语言", "Language"), true, &[&lang_auto, &lang_zh, &lang_en])
+            .map_err(|e| e.to_string())?;
+
         let quit = MenuItem::with_id(app, "quit", t("退出", "Quit"), true, None::<&str>)
             .map_err(|e| e.to_string())?;
 
-        let tray_menu = Menu::with_items(app, &[&show, &hide, &new_note, &export_menu, &quit])
-            .map_err(|e| e.to_string())?;
+        Menu::with_items(app, &[&show, &hide, &new_note, &export_menu, &lang_menu, &quit])
+            .map_err(|e| e.to_string())
+    }
+
+    fn rebuild_menu(app: &AppHandle) {
+        if let Ok(menu) = Self::build_menu(app) {
+            if let Some(h) = app.try_state::<TrayHandle>() {
+                if let Ok(tray) = h.0.lock() {
+                    tray.set_menu(Some(menu)).ok();
+                }
+            }
+        }
+    }
+
+    pub fn build(&self, app: &AppHandle) -> Result<(), String> {
+        let tray_menu = Self::build_menu(app)?;
 
         let tray = TrayIconBuilder::new()
             .icon(app.default_window_icon().unwrap().clone())
@@ -112,17 +118,21 @@ impl TrayPlugin {
                     let pos = if let Some(h) = app.try_state::<TrayHandle>() {
                         if let Ok(tray) = h.0.lock() {
                             tray.rect().ok().flatten()
-                        } else {
-                            None
-                        }
-                    } else {
-                        None
-                    };
+                        } else { None }
+                    } else { None };
                     window_cmd::spawn_export_window(app, pos.as_ref()).ok();
                 }
-                "quit" => {
-                    app.emit("quit-app", ()).ok();
+                "lang_auto" | "lang_zh" | "lang_en" => {
+                    let lang = match event.id.as_ref() {
+                        "lang_zh" => "zh",
+                        "lang_en" => "en",
+                        _ => "auto",
+                    };
+                    config_cmd::set_language(lang.to_string()).ok();
+                    Self::rebuild_menu(app);
+                    app.emit("language-changed", lang).ok();
                 }
+                "quit" => { app.emit("quit-app", ()).ok(); }
                 _ => {}
             })
             .on_tray_icon_event(|tray, event| {
@@ -139,7 +149,6 @@ impl TrayPlugin {
             .map_err(|e| e.to_string())?;
 
         app.manage(TrayHandle(Mutex::new(tray)));
-
         Ok(())
     }
 }

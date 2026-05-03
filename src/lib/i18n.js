@@ -36,6 +36,8 @@ const texts = {
   'tray.export.copy': { zh: '复制导出', en: 'Copy Export' },
   'tray.export.cut': { zh: '剪切导出', en: 'Cut Export' },
   'tray.export.settings': { zh: '导出设置...', en: 'Export Settings...' },
+  'tray.language': { zh: '语言', en: 'Language' },
+  'tray.language.auto': { zh: '自动', en: 'Auto' },
   'tray.quit': { zh: '退出', en: 'Quit' },
 
   // 颜色名
