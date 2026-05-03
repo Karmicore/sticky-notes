@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useState } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import confetti from "canvas-confetti";
 import styles from "./styles/NoteEditor.module.css";
 import { CHECKBOX_RE, CHECKBOX_PREFIX, CB_LEN, CB_NEXT } from "./utils/checkbox";
@@ -9,18 +9,6 @@ const NBSP = " ";
 export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
   const taRef = useRef(null);
   const ovRef = useRef(null);
-  const [taWidth, setTaWidth] = useState(0);
-
-  // Track textarea content width so overlay matches exactly (fixes cursor misalignment)
-  useEffect(() => {
-    const ta = taRef.current;
-    if (!ta) return;
-    const sync = () => setTaWidth(ta.clientWidth);
-    sync();
-    const ro = new ResizeObserver(sync);
-    ro.observe(ta);
-    return () => ro.disconnect();
-  }, []);
 
   const setAndPreserve = useCallback((val) => {
     const ta = taRef.current;
@@ -103,7 +91,7 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
         onKeyDown={handleKeyDown}
         onScroll={handleScroll}
       />
-      <div ref={ovRef} className={styles.overlay} style={{ fontSize: note.fontSize, width: taWidth }}>
+      <div ref={ovRef} className={styles.overlay} style={{ fontSize: note.fontSize }}>
         {lines.map((line, i) => {
           const m = line.match(CHECKBOX_RE);
           if (m) {
