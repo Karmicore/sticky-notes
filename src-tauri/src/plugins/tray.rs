@@ -1,13 +1,13 @@
 use std::sync::{Arc, Mutex};
 
 use tauri::{
-    menu::{Menu, MenuItem},
+    menu::{Menu, MenuItem, Submenu},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager,
 };
 
 use crate::app_core::service::NoteService;
-use crate::commands::window_cmd;
+use crate::commands::{config_cmd, export_cmd, window_cmd};
 
 /// Wrapper to store the TrayIcon handle in app state for window positioning.
 pub struct TrayHandle(pub Mutex<TrayIcon>);
@@ -41,13 +41,41 @@ impl TrayPlugin {
         let new_note =
             MenuItem::with_id(app, "new", t("新建便签", "New Note"), true, Some("Alt+N"))
                 .map_err(|e| e.to_string())?;
-        let export =
-            MenuItem::with_id(app, "export", t("导出...", "Export..."), true, None::<&str>)
-                .map_err(|e| e.to_string())?;
+        let export_copy = MenuItem::with_id(
+            app,
+            "export_copy",
+            t("复制导出", "Copy Export"),
+            true,
+            None::<&str>,
+        )
+        .map_err(|e| e.to_string())?;
+        let export_cut = MenuItem::with_id(
+            app,
+            "export_cut",
+            t("剪切导出", "Cut Export"),
+            true,
+            None::<&str>,
+        )
+        .map_err(|e| e.to_string())?;
+        let export_settings = MenuItem::with_id(
+            app,
+            "export_settings",
+            t("导出设置...", "Export Settings..."),
+            true,
+            None::<&str>,
+        )
+        .map_err(|e| e.to_string())?;
+        let export_menu = Submenu::with_items(
+            app,
+            t("导出", "Export"),
+            true,
+            &[&export_copy, &export_cut, &export_settings],
+        )
+        .map_err(|e| e.to_string())?;
         let quit = MenuItem::with_id(app, "quit", t("退出", "Quit"), true, None::<&str>)
             .map_err(|e| e.to_string())?;
 
-        let tray_menu = Menu::with_items(app, &[&show, &hide, &new_note, &export, &quit])
+        let tray_menu = Menu::with_items(app, &[&show, &hide, &new_note, &export_menu, &quit])
             .map_err(|e| e.to_string())?;
 
         let tray = TrayIconBuilder::new()
@@ -64,7 +92,23 @@ impl TrayPlugin {
                         }
                     }
                 }
-                "export" => {
+                "export_copy" => {
+                    if let Some(svc) = app.try_state::<Arc<NoteService>>() {
+                        let ids = config_cmd::get_export_selected_ids().unwrap_or_default();
+                        if !ids.is_empty() {
+                            export_cmd::do_export_copy(&ids, app, &svc).ok();
+                        }
+                    }
+                }
+                "export_cut" => {
+                    if let Some(svc) = app.try_state::<Arc<NoteService>>() {
+                        let ids = config_cmd::get_export_selected_ids().unwrap_or_default();
+                        if !ids.is_empty() {
+                            export_cmd::do_export_cut(&ids, app, &svc).ok();
+                        }
+                    }
+                }
+                "export_settings" => {
                     let pos = if let Some(h) = app.try_state::<TrayHandle>() {
                         if let Ok(tray) = h.0.lock() {
                             tray.rect().ok().flatten()

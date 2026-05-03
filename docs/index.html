@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sticky Notes — 轻量桌面便签</title>
+  <meta name="description" content="轻量级 Windows 桌面便签，无边框透明窗口，每个便签独立管理。Tauri 2 + React 19，~10MB 安装。">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">🗒️ Sticky Notes</a>
+      <div class="nav-links">
+        <a href="#features">功能</a>
+        <a href="#demo">演示</a>
+        <a href="#shortcuts">快捷键</a>
+        <a href="#download">下载</a>
+        <a href="https://github.com/Karmicore/sticky-notes" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Sticky Notes</h1>
+      <p class="hero-subtitle">轻量级 Windows 桌面便签<br>无边框透明窗口，每个便签独立管理</p>
+      <div class="hero-badges">
+        <span class="badge">Tauri 2</span>
+        <span class="badge">React 19</span>
+        <span class="badge">~10MB</span>
+        <span class="badge">MIT</span>
+      </div>
+      <div class="hero-actions">
+        <a href="https://github.com/Karmicore/sticky-notes/releases" class="btn btn-primary">下载安装包</a>
+        <a href="https://github.com/Karmicore/sticky-notes" class="btn btn-secondary">查看源码</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <img src="images/features-demo.gif" alt="Sticky Notes 功能演示" class="hero-gif">
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="features">
+    <h2>核心功能</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📝</div>
+        <h3>多便签管理</h3>
+        <p>每个便签独立窗口，自由创建、复制、删除</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3>12 种颜色</h3>
+        <p>右键菜单选色，透明度 20%–100% 可调</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📌</div>
+        <h3>置顶 & 锁定</h3>
+        <p>便签置顶显示，锁定防误编辑</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📎</div>
+        <h3>窗口吸附</h3>
+        <p>便签自动吸附屏幕边缘和其他便签</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✅</div>
+        <h3>待办复选框</h3>
+        <p>Ctrl+1 插入，完成时放烟花</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⌨️</div>
+        <h3>全快捷键</h3>
+        <p>新建、复制、重命名、置顶、字号、透明度…</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔄</div>
+        <h3>折叠/展开</h3>
+        <p>折叠为仅标题栏，节省屏幕空间</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📤</div>
+        <h3>导出便签</h3>
+        <p>复制式/剪切式导出到剪贴板</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Demo -->
+  <section id="demo" class="demo">
+    <h2>功能演示</h2>
+    <div class="demo-grid">
+      <div class="demo-item">
+        <img src="images/create-note.gif" alt="新建便签">
+        <p>新建便签</p>
+      </div>
+      <div class="demo-item">
+        <img src="images/todo-complete.gif" alt="待办完成">
+        <p>待办完成烟花</p>
+      </div>
+      <div class="demo-item">
+        <img src="images/window-snap.png" alt="窗口吸附">
+        <p>窗口吸附</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shortcuts -->
+  <section id="shortcuts" class="shortcuts">
+    <h2>快捷键</h2>
+    <div class="shortcuts-table-wrapper">
+      <table class="shortcuts-table">
+        <thead>
+          <tr><th>操作</th><th>快捷键</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>新建便签</td><td><kbd>Ctrl</kbd> + <kbd>N</kbd></td></tr>
+          <tr><td>复制便签</td><td><kbd>Ctrl</kbd> + <kbd>D</kbd></td></tr>
+          <tr><td>重命名</td><td><kbd>F2</kbd></td></tr>
+          <tr><td>隐藏便签</td><td><kbd>Alt</kbd> + <kbd>F4</kbd></td></tr>
+          <tr><td>置顶</td><td><kbd>Alt</kbd> + <kbd>T</kbd></td></tr>
+          <tr><td>锁定</td><td><kbd>Ctrl</kbd> + <kbd>L</kbd></td></tr>
+          <tr><td>添加待办</td><td><kbd>Ctrl</kbd> + <kbd>1</kbd></td></tr>
+          <tr><td>字号 +/−</td><td><kbd>Ctrl</kbd> + <kbd>=</kbd> / <kbd>-</kbd></td></tr>
+          <tr><td>透明度 +/−</td><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></td></tr>
+          <tr><td>显示全部</td><td><kbd>Alt</kbd> + <kbd>S</kbd></td></tr>
+          <tr><td>隐藏全部</td><td><kbd>Alt</kbd> + <kbd>H</kbd></td></tr>
+          <tr><td>删除便签</td><td><kbd>Alt</kbd> + <kbd>Delete</kbd></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Tech -->
+  <section class="tech">
+    <h2>技术栈</h2>
+    <div class="tech-grid">
+      <div class="tech-item">
+        <span class="tech-label">前端</span>
+        <span class="tech-value">React 19 + Vite + CSS Modules</span>
+      </div>
+      <div class="tech-item">
+        <span class="tech-label">后端</span>
+        <span class="tech-value">Rust + Tauri 2.x + rusqlite</span>
+      </div>
+      <div class="tech-item">
+        <span class="tech-label">存储</span>
+        <span class="tech-value">SQLite 本地存储</span>
+      </div>
+      <div class="tech-item">
+        <span class="tech-label">体积</span>
+        <span class="tech-value">~10MB 安装包，低内存占用</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download -->
+  <section id="download" class="download">
+    <h2>下载安装</h2>
+    <p>支持 Windows 10 / 11</p>
+    <div class="download-actions">
+      <a href="https://github.com/Karmicore/sticky-notes/releases" class="btn btn-primary btn-large">
+        前往下载
+      </a>
+    </div>
+    <div class="download-formats">
+      <span>.exe NSIS 安装包（推荐）</span>
+      <span>.msi MSI 安装包</span>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>Sticky Notes is open source under the <a href="https://github.com/Karmicore/sticky-notes/blob/main/LICENSE">MIT License</a></p>
+    <p class="footer-links">
+      <a href="https://github.com/Karmicore/sticky-notes">GitHub</a>
+      <span>·</span>
+      <a href="https://github.com/Karmicore/sticky-notes/releases">Releases</a>
+      <span>·</span>
+      <a href="https://github.com/Karmicore/sticky-notes/issues">反馈</a>
+    </p>
+  </footer>
+</body>
+</html>
