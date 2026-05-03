@@ -23,9 +23,7 @@ A lightweight, frameless sticky notes app for Windows. Each note is its own tran
 
 ## 📸 Screenshots
 
-![Desktop View](docs/images/desktop-view.png)
-
-![Features Demo](docs/images/features-demo.gif)
+> _TODO: Add screenshots_
 
 ## 🚀 Install
 
