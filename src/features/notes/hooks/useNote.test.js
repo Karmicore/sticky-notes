@@ -8,6 +8,10 @@ import { useAutoSave } from "./useAutoSave";
 const mockInvoke = vi.fn();
 vi.mock("@tauri-apps/api/core", () => ({ invoke: (...args) => mockInvoke(...args) }));
 
+vi.mock("@tauri-apps/api/window", () => ({
+  getCurrentWindow: () => ({ show: vi.fn(), hide: vi.fn(), close: vi.fn() }),
+}));
+
 const sampleNote = {
   id: 1, title: "Test", content: "hello", color: "#FFEB3B",
   x: 100, y: 100, width: 260, height: 320,

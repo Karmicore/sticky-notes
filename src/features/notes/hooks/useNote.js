@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+
+const appWindow = getCurrentWindow();
 
 export function useNote(noteId) {
   const [note, setNote] = useState(null);
@@ -8,7 +11,10 @@ export function useNote(noteId) {
   useEffect(() => {
     if (noteId === null) return;
     invoke("get_note", { id: noteId })
-      .then((n) => setNote({ ...n, locked: n.locked || false }))
+      .then((n) => {
+        setNote({ ...n, locked: n.locked || false });
+        appWindow.show();
+      })
       .catch(console.error);
   }, [noteId]);
 

@@ -40,6 +40,7 @@ pub fn spawn_note_window(app: &AppHandle, note: &Note) -> Result<(), String> {
         .inner_size(note.width as f64, note.height as f64)
         .position(note.pos_x as f64, note.pos_y as f64)
         .min_inner_size(180.0, 100.0)
+        .visible(false)
         .decorations(false)
         .resizable(true)
         .always_on_top(note.is_always_on_top)
