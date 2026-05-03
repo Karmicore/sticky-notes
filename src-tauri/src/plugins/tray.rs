@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use tauri::{
-    menu::{Menu, MenuItem},
+    menu::{Menu, MenuItem, Submenu},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager,
 };
@@ -10,6 +10,35 @@ use crate::app_core::service::NoteService;
 use crate::commands::window_cmd;
 
 const COLLAPSED_HEIGHT: u32 = 28;
+
+fn is_chinese() -> bool {
+    // 通过环境变量检测系统语言
+    if let Ok(lang) = std::env::var("LANG") {
+        if lang.to_lowercase().starts_with("zh") {
+            return true;
+        }
+    }
+    if let Ok(lang) = std::env::var("LC_ALL") {
+        if lang.to_lowercase().starts_with("zh") {
+            return true;
+        }
+    }
+    // Windows: 检查环境变量
+    if let Ok(lang) = std::env::var("OS_LOCALE") {
+        if lang.to_lowercase().starts_with("zh") {
+            return true;
+        }
+    }
+    false
+}
+
+fn t(zh: &str, en: &str) -> String {
+    if is_chinese() {
+        zh.to_string()
+    } else {
+        en.to_string()
+    }
+}
 
 pub struct TrayPlugin;
 
@@ -33,19 +62,70 @@ impl TrayPlugin {
     }
 
     pub fn build(&self, app: &AppHandle) -> Result<(), String> {
-        let show = MenuItem::with_id(app, "show", "显示全部", true, Some("Alt+S"))
+        let show = MenuItem::with_id(app, "show", t("显示全部", "Show All"), true, Some("Alt+S"))
             .map_err(|e| e.to_string())?;
-        let hide = MenuItem::with_id(app, "hide", "隐藏全部", true, Some("Alt+H"))
+        let hide = MenuItem::with_id(app, "hide", t("隐藏全部", "Hide All"), true, Some("Alt+H"))
             .map_err(|e| e.to_string())?;
-        let toggle_collapse = MenuItem::with_id(app, "toggle_collapse", "折叠全部", true, None::<&str>)
-            .map_err(|e| e.to_string())?;
-        let new_note = MenuItem::with_id(app, "new", "新建便签", true, Some("Alt+N"))
-            .map_err(|e| e.to_string())?;
-        let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)
+        let toggle_collapse = MenuItem::with_id(
+            app,
+            "toggle_collapse",
+            t("折叠全部", "Collapse All"),
+            true,
+            None::<&str>,
+        )
+        .map_err(|e| e.to_string())?;
+        let new_note =
+            MenuItem::with_id(app, "new", t("新建便签", "New Note"), true, Some("Alt+N"))
+                .map_err(|e| e.to_string())?;
+
+        // 导出子菜单
+        let export_copy = MenuItem::with_id(
+            app,
+            "export_copy",
+            t("复制式导出", "Copy Export"),
+            true,
+            None::<&str>,
+        )
+        .map_err(|e| e.to_string())?;
+        let export_cut = MenuItem::with_id(
+            app,
+            "export_cut",
+            t("剪切式导出", "Cut Export"),
+            true,
+            None::<&str>,
+        )
+        .map_err(|e| e.to_string())?;
+        let export_select = MenuItem::with_id(
+            app,
+            "export_select",
+            t("选择便签...", "Select Notes..."),
+            true,
+            None::<&str>,
+        )
+        .map_err(|e| e.to_string())?;
+        let export_menu = Submenu::with_items(
+            app,
+            t("导出", "Export"),
+            true,
+            &[&export_copy, &export_cut, &export_select],
+        )
+        .map_err(|e| e.to_string())?;
+
+        let quit = MenuItem::with_id(app, "quit", t("退出", "Quit"), true, None::<&str>)
             .map_err(|e| e.to_string())?;
 
-        let tray_menu = Menu::with_items(app, &[&show, &hide, &toggle_collapse, &new_note, &quit])
-            .map_err(|e| e.to_string())?;
+        let tray_menu = Menu::with_items(
+            app,
+            &[
+                &show,
+                &hide,
+                &toggle_collapse,
+                &new_note,
+                &export_menu,
+                &quit,
+            ],
+        )
+        .map_err(|e| e.to_string())?;
 
         let _tray = TrayIconBuilder::new()
             .icon(app.default_window_icon().unwrap().clone())
@@ -58,21 +138,35 @@ impl TrayPlugin {
                     if let Some(svc) = app.try_state::<Arc<NoteService>>() {
                         if Self::any_collapsed(app) {
                             window_cmd::expand_all_note_windows(app, &svc);
-                            toggle_collapse.set_text("折叠全部").ok();
+                            toggle_collapse.set_text(&t("折叠全部", "Collapse All")).ok();
                         } else {
                             window_cmd::collapse_all_note_windows(app, &svc);
-                            toggle_collapse.set_text("展开全部").ok();
+                            toggle_collapse.set_text(&t("展开全部", "Expand All")).ok();
                         }
                     }
                 }
                 "new" => {
                     if let Some(svc) = app.try_state::<Arc<NoteService>>() {
-                        if let Ok(note) = svc.create_note("便签") {
+                        if let Ok(note) = svc.create_note(&t("便签", "Note")) {
                             window_cmd::spawn_note_window(app, &note).ok();
                         }
                     }
                 }
-                "quit" => { app.emit("quit-app", ()).ok(); }
+                "export_copy" => {
+                    // 触发复制式导出事件到前端
+                    app.emit("trigger-export", "copy").ok();
+                }
+                "export_cut" => {
+                    // 触发剪切式导出事件到前端
+                    app.emit("trigger-export", "cut").ok();
+                }
+                "export_select" => {
+                    // 打开导出窗口
+                    window_cmd::spawn_export_window(app).ok();
+                }
+                "quit" => {
+                    app.emit("quit-app", ()).ok();
+                }
                 _ => {}
             })
             .on_tray_icon_event(|tray, event| {

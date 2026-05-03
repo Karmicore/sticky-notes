@@ -28,6 +28,7 @@ pub fn run() {
     // ── Build Tauri app ──
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
         .manage(service)
         .setup(move |app| {
             let handle = app.handle().clone();
@@ -79,13 +80,19 @@ pub fn run() {
             commands::note_cmd::create_note_window,
             commands::note_cmd::duplicate_note,
             commands::note_cmd::close_note_window,
+            commands::note_cmd::load_all_notes,
             commands::note_cmd::get_all_notes_rect,
             commands::window_cmd::set_window_always_on_top,
             commands::window_cmd::show_all_notes,
             commands::window_cmd::hide_all_notes,
+            commands::window_cmd::open_export_window,
             commands::window_cmd::toggle_note_collapsed,
             commands::window_cmd::collapse_all_notes,
             commands::window_cmd::expand_all_notes,
+            commands::export_cmd::export_notes_copy,
+            commands::export_cmd::export_notes_cut,
+            commands::config_cmd::get_export_selected_ids,
+            commands::config_cmd::set_export_selected_ids,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

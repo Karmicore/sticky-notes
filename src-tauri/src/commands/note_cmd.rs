@@ -66,6 +66,11 @@ pub async fn close_note_window(app: AppHandle, id: i32) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn load_all_notes(svc: State<Arc<NoteService>>) -> Result<Vec<Note>, String> {
+    svc.load_all()
+}
+
+#[tauri::command]
 pub fn get_all_notes_rect(
     exclude_id: i32,
     svc: State<Arc<NoteService>>,

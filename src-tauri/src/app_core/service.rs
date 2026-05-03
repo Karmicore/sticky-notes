@@ -63,6 +63,10 @@ impl NoteService {
         Ok(note)
     }
 
+    pub fn load_all(&self) -> Result<Vec<Note>, String> {
+        self.repo.load_all()
+    }
+
     pub fn load_all_visible(&self) -> Result<Vec<Note>, String> {
         Ok(self.repo.load_all()?.into_iter().filter(|n| n.visible).collect())
     }
