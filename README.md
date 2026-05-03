@@ -27,6 +27,8 @@
 
 ![新建便签](docs/images/create-note.gif)
 
+![待办完成](docs/images/todo-complete.gif)
+
 ## 🚀 安装
 
 从 [Releases](https://github.com/Karmicore/sticky-notes/releases) 下载：

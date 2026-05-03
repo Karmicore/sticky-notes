@@ -27,6 +27,8 @@ A lightweight, frameless sticky notes app for Windows. Each note is its own tran
 
 ![Create Note](docs/images/create-note.gif)
 
+![Todo Complete](docs/images/todo-complete.gif)
+
 ## 🚀 Install
 
 Download from [Releases](https://github.com/Karmicore/sticky-notes/releases):
