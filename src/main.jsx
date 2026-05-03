@@ -6,7 +6,6 @@ import { useNote } from "./features/notes/hooks/useNote";
 import { useAutoSave } from "./features/notes/hooks/useAutoSave";
 import { useWindowLifecycle } from "./features/notes/hooks/useWindowLifecycle";
 import NoteWindow from "./features/notes/NoteWindow";
-import ExportPanel from "./features/notes/ExportPanel";
 
 const appWindow = getCurrentWindow();
 const label = appWindow.label;
@@ -21,10 +20,6 @@ function NoteRoute({ noteId }) {
 }
 
 function App() {
-  if (label === "export") {
-    return <ExportPanel />;
-  }
-
   if (label.startsWith("note-")) {
     const noteId = parseInt(label.slice(5), 10);
     return <NoteRoute noteId={noteId} />;

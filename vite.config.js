@@ -12,7 +12,6 @@ export default defineConfig(async () => ({
     rollupOptions: {
       input: {
         note: resolve(__dirname, "note.html"),
-        export: resolve(__dirname, "export.html"),
       },
     },
   },

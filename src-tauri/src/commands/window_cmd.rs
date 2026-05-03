@@ -7,29 +7,6 @@ use tauri::Size;
 use crate::app_core::note::Note;
 use crate::app_core::service::NoteService;
 
-// ── Export window ──
-
-pub fn spawn_export_window(app: &AppHandle) -> Result<(), String> {
-    let label = "export";
-    if let Some(window) = app.get_webview_window(label) {
-        window.show().ok();
-        window.set_focus().ok();
-        return Ok(());
-    }
-
-    WebviewWindowBuilder::new(app, label, tauri::WebviewUrl::App("export.html".into()))
-        .title("导出便签")
-        .inner_size(360.0, 500.0)
-        .min_inner_size(300.0, 400.0)
-        .decorations(true)
-        .resizable(true)
-        .center()
-        .build()
-        .map_err(|e| e.to_string())?;
-
-    Ok(())
-}
-
 // ── Shared helpers (used by both commands and tray) ──
 
 pub fn show_all_note_windows(app: &AppHandle) {
@@ -182,11 +159,6 @@ pub fn expand_all_notes(
 ) -> Result<(), String> {
     expand_all_note_windows(&app, &svc);
     Ok(())
-}
-
-#[tauri::command]
-pub fn open_export_window(app: AppHandle) -> Result<(), String> {
-    spawn_export_window(&app)
 }
 
 #[tauri::command]
