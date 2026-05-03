@@ -11,7 +11,7 @@
   border: none;
   padding: 6px 8px;
   font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-  color: transparent;
+  color: #222;
   caret-color: #222;
   resize: none;
   outline: none;
@@ -57,77 +57,4 @@
 
 .textarea::selection {
   background: rgba(0, 0, 0, 0.12);
-}
-
-.overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 6px 8px;
-  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-  line-height: 1.5;
-  color: #222;
-  pointer-events: none;
-  overflow: hidden;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
-.line {
-  min-height: 1.5em;
-}
-
-.cbLine {
-  position: relative;
-  min-height: 1.5em;
-}
-
-.cbPrefix {
-  color: transparent;
-}
-
-.cbBox {
-  position: absolute;
-  left: 1px;
-  top: calc(0.75em - 6.5px);
-  width: 13px;
-  height: 13px;
-  border: 1.5px solid #999;
-  border-radius: 2px;
-  pointer-events: auto;
-  cursor: pointer;
-  user-select: none;
-}
-
-.cbBox::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.cbProgress {
-  border-color: #c89b00;
-}
-
-.cbProgress::after {
-  width: 7px;
-  height: 0;
-  border-top: 2px solid #c89b00;
-}
-
-.cbDone {
-  border-color: #1abc9c;
-  background: #1abc9c;
-}
-
-.cbDone::after {
-  width: 4px;
-  height: 7px;
-  border: solid #fff;
-  border-width: 0 2px 2px 0;
-  transform: translate(-50%, -60%) rotate(45deg);
 }

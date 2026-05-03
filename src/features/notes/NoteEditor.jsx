@@ -4,11 +4,8 @@ import styles from "./styles/NoteEditor.module.css";
 import { CHECKBOX_RE, CHECKBOX_PREFIX, CB_LEN, CB_NEXT } from "./utils/checkbox";
 import { t } from "../../lib/i18n";
 
-const NBSP = " ";
-
 export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
   const taRef = useRef(null);
-  const ovRef = useRef(null);
 
   const setAndPreserve = useCallback((val) => {
     const ta = taRef.current;
@@ -62,20 +59,28 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
     const lines = note.content.split("\n");
     const line = lines[idx];
     if (!line) return;
-    const cur = line[3];
-    const next = CB_NEXT[cur] || " ";
-    lines[idx] = line.substring(0, 3) + next + line.substring(4);
-    if (next === "x") {
+    const cur = line[0];
+    const next = CB_NEXT[cur] || "☐";
+    lines[idx] = next + line.substring(1);
+    if (next === "☑") {
       confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
     }
     setAndPreserve(lines.join("\n"));
   }, [note.content, setAndPreserve]);
 
-  const handleScroll = useCallback(() => {
-    if (ovRef.current && taRef.current) ovRef.current.scrollTop = taRef.current.scrollTop;
-  }, []);
-
-  const lines = note.content.split("\n");
+  const handleTextareaClick = useCallback((e) => {
+    const ta = taRef.current;
+    if (!ta || note.locked) return;
+    // Calculate which line was clicked
+    const lineHeight = parseFloat(getComputedStyle(ta).lineHeight);
+    const rect = ta.getBoundingClientRect();
+    const y = e.clientY - rect.top + ta.scrollTop;
+    const lineIdx = Math.floor(y / lineHeight);
+    const lines = ta.value.split("\n");
+    if (lineIdx >= 0 && lineIdx < lines.length && CHECKBOX_RE.test(lines[lineIdx])) {
+      toggleCb(lineIdx);
+    }
+  }, [note.locked, toggleCb]);
 
   return (
     <div className={styles.editor} style={style}>
@@ -89,27 +94,8 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
         spellCheck={false}
         onChange={(e) => !note.locked && update({ content: e.target.value })}
         onKeyDown={handleKeyDown}
-        onScroll={handleScroll}
+        onClick={handleTextareaClick}
       />
-      <div ref={ovRef} className={styles.overlay} style={{ fontSize: note.fontSize }}>
-        {lines.map((line, i) => {
-          const m = line.match(CHECKBOX_RE);
-          if (m) {
-            const st = m[1];
-            const cls = st === "x" ? styles.cbDone : st === "-" ? styles.cbProgress : "";
-            const text = line.substring(CB_LEN);
-            return (
-              <div key={i} className={styles.cbLine}>
-                <span className={styles.cbPrefix}>{line.substring(0, CB_LEN)}</span>
-                <span>{text || NBSP}</span>
-                <span className={styles.cbBox + (cls ? " " + cls : "")}
-                  onClick={() => !note.locked && toggleCb(i)} />
-              </div>
-            );
-          }
-          return <div key={i} className={styles.line}>{line || NBSP}</div>;
-        })}
-      </div>
     </div>
   );
 }
