@@ -57,12 +57,12 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
 
   const handleCollapseToggle = useCallback(async () => {
     try {
-      await invoke("toggle_note_collapsed", { noteId: noteRef.current.id });
-      // State update handled by "note-collapsed-changed" event in useWindowLifecycle
+      const updated = await invoke("toggle_note_collapsed", { noteId: noteRef.current.id });
+      edit({ collapsed: updated.collapsed });
     } catch (e) {
       console.error(e);
     }
-  }, []);
+  }, [edit]);
 
   // Context builder — always reads fresh state from refs
   const getCtx = useCallback(() => ({
