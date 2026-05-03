@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { listen } from "@tauri-apps/api/event";
 import "./App.css";
+import { setLocale } from "./lib/locale";
 import { useNote } from "./features/notes/hooks/useNote";
 import { useAutoSave } from "./features/notes/hooks/useAutoSave";
 import { useWindowLifecycle } from "./features/notes/hooks/useWindowLifecycle";
@@ -21,6 +23,18 @@ function NoteRoute({ noteId }) {
 }
 
 function App() {
+  // Reload all windows when language changes so t() picks up the new locale
+  useEffect(() => {
+    const unlisten = listen("language-changed", ({ payload: lang }) => {
+      const resolved = lang === "auto"
+        ? (navigator.language || "en").toLowerCase().startsWith("zh") ? "zh" : "en"
+        : lang;
+      setLocale(resolved);
+      window.location.reload();
+    });
+    return () => { unlisten.then((fn) => fn()); };
+  }, []);
+
   if (label === "export") {
     return <ExportPopup />;
   }

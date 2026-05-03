@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+
+const STORAGE_KEY = "stickynotes_language";
 
 let _locale = null;
 
@@ -9,18 +10,23 @@ function systemLocale() {
 }
 
 /**
- * Get the current locale. Reads from config on first call.
- * Falls back to system language if config is "auto".
+ * Get the current locale.
+ * Reads from localStorage first (sync), then async-loads from config.
  */
 export function getLocale() {
   if (_locale === null) {
-    _locale = systemLocale();
-    // Async load from config (will apply on next page load or after event)
+    const cached = localStorage.getItem(STORAGE_KEY);
+    if (cached && cached !== "auto") {
+      _locale = cached;
+    } else {
+      _locale = systemLocale();
+    }
     invoke("get_language")
       .then((pref) => {
         if (pref && pref !== "auto") {
           _locale = pref;
         }
+        localStorage.setItem(STORAGE_KEY, pref || "auto");
       })
       .catch(() => {});
   }
@@ -28,13 +34,9 @@ export function getLocale() {
 }
 
 /**
- * Set locale manually (called by language menu).
+ * Set locale manually (called before page reload on language change).
  */
 export function setLocale(lang) {
   _locale = lang;
+  localStorage.setItem(STORAGE_KEY, lang);
 }
-
-// Listen for language changes from the tray menu
-listen("language-changed", ({ payload: lang }) => {
-  _locale = lang === "auto" ? systemLocale() : lang;
-});
