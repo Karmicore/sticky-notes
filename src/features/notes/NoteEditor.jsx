@@ -75,10 +75,10 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
     const val = ta.value;
     const lineStart = val.lastIndexOf("\n", cursorPos - 1) + 1;
     const charInLine = cursorPos - lineStart;
-    if (charInLine > CB_LEN) return;
     const lineEnd = val.indexOf("\n", cursorPos);
     const line = val.substring(lineStart, lineEnd === -1 ? val.length : lineEnd);
     if (!CHECKBOX_RE.test(line)) return;
+    if (charInLine >= CB_LEN) return;
     const lineIdx = val.substring(0, cursorPos).split("\n").length - 1;
     toggleCb(lineIdx);
   }, [note.locked, toggleCb]);
