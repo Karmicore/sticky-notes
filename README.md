@@ -23,7 +23,9 @@
 
 ## 📸 截图
 
-> _TODO: 添加截图_
+![功能演示](docs/images/features-demo.gif)
+
+![新建便签](docs/images/create-note.gif)
 
 ## 🚀 安装
 
