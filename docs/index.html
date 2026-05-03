@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sticky Notes — 轻量桌面便签</title>
   <meta name="description" content="轻量级 Windows 桌面便签，无边框透明窗口，每个便签独立管理。Tauri 2 + React 19，~10MB 安装。">
+  <meta property="og:title" content="Sticky Notes — Lightweight Desktop Notes">
+  <meta property="og:description" content="Frameless transparent windows, each note independent. Tauri 2 + React 19, ~10MB install.">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,11 +15,18 @@
     <div class="nav-inner">
       <a href="#" class="nav-logo">🗒️ Sticky Notes</a>
       <div class="nav-links">
-        <a href="#features">功能</a>
-        <a href="#demo">演示</a>
-        <a href="#shortcuts">快捷键</a>
-        <a href="#download">下载</a>
+        <a href="#features" data-zh="功能" data-en="Features">功能</a>
+        <a href="#demo" data-zh="演示" data-en="Demo">演示</a>
+        <a href="#shortcuts" data-zh="快捷键" data-en="Shortcuts">快捷键</a>
+        <a href="#download" data-zh="下载" data-en="Download">下载</a>
         <a href="https://github.com/Karmicore/sticky-notes" target="_blank" rel="noopener">GitHub</a>
+        <div class="lang-select" id="langSelect">
+          <button class="lang-btn" id="langBtn">EN</button>
+          <div class="lang-dropdown" id="langDropdown">
+            <button class="lang-option" data-lang="zh">🇨🇳 中文</button>
+            <button class="lang-option" data-lang="en">🇺🇸 English</button>
+          </div>
+        </div>
       </div>
     </div>
   </nav>
@@ -26,7 +35,7 @@
   <section class="hero">
     <div class="hero-content">
       <h1>Sticky Notes</h1>
-      <p class="hero-subtitle">轻量级 Windows 桌面便签<br>无边框透明窗口，每个便签独立管理</p>
+      <p class="hero-subtitle" data-zh="轻量级 Windows 桌面便签<br>无边框透明窗口，每个便签独立管理" data-en="A lightweight Windows desktop sticky notes app<br>Frameless transparent windows, each note independent">轻量级 Windows 桌面便签<br>无边框透明窗口，每个便签独立管理</p>
       <div class="hero-badges">
         <span class="badge">Tauri 2</span>
         <span class="badge">React 19</span>
@@ -34,102 +43,105 @@
         <span class="badge">MIT</span>
       </div>
       <div class="hero-actions">
-        <a href="https://github.com/Karmicore/sticky-notes/releases" class="btn btn-primary">下载安装包</a>
-        <a href="https://github.com/Karmicore/sticky-notes" class="btn btn-secondary">查看源码</a>
+        <a href="https://github.com/Karmicore/sticky-notes/releases" class="btn btn-primary" data-zh="下载安装包" data-en="Download">下载安装包</a>
+        <a href="https://github.com/Karmicore/sticky-notes" class="btn btn-secondary" data-zh="查看源码" data-en="View Source">查看源码</a>
       </div>
     </div>
     <div class="hero-visual">
-      <img src="images/features-demo.gif" alt="Sticky Notes 功能演示" class="hero-gif">
+      <img src="images/features-demo.gif" alt="Sticky Notes demo" class="hero-gif">
     </div>
   </section>
 
   <!-- Features -->
   <section id="features" class="features">
-    <h2>核心功能</h2>
+    <h2 data-zh="核心功能" data-en="Features">核心功能</h2>
     <div class="feature-grid">
       <div class="feature-card">
         <div class="feature-icon">📝</div>
-        <h3>多便签管理</h3>
-        <p>每个便签独立窗口，自由创建、复制、删除</p>
+        <h3 data-zh="多便签管理" data-en="Multi-Note">多便签管理</h3>
+        <p data-zh="每个便签独立窗口，自由创建、复制、删除" data-en="Each note is an independent window — create, duplicate, delete">每个便签独立窗口，自由创建、复制、删除</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🎨</div>
-        <h3>12 种颜色</h3>
-        <p>右键菜单选色，透明度 20%–100% 可调</p>
+        <h3 data-zh="12 种颜色" data-en="12 Colors">12 种颜色</h3>
+        <p data-zh="右键菜单选色，透明度 20%–100% 可调" data-en="Right-click to pick color, transparency 20%–100% adjustable">右键菜单选色，透明度 20%–100% 可调</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">📌</div>
-        <h3>置顶 & 锁定</h3>
-        <p>便签置顶显示，锁定防误编辑</p>
+        <h3 data-zh="置顶 & 锁定" data-en="Pin & Lock">置顶 & 锁定</h3>
+        <p data-zh="便签置顶显示，锁定防误编辑" data-en="Pin notes above all windows, lock to prevent accidental edits">便签置顶显示，锁定防误编辑</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">📎</div>
-        <h3>窗口吸附</h3>
-        <p>便签自动吸附屏幕边缘和其他便签</p>
+        <h3 data-zh="窗口吸附" data-en="Window Snap">窗口吸附</h3>
+        <p data-zh="便签自动吸附屏幕边缘和其他便签" data-en="Notes magnetically snap to screen edges and each other">便签自动吸附屏幕边缘和其他便签</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">✅</div>
-        <h3>待办复选框</h3>
-        <p>Ctrl+1 插入，完成时放烟花</p>
+        <h3 data-zh="待办复选框" data-en="Todo Checkboxes">待办复选框</h3>
+        <p data-zh="Ctrl+1 插入，完成时放烟花" data-en="Ctrl+1 to insert, confetti on completion">Ctrl+1 插入，完成时放烟花</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">⌨️</div>
-        <h3>全快捷键</h3>
-        <p>新建、复制、重命名、置顶、字号、透明度…</p>
+        <h3 data-zh="全快捷键" data-en="Full Shortcuts">全快捷键</h3>
+        <p data-zh="新建、复制、重命名、置顶、字号、透明度…" data-en="New, duplicate, rename, pin, font size, opacity…">新建、复制、重命名、置顶、字号、透明度…</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🔄</div>
-        <h3>折叠/展开</h3>
-        <p>折叠为仅标题栏，节省屏幕空间</p>
+        <h3 data-zh="折叠/展开" data-en="Collapse / Expand">折叠/展开</h3>
+        <p data-zh="折叠为仅标题栏，节省屏幕空间" data-en="Fold down to just the title bar, saves screen space">折叠为仅标题栏，节省屏幕空间</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">📤</div>
-        <h3>导出便签</h3>
-        <p>复制式/剪切式导出到剪贴板</p>
+        <h3 data-zh="导出便签" data-en="Export Notes">导出便签</h3>
+        <p data-zh="复制式/剪切式导出到剪贴板" data-en="Copy or cut export to clipboard">复制式/剪切式导出到剪贴板</p>
       </div>
     </div>
   </section>
 
   <!-- Demo -->
   <section id="demo" class="demo">
-    <h2>功能演示</h2>
+    <h2 data-zh="功能演示" data-en="Demo">功能演示</h2>
     <div class="demo-grid">
       <div class="demo-item">
-        <img src="images/create-note.gif" alt="新建便签">
-        <p>新建便签</p>
+        <img src="images/create-note.gif" alt="Create note">
+        <p data-zh="新建便签" data-en="Create Note">新建便签</p>
       </div>
       <div class="demo-item">
-        <img src="images/todo-complete.gif" alt="待办完成">
-        <p>待办完成烟花</p>
+        <img src="images/todo-complete.gif" alt="Todo complete">
+        <p data-zh="待办完成烟花" data-en="Todo Confetti">待办完成烟花</p>
       </div>
       <div class="demo-item">
-        <img src="images/window-snap.png" alt="窗口吸附">
-        <p>窗口吸附</p>
+        <img src="images/window-snap.png" alt="Window snap">
+        <p data-zh="窗口吸附" data-en="Window Snap">窗口吸附</p>
       </div>
     </div>
   </section>
 
   <!-- Shortcuts -->
   <section id="shortcuts" class="shortcuts">
-    <h2>快捷键</h2>
+    <h2 data-zh="快捷键" data-en="Keyboard Shortcuts">快捷键</h2>
     <div class="shortcuts-table-wrapper">
       <table class="shortcuts-table">
         <thead>
-          <tr><th>操作</th><th>快捷键</th></tr>
+          <tr>
+            <th data-zh="操作" data-en="Action">操作</th>
+            <th data-zh="快捷键" data-en="Shortcut">快捷键</th>
+          </tr>
         </thead>
         <tbody>
-          <tr><td>新建便签</td><td><kbd>Ctrl</kbd> + <kbd>N</kbd></td></tr>
-          <tr><td>复制便签</td><td><kbd>Ctrl</kbd> + <kbd>D</kbd></td></tr>
-          <tr><td>重命名</td><td><kbd>F2</kbd></td></tr>
-          <tr><td>隐藏便签</td><td><kbd>Alt</kbd> + <kbd>F4</kbd></td></tr>
-          <tr><td>置顶</td><td><kbd>Alt</kbd> + <kbd>T</kbd></td></tr>
-          <tr><td>锁定</td><td><kbd>Ctrl</kbd> + <kbd>L</kbd></td></tr>
-          <tr><td>添加待办</td><td><kbd>Ctrl</kbd> + <kbd>1</kbd></td></tr>
-          <tr><td>字号 +/−</td><td><kbd>Ctrl</kbd> + <kbd>=</kbd> / <kbd>-</kbd></td></tr>
-          <tr><td>透明度 +/−</td><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></td></tr>
-          <tr><td>显示全部</td><td><kbd>Alt</kbd> + <kbd>S</kbd></td></tr>
-          <tr><td>隐藏全部</td><td><kbd>Alt</kbd> + <kbd>H</kbd></td></tr>
-          <tr><td>删除便签</td><td><kbd>Alt</kbd> + <kbd>Delete</kbd></td></tr>
+          <tr><td data-zh="新建便签" data-en="New note">新建便签</td><td><kbd>Ctrl</kbd> + <kbd>N</kbd></td></tr>
+          <tr><td data-zh="复制便签" data-en="Duplicate">复制便签</td><td><kbd>Ctrl</kbd> + <kbd>D</kbd></td></tr>
+          <tr><td data-zh="重命名" data-en="Rename">重命名</td><td><kbd>F2</kbd></td></tr>
+          <tr><td data-zh="隐藏便签" data-en="Hide note">隐藏便签</td><td><kbd>Alt</kbd> + <kbd>F4</kbd></td></tr>
+          <tr><td data-zh="置顶" data-en="Pin on top">置顶</td><td><kbd>Alt</kbd> + <kbd>T</kbd></td></tr>
+          <tr><td data-zh="锁定" data-en="Lock">锁定</td><td><kbd>Ctrl</kbd> + <kbd>L</kbd></td></tr>
+          <tr><td data-zh="添加待办" data-en="Add todo">添加待办</td><td><kbd>Ctrl</kbd> + <kbd>1</kbd></td></tr>
+          <tr><td data-zh="字号 +/−" data-en="Font +/−">字号 +/−</td><td><kbd>Ctrl</kbd> + <kbd>=</kbd> / <kbd>-</kbd></td></tr>
+          <tr><td data-zh="透明度 +/−" data-en="Opacity +/−">透明度 +/−</td><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></td></tr>
+          <tr><td data-zh="显示全部" data-en="Show all">显示全部</td><td><kbd>Alt</kbd> + <kbd>S</kbd></td></tr>
+          <tr><td data-zh="隐藏全部" data-en="Hide all">隐藏全部</td><td><kbd>Alt</kbd> + <kbd>H</kbd></td></tr>
+          <tr><td data-zh="删除便签" data-en="Delete note">删除便签</td><td><kbd>Alt</kbd> + <kbd>Delete</kbd></td></tr>
         </tbody>
       </table>
     </div>
@@ -137,39 +149,37 @@
 
   <!-- Tech -->
   <section class="tech">
-    <h2>技术栈</h2>
+    <h2 data-zh="技术栈" data-en="Tech Stack">技术栈</h2>
     <div class="tech-grid">
       <div class="tech-item">
-        <span class="tech-label">前端</span>
+        <span class="tech-label" data-zh="前端" data-en="Frontend">前端</span>
         <span class="tech-value">React 19 + Vite + CSS Modules</span>
       </div>
       <div class="tech-item">
-        <span class="tech-label">后端</span>
+        <span class="tech-label" data-zh="后端" data-en="Backend">后端</span>
         <span class="tech-value">Rust + Tauri 2.x + rusqlite</span>
       </div>
       <div class="tech-item">
-        <span class="tech-label">存储</span>
-        <span class="tech-value">SQLite 本地存储</span>
+        <span class="tech-label" data-zh="存储" data-en="Storage">存储</span>
+        <span class="tech-value" data-zh="SQLite 本地存储" data-en="SQLite local storage">SQLite 本地存储</span>
       </div>
       <div class="tech-item">
-        <span class="tech-label">体积</span>
-        <span class="tech-value">~10MB 安装包，低内存占用</span>
+        <span class="tech-label" data-zh="体积" data-en="Size">体积</span>
+        <span class="tech-value" data-zh="~10MB 安装包，低内存占用" data-en="~10MB installer, minimal memory">~10MB 安装包，低内存占用</span>
       </div>
     </div>
   </section>
 
   <!-- Download -->
   <section id="download" class="download">
-    <h2>下载安装</h2>
-    <p>支持 Windows 10 / 11</p>
+    <h2 data-zh="下载安装" data-en="Download">下载安装</h2>
+    <p data-zh="支持 Windows 10 / 11" data-en="Windows 10 / 11 supported">支持 Windows 10 / 11</p>
     <div class="download-actions">
-      <a href="https://github.com/Karmicore/sticky-notes/releases" class="btn btn-primary btn-large">
-        前往下载
-      </a>
+      <a href="https://github.com/Karmicore/sticky-notes/releases" class="btn btn-primary btn-large" data-zh="前往下载" data-en="Download Now">前往下载</a>
     </div>
     <div class="download-formats">
-      <span>.exe NSIS 安装包（推荐）</span>
-      <span>.msi MSI 安装包</span>
+      <span data-zh=".exe NSIS 安装包（推荐）" data-en=".exe NSIS installer (recommended)">.exe NSIS 安装包（推荐）</span>
+      <span data-zh=".msi MSI 安装包" data-en=".msi MSI installer">.msi MSI 安装包</span>
     </div>
   </section>
 
@@ -181,8 +191,63 @@
       <span>·</span>
       <a href="https://github.com/Karmicore/sticky-notes/releases">Releases</a>
       <span>·</span>
-      <a href="https://github.com/Karmicore/sticky-notes/issues">反馈</a>
+      <a href="https://github.com/Karmicore/sticky-notes/issues" data-zh="反馈" data-en="Issues">反馈</a>
     </p>
   </footer>
+
+  <!-- i18n Script -->
+  <script>
+    (function () {
+      const STORAGE_KEY = 'sticky-notes-lang';
+      var langBtn = document.getElementById('langBtn');
+      var langDropdown = document.getElementById('langDropdown');
+
+      function detectLang() {
+        var saved = localStorage.getItem(STORAGE_KEY);
+        if (saved === 'zh' || saved === 'en') return saved;
+        var nav = navigator.language || navigator.userLanguage || '';
+        return nav.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+      }
+
+      function applyLang(lang) {
+        document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+        document.querySelectorAll('[data-zh]').forEach(function (el) {
+          var text = lang === 'zh' ? el.getAttribute('data-zh') : el.getAttribute('data-en');
+          if (text !== null) {
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+              el.placeholder = text;
+            } else {
+              el.innerHTML = text;
+            }
+          }
+        });
+        langBtn.textContent = lang === 'zh' ? '🇨🇳 中文' : '🇺🇸 EN';
+        document.querySelectorAll('.lang-option').forEach(function (btn) {
+          btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+        });
+      }
+
+      var currentLang = detectLang();
+      applyLang(currentLang);
+
+      langBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        langDropdown.classList.toggle('show');
+      });
+
+      document.querySelectorAll('.lang-option').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          currentLang = this.getAttribute('data-lang');
+          localStorage.setItem(STORAGE_KEY, currentLang);
+          applyLang(currentLang);
+          langDropdown.classList.remove('show');
+        });
+      });
+
+      document.addEventListener('click', function () {
+        langDropdown.classList.remove('show');
+      });
+    })();
+  </script>
 </body>
 </html>
