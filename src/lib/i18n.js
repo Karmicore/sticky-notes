@@ -72,6 +72,7 @@ const texts = {
   'export.failed': { zh: '导出失败', en: 'Export failed' },
   'export.noNotes': { zh: '没有可导出的便签', en: 'No notes to export' },
   'export.windowTitle': { zh: '导出便签', en: 'Export Notes' },
+  'export.refresh': { zh: '刷新', en: 'Refresh' },
 
   // 默认便签标题
   'note.defaultTitle': { zh: '便签', en: 'Note' },

@@ -57,6 +57,21 @@ export default function ExportPopup() {
     });
   }, [notes, saveSelection]);
 
+  const refreshNotes = useCallback(async () => {
+    try {
+      const allNotes = await invoke("load_all_notes");
+      setNotes(allNotes);
+      // 过滤掉已删除的便签ID
+      setSelectedIds((prev) => {
+        const validIds = prev.filter((id) => allNotes.some((n) => n.id === id));
+        saveSelection(validIds);
+        return validIds;
+      });
+    } catch (e) {
+      console.error("Failed to refresh notes:", e);
+    }
+  }, [saveSelection]);
+
   const doCopyExport = useCallback(async () => {
     try {
       await invoke("export_notes_copy", { ids: selectedIds });
@@ -95,11 +110,16 @@ export default function ExportPopup() {
     <div className={styles.panel}>
       <div className={styles.header}>
         <h3>{t("export.title")}</h3>
-        <button className={styles.toggleAllBtn} onClick={toggleAll}>
-          {selectedIds.length === notes.length
-            ? t("export.deselectAll")
-            : t("export.selectAll")}
-        </button>
+        <div className={styles.headerActions}>
+          <button className={styles.toggleAllBtn} onClick={toggleAll}>
+            {selectedIds.length === notes.length
+              ? t("export.deselectAll")
+              : t("export.selectAll")}
+          </button>
+          <button className={styles.refreshBtn} onClick={refreshNotes} title={t("export.refresh")}>
+            ↻
+          </button>
+        </div>
       </div>
 
       <div className={styles.noteList}>
