@@ -71,10 +71,11 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
   const handleTextareaClick = useCallback((e) => {
     const ta = taRef.current;
     if (!ta || note.locked) return;
-    // Calculate which line was clicked
-    const lineHeight = parseFloat(getComputedStyle(ta).lineHeight);
+    const cs = getComputedStyle(ta);
+    const lineHeight = parseFloat(cs.lineHeight);
+    const paddingTop = parseFloat(cs.paddingTop);
     const rect = ta.getBoundingClientRect();
-    const y = e.clientY - rect.top + ta.scrollTop;
+    const y = e.clientY - rect.top - paddingTop + ta.scrollTop;
     const lineIdx = Math.floor(y / lineHeight);
     const lines = ta.value.split("\n");
     if (lineIdx >= 0 && lineIdx < lines.length && CHECKBOX_RE.test(lines[lineIdx])) {
