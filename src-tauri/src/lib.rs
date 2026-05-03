@@ -88,8 +88,11 @@ pub fn run() {
             commands::window_cmd::toggle_note_collapsed,
             commands::window_cmd::collapse_all_notes,
             commands::window_cmd::expand_all_notes,
+            commands::window_cmd::open_export_window,
             commands::export_cmd::export_notes_copy,
             commands::export_cmd::export_notes_cut,
+            commands::config_cmd::get_export_selected_ids,
+            commands::config_cmd::set_export_selected_ids,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

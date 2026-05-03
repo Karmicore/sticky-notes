@@ -38,15 +38,16 @@ fn save_config(config: &AppConfig) -> Result<(), String> {
     fs::write(&path, json).map_err(|e| e.to_string())
 }
 
-/// Public helper for tray menu (no Tauri command wrapper)
-pub fn load_export_selected_ids() -> Vec<i32> {
-    load_config().export_selected_ids
+#[tauri::command]
+pub fn get_export_selected_ids() -> Result<Vec<i32>, String> {
+    let config = load_config();
+    Ok(config.export_selected_ids)
 }
 
-/// Public helper for tray menu (no Tauri command wrapper)
-pub fn save_export_selected_ids(ids: &[i32]) -> Result<(), String> {
+#[tauri::command]
+pub fn set_export_selected_ids(ids: Vec<i32>) -> Result<(), String> {
     let mut config = load_config();
-    config.export_selected_ids = ids.to_vec();
+    config.export_selected_ids = ids;
     save_config(&config)
 }
 

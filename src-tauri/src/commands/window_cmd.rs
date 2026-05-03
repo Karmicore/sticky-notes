@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
 use tauri::webview::WebviewWindowBuilder;
-use tauri::Size;
+use tauri::{LogicalPosition, Size};
 
 use crate::app_core::note::Note;
 use crate::app_core::service::NoteService;
@@ -45,6 +45,58 @@ pub fn spawn_note_window(app: &AppHandle, note: &Note) -> Result<(), String> {
         .always_on_top(note.is_always_on_top)
         .skip_taskbar(true)
         .transparent(true)
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+// ── Export popup window ──
+
+pub fn spawn_export_window(
+    app: &AppHandle,
+    tray_rect: Option<&tauri::Rect>,
+) -> Result<(), String> {
+    let label = "export";
+    if let Some(window) = app.get_webview_window(label) {
+        window.show().ok();
+        window.set_focus().ok();
+        return Ok(());
+    }
+
+    let width = 320.0;
+    let height = 420.0;
+
+    // Try to position near the tray icon; fall back to center of screen
+    let position = if let Some(rect) = tray_rect {
+        match rect.position {
+            tauri::Position::Logical(pos) => {
+                let x = pos.x - width / 2.0;
+                let y = pos.y - height - 8.0;
+                LogicalPosition::new(x.max(0.0), y.max(0.0))
+            }
+            tauri::Position::Physical(pos) => {
+                // Assume 1x scale for simplicity
+                let x = pos.x as f64 - width / 2.0;
+                let y = pos.y as f64 - height - 8.0;
+                LogicalPosition::new(x.max(0.0), y.max(0.0))
+            }
+        }
+    } else {
+        // Fallback: center of screen
+        LogicalPosition::new(300.0, 200.0)
+    };
+
+    WebviewWindowBuilder::new(app, label, tauri::WebviewUrl::App("export.html".into()))
+        .title("Export")
+        .inner_size(width, height)
+        .position(position.x, position.y)
+        .min_inner_size(280.0, 300.0)
+        .decorations(true)
+        .resizable(true)
+        .always_on_top(true)
+        .skip_taskbar(true)
+        .focused(true)
         .build()
         .map_err(|e| e.to_string())?;
 
@@ -202,4 +254,9 @@ pub fn toggle_note_collapsed(
     svc.save_note(note.clone())?;
     window.emit("note-collapsed-changed", (note_id, note.collapsed)).ok();
     Ok(note)
+}
+
+#[tauri::command]
+pub fn open_export_window(app: AppHandle) -> Result<(), String> {
+    spawn_export_window(&app, None)
 }

@@ -67,43 +67,6 @@ pub async fn export_notes_cut(
     Ok(())
 }
 
-/// Public helper for tray menu — copy export without Tauri command wrapper
-pub fn do_export_copy(
-    ids: &[i32],
-    app: &tauri::AppHandle,
-    svc: &NoteService,
-) -> Result<(), String> {
-    let notes = fetch_notes(ids, svc)?;
-    let markdown = notes_to_markdown(&notes);
-    use tauri_plugin_clipboard_manager::ClipboardExt;
-    app.clipboard()
-        .write_text(markdown)
-        .map_err(|e| e.to_string())
-}
-
-/// Public helper for tray menu — cut export without Tauri command wrapper
-pub fn do_export_cut(
-    ids: &[i32],
-    app: &tauri::AppHandle,
-    svc: &NoteService,
-) -> Result<(), String> {
-    let notes = fetch_notes(ids, svc)?;
-    let markdown = notes_to_markdown(&notes);
-    use tauri_plugin_clipboard_manager::ClipboardExt;
-    app.clipboard()
-        .write_text(markdown)
-        .map_err(|e| e.to_string())?;
-
-    for id in ids {
-        if let Ok(mut note) = svc.get_note(*id) {
-            note.content = String::new();
-            svc.save_note(note)
-                .map_err(|e| format!("Failed to clear note {}: {}", id, e))?;
-        }
-    }
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

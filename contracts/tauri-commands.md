@@ -83,6 +83,12 @@ interface NoteRect {
 - **Returns**: `void`
 - **Source**: `commands/window_cmd.rs`
 
+### open_export_window
+- **Args**: none
+- **Returns**: `void`
+- **Behavior**: Opens/focuses the export popup window
+- **Source**: `commands/window_cmd.rs`
+
 ### toggle_note_collapsed
 - **Args**: `{ noteId: number }`
 - **Returns**: `Note` (updated)
@@ -124,6 +130,22 @@ interface NoteRect {
 - **Returns**: `void`
 - **Behavior**: Copies to clipboard + clears note content
 - **Source**: `commands/export_cmd.rs`
+
+---
+
+## Config
+
+### get_export_selected_ids
+- **Args**: none
+- **Returns**: `number[]`
+- **Behavior**: Returns saved export selection from `~/.stickynotes/config.json`
+- **Source**: `commands/config_cmd.rs`
+
+### set_export_selected_ids
+- **Args**: `{ ids: number[] }`
+- **Returns**: `void`
+- **Behavior**: Saves export selection to config
+- **Source**: `commands/config_cmd.rs`
 
 ---
 
