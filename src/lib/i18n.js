@@ -32,6 +32,10 @@ const texts = {
   'tray.toggle_collapse': { zh: '折叠全部', en: 'Collapse All' },
   'tray.expand_all': { zh: '展开全部', en: 'Expand All' },
   'tray.new': { zh: '新建便签', en: 'New Note' },
+  'tray.export': { zh: '导出', en: 'Export' },
+  'tray.export.copy': { zh: '复制导出', en: 'Copy Export' },
+  'tray.export.cut': { zh: '剪切导出', en: 'Cut Export' },
+  'tray.export.settings': { zh: '导出设置...', en: 'Export Settings...' },
   'tray.quit': { zh: '退出', en: 'Quit' },
 
   // 颜色名

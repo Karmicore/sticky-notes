@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import { t } from "../../lib/i18n";
 import styles from "./styles/ExportPopup.module.css";
 
 export default function ExportPopup() {
@@ -62,11 +62,11 @@ export default function ExportPopup() {
   const doCopyExport = useCallback(async () => {
     try {
       await invoke("export_notes_copy", { ids: selectedIds });
-      setMessage("已复制到剪贴板");
+      setMessage(t("export.success"));
       setTimeout(() => setMessage(""), 2000);
     } catch (e) {
       console.error("Export failed:", e);
-      setMessage("导出失败");
+      setMessage(t("export.failed"));
       setTimeout(() => setMessage(""), 2000);
     }
   }, [selectedIds]);
@@ -74,32 +74,30 @@ export default function ExportPopup() {
   const doCutExport = useCallback(async () => {
     try {
       await invoke("export_notes_cut", { ids: selectedIds });
-      setMessage("已剪切到剪贴板");
+      setMessage(t("export.cutSuccess"));
       setShowCutConfirm(false);
       setTimeout(() => setMessage(""), 2000);
       const allNotes = await invoke("load_all_notes");
       setNotes(allNotes);
     } catch (e) {
       console.error("Cut export failed:", e);
-      setMessage("导出失败");
+      setMessage(t("export.failed"));
       setTimeout(() => setMessage(""), 2000);
     }
   }, [selectedIds]);
 
-  const closeWindow = useCallback(() => {
-    getCurrentWindow().close();
-  }, []);
-
   if (loading) {
-    return <div className={styles.panel}>Loading...</div>;
+    return <div className={styles.panel}>{t("export.loading")}</div>;
   }
 
   return (
     <div className={styles.panel}>
       <div className={styles.header}>
-        <h3>导出便签</h3>
+        <h3>{t("export.title")}</h3>
         <button className={styles.toggleAllBtn} onClick={toggleAll}>
-          {selectedIds.length === notes.length ? "取消全选" : "全选"}
+          {selectedIds.length === notes.length
+            ? t("export.deselectAll")
+            : t("export.selectAll")}
         </button>
       </div>
 
@@ -125,14 +123,14 @@ export default function ExportPopup() {
           onClick={doCopyExport}
           disabled={selectedIds.length === 0}
         >
-          复制导出
+          {t("export.copy")}
         </button>
         <button
           className={styles.cutBtn}
           onClick={() => setShowCutConfirm(true)}
           disabled={selectedIds.length === 0}
         >
-          剪切导出
+          {t("export.cut")}
         </button>
       </div>
 
@@ -141,16 +139,16 @@ export default function ExportPopup() {
       {showCutConfirm && (
         <div className={styles.confirmOverlay}>
           <div className={styles.confirmDialog}>
-            <p>剪切导出会清空所选便签的内容，确定继续？</p>
+            <p>{t("export.cutConfirm")}</p>
             <div className={styles.confirmActions}>
               <button className={styles.confirmOk} onClick={doCutExport}>
-                确定
+                {t("export.confirm")}
               </button>
               <button
                 className={styles.confirmCancel}
                 onClick={() => setShowCutConfirm(false)}
               >
-                取消
+                {t("export.cancel")}
               </button>
             </div>
           </div>
