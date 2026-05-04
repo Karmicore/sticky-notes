@@ -291,7 +291,7 @@ pub fn spawn_share_window(app: &AppHandle, x: f64, y: f64) -> Result<(), String>
         .inner_size(640.0, 480.0)
         .position(x, y)
         .min_inner_size(400.0, 350.0)
-        .decorations(false)
+        .decorations(true)
         .resizable(true)
         .always_on_top(true)
         .skip_taskbar(true)

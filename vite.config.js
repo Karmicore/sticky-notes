@@ -15,6 +15,7 @@ export default defineConfig(async () => ({
         export: resolve(__dirname, "export.html"),
         share: resolve(__dirname, "share.html"),
       },
+      // Share uses src/share-entry.jsx (not main.jsx) to avoid App.css transparent background
     },
   },
 

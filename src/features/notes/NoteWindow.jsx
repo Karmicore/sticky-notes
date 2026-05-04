@@ -105,13 +105,14 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
           try {
             const pos = await appWindow.outerPosition();
             const size = await appWindow.outerSize();
-            // Place share window to the right of current note
-            await invoke("open_share_window", {
+            console.log("[share] opening at", pos.x + size.width + 8, pos.y);
+            const result = await invoke("open_share_window", {
               x: pos.x + size.width + 8,
               y: pos.y,
             });
+            console.log("[share] result:", result);
           } catch (e) {
-            console.error(e);
+            console.error("[share] error:", e);
           }
         }} />
       {activePanel && (

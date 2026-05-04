@@ -35,13 +35,17 @@ export default function ShareWindow() {
   const cardRef = useRef(null);
   const appWindow = getCurrentWindow();
 
+  console.log("[ShareWindow] mounted, label:", appWindow.label);
+
   useEffect(() => {
+    console.log("[ShareWindow] loading notes...");
     invoke("load_all_notes")
       .then((all) => {
+        console.log("[ShareWindow] loaded", all.length, "notes");
         setNotes(all.filter((n) => n.visible));
       })
       .catch((e) => {
-        console.error("Failed to load notes:", e);
+        console.error("[ShareWindow] Failed to load notes:", e);
         setError(String(e));
       })
       .finally(() => setLoading(false));
