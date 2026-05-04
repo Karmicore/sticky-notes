@@ -5,6 +5,7 @@ import { useKeyboard } from "./hooks/useKeyboard";
 import TitleBar from "./TitleBar";
 import NoteEditor from "./NoteEditor";
 import ColorPanel from "./ColorPanel";
+import ShareCard from "./ShareCard";
 import { popupNativeMenu } from "../../lib/nativeMenu";
 import { hexToRgba } from "../../lib/color";
 import styles from "./styles/NoteWindow.module.css";
@@ -15,6 +16,7 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
   const [editingTitle, setEditingTitle] = useState(false);
   const [focused, setFocused] = useState(true);
   const [activePanel, setActivePanel] = useState(null);
+  const [shareOpen, setShareOpen] = useState(false);
   const noteRef = useRef(note);
   const insertCheckboxRef = useRef(null);
   noteRef.current = note;
@@ -101,9 +103,12 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
     <div className={styles.noteWindow} style={{ backgroundColor: hexToRgba(note.color, note.opacity), filter: focused ? "none" : "brightness(0.93)", "--glass": note.glass }}>
       <TitleBar note={note} editingTitle={editingTitle} setEditingTitle={setEditingTitle}
         commitTitle={commitTitle} onClose={handleClose} onMenuToggle={handleMenuToggle}
-        onCollapseToggle={handleCollapseToggle} />
+        onCollapseToggle={handleCollapseToggle} onShare={() => setShareOpen(true)} />
       {activePanel && (
         <ColorPanel note={note} update={edit} onClose={() => setActivePanel(null)} />
+      )}
+      {shareOpen && (
+        <ShareCard noteId={noteId} onClose={() => setShareOpen(false)} />
       )}
       <NoteEditor note={note} update={edit} insertCheckboxRef={insertCheckboxRef}
         style={{ display: note.collapsed ? "none" : undefined }} />
