@@ -14,6 +14,13 @@ import ShareWindow from "./features/notes/ShareWindow";
 const appWindow = getCurrentWindow();
 const label = appWindow.label;
 
+// Non-transparent popup windows need opaque background to override App.css
+if (label === "export" || label === "share") {
+  const bg = label === "share" ? "#1a1a2e" : "#fff";
+  document.documentElement.style.background = bg;
+  document.body.style.background = bg;
+}
+
 function NoteRoute({ noteId }) {
   const { note, update } = useNote(noteId);
   const { saveNow, edit, cancel } = useAutoSave(note, update);
