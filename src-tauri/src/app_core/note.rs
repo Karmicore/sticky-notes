@@ -28,6 +28,8 @@ pub struct Note {
     pub expanded_height: u32,
     #[serde(default = "default_expanded_width")]
     pub expanded_width: u32,
+    #[serde(default)]
+    pub glass: f64,
 }
 
 fn default_expanded_height() -> u32 {
@@ -57,6 +59,7 @@ impl Default for Note {
             collapsed: false,
             expanded_height: 240,
             expanded_width: 260,
+            glass: 0.0,
         }
     }
 }
@@ -96,6 +99,7 @@ mod tests {
             collapsed: true,
             expanded_height: 400,
             expanded_width: 300,
+            glass: 0.5,
         };
         let json = serde_json::to_string(&note).unwrap();
         let deserialized: Note = serde_json::from_str(&json).unwrap();
@@ -106,6 +110,7 @@ mod tests {
         assert!(!deserialized.is_always_on_top);
         assert!(deserialized.locked);
         assert!(deserialized.collapsed);
+        assert!((deserialized.glass - 0.5).abs() < f64::EPSILON);
     }
 
     #[test]
@@ -121,6 +126,7 @@ mod tests {
         // pos_x/pos_y should NOT appear
         assert!(json.get("pos_x").is_none());
         assert!(json.get("pos_y").is_none());
+        assert!(json.get("glass").is_some());
     }
 
     #[test]
@@ -131,6 +137,7 @@ mod tests {
         assert!(!note.collapsed);
         assert_eq!(note.expanded_height, 240);
         assert_eq!(note.expanded_width, 260);
+        assert!((note.glass - 0.0).abs() < f64::EPSILON);
     }
 
     #[test]
