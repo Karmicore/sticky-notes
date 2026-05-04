@@ -309,10 +309,14 @@ pub async fn open_export_window(app: AppHandle) -> Result<(), String> {
 
 // ── Share window ──
 
-pub fn spawn_share_window(app: &AppHandle, x: f64, y: f64) -> Result<(), String> {
+pub fn spawn_share_window(app: &AppHandle, text: &str, color: &str, x: f64, y: f64) -> Result<(), String> {
+    let url = format!("share.html#text={}&color={}",
+        urlencoding::encode(text),
+        urlencoding::encode(color),
+    );
     spawn_window(app, WindowConfig {
         label: "share".into(),
-        url: "share.html".into(),
+        url,
         title: "Share".into(),
         width: 640.0,
         height: 480.0,
@@ -331,6 +335,6 @@ pub fn spawn_share_window(app: &AppHandle, x: f64, y: f64) -> Result<(), String>
 }
 
 #[tauri::command]
-pub async fn open_share_window(app: AppHandle, x: f64, y: f64) -> Result<(), String> {
-    spawn_share_window(&app, x, y)
+pub async fn open_share_window(app: AppHandle, text: String, color: String, x: f64, y: f64) -> Result<(), String> {
+    spawn_share_window(&app, &text, &color, x, y)
 }

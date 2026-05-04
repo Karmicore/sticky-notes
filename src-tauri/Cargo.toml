@@ -28,3 +28,4 @@ tauri-plugin-fs = "2"
 sys-locale = "0.3"
 arboard = "3"
 image = { version = "0.25", default-features = false, features = ["png"] }
+urlencoding = "2"

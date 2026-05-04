@@ -81,12 +81,16 @@ const texts = {
   'note.duplicateSuffix': { zh: '(副本)', en: '(copy)' },
 
   // 分享窗口
-  'share.title': { zh: '分享今日进度', en: 'Share Progress' },
-  'share.copy': { zh: '复制到剪贴板', en: 'Copy to Clipboard' },
+  'share.title': { zh: '分享金句', en: 'Share Quote' },
+  'share.copy': { zh: '复制图片', en: 'Copy Image' },
   'share.save': { zh: '保存图片', en: 'Save Image' },
   'share.saved': { zh: '已保存', en: 'Saved' },
   'share.saveFailed': { zh: '保存失败', en: 'Save failed' },
   'share.copyFailed': { zh: '复制失败', en: 'Copy failed' },
+  'share.portrait': { zh: '竖版', en: 'Portrait' },
+  'share.landscape': { zh: '横版', en: 'Landscape' },
+  'share.noSelection': { zh: '请先选中一段文字', en: 'Select some text first' },
+  'menu.note.share': { zh: '分享金句', en: 'Share Quote' },
 };
 
 /**

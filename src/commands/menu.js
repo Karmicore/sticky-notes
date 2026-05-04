@@ -17,6 +17,7 @@ export const menuStructure = [
   { id: "note.collapse.toggle" },
   "separator",
   { id: "note.checkbox" },
+  { id: "note.share" },
   { id: "font.up" },
   { id: "font.down" },
   { id: "appearance", submenu: "appearance" },

@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useDragSnap } from "./hooks/useDragSnap";
 import styles from "./styles/TitleBar.module.css";
 
-export default function TitleBar({ note, editingTitle, setEditingTitle, commitTitle, onClose, onMenuToggle, onCollapseToggle, onShare }) {
+export default function TitleBar({ note, editingTitle, setEditingTitle, commitTitle, onClose, onMenuToggle, onCollapseToggle }) {
   const ref = useRef(null);
 
   useDragSnap(ref, { noteId: note.id, onCollapseToggle });
@@ -20,7 +20,6 @@ export default function TitleBar({ note, editingTitle, setEditingTitle, commitTi
         <span className={styles.titleText}>{note.title}</span>
       )}
       <div className={styles.titleActions}>
-        <button className={`${styles.titleBtn} ${styles.shareBtn}`} onClick={onShare} title="Share">↗</button>
         <button className={`${styles.titleBtn} ${styles.menuBtn}`} onClick={(e) => onMenuToggle(e)}>⋯</button>
         <button className={`${styles.titleBtn} ${styles.closeBtn}`} onClick={onClose}>×</button>
       </div>

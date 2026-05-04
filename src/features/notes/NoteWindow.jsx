@@ -17,6 +17,7 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
   const [activePanel, setActivePanel] = useState(null);
   const noteRef = useRef(note);
   const insertCheckboxRef = useRef(null);
+  const getSelectedTextRef = useRef(() => "");
   noteRef.current = note;
 
   useEffect(() => {
@@ -78,6 +79,12 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
     onHide: () => appWindow.hide(),
     onPin: handlePin,
     insertCheckbox: () => insertCheckboxRef.current?.(),
+    getSelectedText: () => getSelectedTextRef.current?.(),
+    getWindowPosition: async () => {
+      const pos = await appWindow.outerPosition();
+      const size = await appWindow.outerSize();
+      return { x: pos.x + size.width, y: pos.y };
+    },
     showColorPanel: () => setActivePanel("color"),
     showOpacityPanel: () => setActivePanel("opacity"),
   }), [noteId, edit, changeFontSize, changeOpacity, handleDelete, handlePin]);
@@ -101,24 +108,12 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
     <div className={styles.noteWindow} style={{ backgroundColor: hexToRgba(note.color, note.opacity), filter: focused ? "none" : "brightness(0.93)", "--glass": note.glass }}>
       <TitleBar note={note} editingTitle={editingTitle} setEditingTitle={setEditingTitle}
         commitTitle={commitTitle} onClose={handleClose} onMenuToggle={handleMenuToggle}
-        onCollapseToggle={handleCollapseToggle} onShare={async () => {
-          try {
-            const pos = await appWindow.outerPosition();
-            const size = await appWindow.outerSize();
-            console.log("[share] opening at", pos.x + size.width + 8, pos.y);
-            const result = await invoke("open_share_window", {
-              x: pos.x + size.width + 8,
-              y: pos.y,
-            });
-            console.log("[share] result:", result);
-          } catch (e) {
-            console.error("[share] error:", e);
-          }
-        }} />
+        onCollapseToggle={handleCollapseToggle} />
       {activePanel && (
         <ColorPanel note={note} update={edit} onClose={() => setActivePanel(null)} />
       )}
       <NoteEditor note={note} update={edit} insertCheckboxRef={insertCheckboxRef}
+        getSelectedTextRef={getSelectedTextRef}
         style={{ display: note.collapsed ? "none" : undefined }} />
       <div className={styles.resizeGrip}
         style={{ display: note.collapsed ? "none" : undefined }} />

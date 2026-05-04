@@ -99,4 +99,19 @@ export const commands = {
     run: (ctx, color) => ctx.update({ color }),
     submenu: true,
   },
+  "note.share": {
+    label: () => t("menu.note.share"),
+    shortcut: "",
+    run: async (ctx) => {
+      const selectedText = ctx.getSelectedText?.();
+      if (!selectedText) return;
+      const pos = await ctx.getWindowPosition?.();
+      await invoke("open_share_window", {
+        text: selectedText,
+        color: ctx.note.color,
+        x: pos ? pos.x + 660 : 300,
+        y: pos ? pos.y : 200,
+      });
+    },
+  },
 };
