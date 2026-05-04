@@ -66,36 +66,7 @@ const effects = [
   {name:"极简",desc:"UI级轻微折射",mode:"standard",ds:10,blur:.04,sat:150,ab:.5,el:.1,sh:"pill"},
 ];
 
-const fm=document.getElementById("fm"),fr=document.getElementById("fr"),
-fg=document.getElementById("fg"),fb=document.getElementById("fb"),
-fb2=document.getElementById("fb2"),fe=document.getElementById("fe"),
-svg=document.getElementById("gsvg");
-
-function uf(ef){
-  const s=ef.ds,a=ef.ab;
-  fm.setAttribute("href",MAPS[ef.mode]);
-  fr.setAttribute("scale",-s);
-  fg.setAttribute("scale",-s*(1+a*.05));
-  fb.setAttribute("scale",-s*(1+a*.1));
-  fb2.setAttribute("stdDeviation",Math.max(.1,.5-a*.1));
-  fe.setAttribute("tableValues","0 "+(a*.05)+" 1");
-  // Update SVG size to match first preview
-  const pv0=document.getElementById("p-0");
-  if(pv0){const r=pv0.getBoundingClientRect();svg.setAttribute("width",Math.round(r.width));svg.setAttribute("height",Math.round(r.height));}
-  // Force repaint: remove filter, reflow, re-add
-  document.querySelectorAll(".glass-warp").forEach(w=>{
-    w.style.filter="none";
-  });
-  requestAnimationFrame(()=>{
-    const bf="blur("+(4+ef.blur*32)+"px) saturate("+ef.sat+"%)";
-    document.querySelectorAll(".glass-warp").forEach(w=>{
-      w.style.backdropFilter=bf;
-      w.style.webkitBackdropFilter=bf;
-      w.style.filter="url(#gf)";
-    });
-  });
-}
-
+/* ── Helpers ── */
 function drawBg(c){
   const x=c.getContext("2d"),w=c.width,h=c.height;
   x.fillStyle="#fff";x.fillRect(0,0,w,h);
@@ -105,40 +76,295 @@ function drawBg(c){
   for(let y=0;y<h;y+=sz+4)for(let j=0;j<w;j+=sz+4)x.fillText(e[((y/(sz+4))*100+(j/(sz+4)))%e.length|0],j+sz/2,y+sz/2);
 }
 
-function gc(el){const r=el.getBoundingClientRect();return[r.left+r.width/2,r.top+r.height/2]}
+function centerOf(el){const r=el.getBoundingClientRect();return[r.left+r.width/2,r.top+r.height/2]}
 
-function ug(i,mx,my){
-  const ef=effects[i],ov=document.getElementById("o-"+i),pv=document.getElementById("p-"+i);
-  if(!ov||!pv)return;
-  const bf="blur("+(4+ef.blur*32)+"px) saturate("+ef.sat+"%)";
-  ov.querySelectorAll(".glass-warp").forEach(w=>{w.style.backdropFilter=bf;w.style.webkitBackdropFilter=bf;w.style.filter="url(#gf)"});
-  const r=pv.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
-  const dx=mx-cx,dy=my-cy,dist=Math.sqrt(dx*dx+dy*dy);
-  const ex=Math.max(0,Math.abs(dx)-r.width*.3),ey=Math.max(0,Math.abs(dy)-r.height*.2);
-  const ed=Math.sqrt(ex*ex+ey*ey),fi=ed>200?0:1-ed/200;
-  const nx=dist>0?dx/dist:0,ny=dist>0?dy/dist:0;
-  const st=Math.min(dist/300,1)*ef.el*fi;
-  const sx=1+Math.abs(nx)*st*.3-Math.abs(ny)*st*.15;
-  const sy=1+Math.abs(ny)*st*.3-Math.abs(nx)*st*.15;
-  const tx=dx*ef.el*.1*fi,ty=dy*ef.el*.1*fi;
-  ov.style.transform="translate(calc(-50% + "+tx+"px),calc(-50% + "+ty+"px)) scaleX("+Math.max(.8,sx).toFixed(4)+") scaleY("+Math.max(.8,sy).toFixed(4)+")";
+/* ── Per-card Glass instance ── */
+class GlassCard {
+  constructor(ef, index, onSelect) {
+    this.ef = ef;
+    this.index = index;
+    this.filterId = "gf-" + index;
+    this.el = null;       // .glass-el
+    this.preview = null;  // .preview
+    this.dot = null;
+    this._build(onSelect);
+  }
+
+  _buildSvg() {
+    const ns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("aria-hidden", "true");
+    svg.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none";
+
+    const defs = document.createElementNS(ns, "defs");
+    const filter = document.createElementNS(ns, "filter");
+    filter.id = this.filterId;
+    filter.setAttribute("x", "-35%");
+    filter.setAttribute("y", "-35%");
+    filter.setAttribute("width", "170%");
+    filter.setAttribute("height", "170%");
+    filter.setAttribute("color-interpolation-filters", "sRGB");
+
+    const ef = this.ef;
+    const s = ef.ds, a = ef.ab;
+
+    // feImage — displacement map
+    const fi = document.createElementNS(ns, "feImage");
+    fi.setAttribute("result", "DM");
+    fi.setAttribute("preserveAspectRatio", "xMidYMid slice");
+    fi.setAttribute("href", MAPS[ef.mode]);
+    this._fi = fi;
+
+    // feColorMatrix — grayscale
+    const ecm = document.createElementNS(ns, "feColorMatrix");
+    ecm.setAttribute("in", "DM");
+    ecm.setAttribute("type", "matrix");
+    ecm.setAttribute("values", "0.3 0.3 0.3 0 0  0.3 0.3 0.3 0 0  0.3 0.3 0.3 0 0  0 0 0 1 0");
+    ecm.setAttribute("result", "EI");
+
+    // feComponentTransfer — edge mask
+    const ect = document.createElementNS(ns, "feComponentTransfer");
+    ect.setAttribute("in", "EI");
+    ect.setAttribute("result", "EM");
+    const fA = document.createElementNS(ns, "feFuncA");
+    fA.setAttribute("type", "discrete");
+    fA.setAttribute("tableValues", "0 " + (a * .05) + " 1");
+    ect.appendChild(fA);
+    this._fA = fA;
+
+    // feOffset — center passthrough
+    const fo = document.createElementNS(ns, "feOffset");
+    fo.setAttribute("in", "SourceGraphic");
+    fo.setAttribute("dx", "0");
+    fo.setAttribute("dy", "0");
+    fo.setAttribute("result", "CO");
+
+    // R channel displacement
+    const dR = document.createElementNS(ns, "feDisplacementMap");
+    dR.setAttribute("in", "SourceGraphic");
+    dR.setAttribute("in2", "DM");
+    dR.setAttribute("scale", -s);
+    dR.setAttribute("x-channel-selector", "R");
+    dR.setAttribute("y-channel-selector", "B");
+    dR.setAttribute("result", "RD");
+    this._dR = dR;
+
+    const cmR = document.createElementNS(ns, "feColorMatrix");
+    cmR.setAttribute("in", "RD");
+    cmR.setAttribute("type", "matrix");
+    cmR.setAttribute("values", "1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0");
+    cmR.setAttribute("result", "RC");
+
+    // G channel displacement
+    const dG = document.createElementNS(ns, "feDisplacementMap");
+    dG.setAttribute("in", "SourceGraphic");
+    dG.setAttribute("in2", "DM");
+    dG.setAttribute("scale", -s * (1 + a * .05));
+    dG.setAttribute("x-channel-selector", "R");
+    dG.setAttribute("y-channel-selector", "B");
+    dG.setAttribute("result", "GN");
+    this._dG = dG;
+
+    const cmG = document.createElementNS(ns, "feColorMatrix");
+    cmG.setAttribute("in", "GN");
+    cmG.setAttribute("type", "matrix");
+    cmG.setAttribute("values", "0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0");
+    cmG.setAttribute("result", "GC");
+
+    // B channel displacement
+    const dB = document.createElementNS(ns, "feDisplacementMap");
+    dB.setAttribute("in", "SourceGraphic");
+    dB.setAttribute("in2", "DM");
+    dB.setAttribute("scale", -s * (1 + a * .1));
+    dB.setAttribute("x-channel-selector", "R");
+    dB.setAttribute("y-channel-selector", "B");
+    dB.setAttribute("result", "BL");
+    this._dB = dB;
+
+    const cmB = document.createElementNS(ns, "feColorMatrix");
+    cmB.setAttribute("in", "BL");
+    cmB.setAttribute("type", "matrix");
+    cmB.setAttribute("values", "0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0");
+    cmB.setAttribute("result", "BC");
+
+    // Blend channels
+    const bl1 = document.createElementNS(ns, "feBlend");
+    bl1.setAttribute("in", "GC"); bl1.setAttribute("in2", "BC");
+    bl1.setAttribute("mode", "screen"); bl1.setAttribute("result", "GB");
+
+    const bl2 = document.createElementNS(ns, "feBlend");
+    bl2.setAttribute("in", "RC"); bl2.setAttribute("in2", "GB");
+    bl2.setAttribute("mode", "screen"); bl2.setAttribute("result", "RGB");
+
+    // Gaussian blur softening
+    const gb = document.createElementNS(ns, "feGaussianBlur");
+    gb.setAttribute("in", "RGB");
+    gb.setAttribute("stdDeviation", Math.max(.1, .5 - a * .1));
+    gb.setAttribute("result", "BLR");
+    this._gb = gb;
+
+    // Edge composite
+    const c1 = document.createElementNS(ns, "feComposite");
+    c1.setAttribute("in", "BLR"); c1.setAttribute("in2", "EM");
+    c1.setAttribute("operator", "in"); c1.setAttribute("result", "ED");
+
+    // Invert mask for center passthrough
+    const ect2 = document.createElementNS(ns, "feComponentTransfer");
+    ect2.setAttribute("in", "EM"); ect2.setAttribute("result", "INV");
+    const fA2 = document.createElementNS(ns, "feFuncA");
+    fA2.setAttribute("type", "table"); fA2.setAttribute("tableValues", "1 0");
+    ect2.appendChild(fA2);
+
+    const c2 = document.createElementNS(ns, "feComposite");
+    c2.setAttribute("in", "CO"); c2.setAttribute("in2", "INV");
+    c2.setAttribute("operator", "in"); c2.setAttribute("result", "CL");
+
+    const c3 = document.createElementNS(ns, "feComposite");
+    c3.setAttribute("in", "ED"); c3.setAttribute("in2", "CL");
+    c3.setAttribute("operator", "over");
+
+    filter.append(fi, ecm, ect, fo, dR, cmR, dG, cmG, dB, cmB, bl1, bl2, gb, c1, ect2, c2, c3);
+    defs.appendChild(filter);
+    svg.appendChild(defs);
+    return svg;
+  }
+
+  _build(onSelect) {
+    const ef = this.ef, i = this.index;
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const bf = "blur(" + (4 + ef.blur * 32) + "px) saturate(" + ef.sat + "%)";
+
+    card.innerHTML =
+      '<span class="num">' + (i + 1) + '</span>' +
+      '<div class="name">' + ef.name + '</div>' +
+      '<span class="mode-tag">scale=' + ef.ds + ' ' + ef.mode + '</span>' +
+      '<div class="desc">' + ef.desc + '</div>' +
+      '<div class="preview" id="p-' + i + '">' +
+        '<canvas id="bg-' + i + '" width="480" height="280" style="position:absolute;top:0;left:0;width:100%;height:100%;border-radius:12px"></canvas>' +
+        '<div class="glass-el' + (ef.sh === "rect" ? " rect" : "") + '" id="o-' + i + '">' +
+          '<div class="glass-warp" style="backdrop-filter:' + bf + ';-webkit-backdrop-filter:' + bf + ';filter:url(#' + this.filterId + ')"></div>' +
+          '<div class="glass-border"></div>' +
+          '<div class="glass-text">Liquid Glass</div>' +
+        '</div>' +
+        '<div class="mouse-dot" id="d-' + i + '"></div>' +
+      '</div>' +
+      '<div class="slider-row"><label>折射强度</label>' +
+        '<input type="range" min="0" max="100" value="' + ef.ds + '" id="s-' + i + '">' +
+        '<span class="slider-val" id="v-' + i + '">' + ef.ds + '</span></div>';
+
+    // Insert per-card SVG inside preview
+    const preview = card.querySelector("#p-" + i);
+    preview.insertBefore(this._buildSvg(), preview.firstChild);
+    drawBg(card.querySelector("#bg-" + i));
+
+    this.el = card.querySelector("#o-" + i);
+    this.preview = preview;
+    this.dot = card.querySelector("#d-" + i);
+
+    const self = this;
+
+    // Slider — only affects THIS card
+    card.querySelector("#s-" + i).addEventListener("input", function (e) {
+      self.ef.ds = +e.target.value;
+      card.querySelector("#v-" + i).textContent = self.ef.ds;
+      self.updateFilter();
+    });
+
+    // Mousemove — elastic transform
+    preview.addEventListener("mousemove", function (e) {
+      self.dot.style.display = "block";
+      self.dot.style.left = e.offsetX + "px";
+      self.dot.style.top = e.offsetY + "px";
+      self.updateElastic(e.clientX, e.clientY);
+    });
+
+    preview.addEventListener("mouseleave", function () {
+      self.dot.style.display = "none";
+      self.updateElastic(...centerOf(self.preview));
+    });
+
+    // Click — select card
+    card.addEventListener("click", function (e) {
+      if (e.target.type === "range") return;
+      onSelect(i);
+      document.querySelectorAll(".card").forEach(c => c.classList.remove("selected"));
+      card.classList.add("selected");
+      self.updateFilter();
+      document.getElementById("selName").textContent = "#" + (i + 1) + " " + ef.name;
+      document.getElementById("selCode").innerHTML =
+        '<span class="c">// #' + (i + 1) + " " + ef.name + '</span>\n' +
+        '<span class="k">displacementScale</span>: <span class="v">' + ef.ds + '</span>\n' +
+        '<span class="k">blurAmount</span>: <span class="v">' + ef.blur + '</span>\n' +
+        '<span class="k">saturation</span>: <span class="v">' + ef.sat + '</span>\n' +
+        '<span class="k">aberrationIntensity</span>: <span class="v">' + ef.ab + '</span>\n' +
+        '<span class="k">elasticity</span>: <span class="v">' + ef.el + '</span>\n' +
+        '<span class="k">mode</span>: <span class="v">"' + ef.mode + '"</span>';
+    });
+
+    this.card = card;
+  }
+
+  updateFilter() {
+    const ef = this.ef, s = ef.ds, a = ef.ab;
+    this._fi.setAttribute("href", MAPS[ef.mode]);
+    this._dR.setAttribute("scale", -s);
+    this._dG.setAttribute("scale", -s * (1 + a * .05));
+    this._dB.setAttribute("scale", -s * (1 + a * .1));
+    this._gb.setAttribute("stdDeviation", Math.max(.1, .5 - a * .1));
+    this._fA.setAttribute("tableValues", "0 " + (a * .05) + " 1");
+
+    const warp = this.el.querySelector(".glass-warp");
+    const bf = "blur(" + (4 + ef.blur * 32) + "px) saturate(" + ef.sat + "%)";
+
+    // Force repaint: remove, reflow, re-add
+    warp.style.filter = "none";
+    requestAnimationFrame(() => {
+      warp.style.backdropFilter = bf;
+      warp.style.webkitBackdropFilter = bf;
+      warp.style.filter = "url(#" + this.filterId + ")";
+    });
+  }
+
+  updateElastic(mx, my) {
+    const ef = this.ef;
+    const bf = "blur(" + (4 + ef.blur * 32) + "px) saturate(" + ef.sat + "%)";
+    const warp = this.el.querySelector(".glass-warp");
+    warp.style.backdropFilter = bf;
+    warp.style.webkitBackdropFilter = bf;
+    warp.style.filter = "url(#" + this.filterId + ")";
+
+    const r = this.preview.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const dx = mx - cx, dy = my - cy, dist = Math.sqrt(dx * dx + dy * dy);
+    const ex = Math.max(0, Math.abs(dx) - r.width * .3);
+    const ey = Math.max(0, Math.abs(dy) - r.height * .2);
+    const ed = Math.sqrt(ex * ex + ey * ey);
+    const fi = ed > 200 ? 0 : 1 - ed / 200;
+    const nx = dist > 0 ? dx / dist : 0, ny = dist > 0 ? dy / dist : 0;
+    const st = Math.min(dist / 300, 1) * ef.el * fi;
+    const sx = 1 + Math.abs(nx) * st * .3 - Math.abs(ny) * st * .15;
+    const sy = 1 + Math.abs(ny) * st * .3 - Math.abs(nx) * st * .15;
+    const tx = dx * ef.el * .1 * fi, ty = dy * ef.el * .1 * fi;
+    this.el.style.transform =
+      "translate(calc(-50% + " + tx + "px),calc(-50% + " + ty + "px)) scaleX(" +
+      Math.max(.8, sx).toFixed(4) + ") scaleY(" + Math.max(.8, sy).toFixed(4) + ")";
+  }
 }
 
-const grid=document.getElementById("grid");
-let sel=null;
-effects.forEach((ef,i)=>{
-  const card=document.createElement("div");card.className="card";
-  card.innerHTML='<span class="num">'+(i+1)+'</span><div class="name">'+ef.name+'</div><span class="mode-tag">scale='+ef.ds+' '+ef.mode+'</span><div class="desc">'+ef.desc+'</div><div class="preview" id="p-'+i+'"><canvas id="bg-'+i+'" width="480" height="280" style="position:absolute;top:0;left:0;width:100%;height:100%;border-radius:12px"></canvas><div class="glass-el'+(ef.sh==="rect"?" rect":"")+'" id="o-'+i+'"><div class="glass-warp" style="backdrop-filter:blur('+(4+ef.blur*32)+'px) saturate('+ef.sat+'%);-webkit-backdrop-filter:blur('+(4+ef.blur*32)+'px) saturate('+ef.sat+'%);filter:url(#gf)"></div><div class="glass-border"></div><div class="glass-text">Liquid Glass</div></div><div class="mouse-dot" id="d-'+i+'"></div></div><div class="slider-row"><label>折射强度</label><input type="range" min="0" max="100" value="'+ef.ds+'" id="s-'+i+'"><span class="slider-val" id="v-'+i+'">'+ef.ds+'</span></div>';
-  drawBg(card.querySelector("#bg-"+i));
-  const sl=card.querySelector("#s-"+i),dot=card.querySelector("#d-"+i),pv=card.querySelector("#p-"+i);
-  sl.addEventListener("input",e=>{effects[i].ds=+e.target.value;document.getElementById("v-"+i).textContent=effects[i].ds;uf(effects[i])});
-  pv.addEventListener("mousemove",e=>{dot.style.display="block";dot.style.left=e.offsetX+"px";dot.style.top=e.offsetY+"px";if(sel===i)uf(ef);ug(i,e.clientX,e.clientY)});
-  pv.addEventListener("mouseleave",()=>{dot.style.display="none";ug(i,...gc(pv))});
-  card.addEventListener("click",e=>{if(e.target.type==="range")return;sel=i;document.querySelectorAll(".card").forEach(c=>c.classList.remove("selected"));card.classList.add("selected");uf(ef);document.getElementById("selName").textContent="#"+(i+1)+" "+ef.name;document.getElementById("selCode").innerHTML='<span class="c">// #'+(i+1)+" "+ef.name+'</span>\n<span class="k">displacementScale</span>: <span class="v">'+ef.ds+'</span>\n<span class="k">blurAmount</span>: <span class="v">'+ef.blur+'</span>\n<span class="k">saturation</span>: <span class="v">'+ef.sat+'</span>\n<span class="k">aberrationIntensity</span>: <span class="v">'+ef.ab+'</span>\n<span class="k">elasticity</span>: <span class="v">'+ef.el+'</span>\n<span class="k">mode</span>: <span class="v">"'+ef.mode+'"</span>'});
-  grid.appendChild(card);
+/* ── Init ── */
+const grid = document.getElementById("grid");
+let sel = null;
+const cards = effects.map((ef, i) => {
+  const gc = new GlassCard(ef, i, (idx) => { sel = idx; });
+  grid.appendChild(gc.card);
+  return gc;
 });
-uf(effects[0]);
-setTimeout(()=>{effects.forEach((_,i)=>{const pv=document.getElementById("p-"+i);if(pv)ug(i,...gc(pv))})},100);
+
+// Initial filter render for all cards
+cards.forEach(c => c.updateFilter());
+setTimeout(() => cards.forEach(c => c.updateElastic(...centerOf(c.preview))), 100);
 </script>
 </body>
 </html>
