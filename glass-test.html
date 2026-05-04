@@ -107,133 +107,127 @@ class GlassCard {
 
     const ef = this.ef;
     const s = ef.ds, a = ef.ab;
-    const pct = Math.max(30, 80 - a * 2);
 
-    // feImage — displacement map with explicit x/y/width/height
+    // 1. feImage — displacement map
     const fi = document.createElementNS(ns, "feImage");
     fi.setAttribute("x", "0");
     fi.setAttribute("y", "0");
     fi.setAttribute("width", "100%");
     fi.setAttribute("height", "100%");
-    fi.setAttribute("result", "DM");
+    fi.setAttribute("result", "DISPLACEMENT_MAP");
     fi.setAttribute("preserveAspectRatio", "xMidYMid slice");
     fi.setAttribute("href", MAPS[ef.mode]);
     this._fi = fi;
 
-    // Edge mask — smooth spatial falloff via radialGradient
-    const fiMask = document.createElementNS(ns, "feImage");
-    fiMask.setAttribute("x", "0");
-    fiMask.setAttribute("y", "0");
-    fiMask.setAttribute("width", "100%");
-    fiMask.setAttribute("height", "100%");
-    fiMask.setAttribute("result", "DM_MASK");
-    fiMask.setAttribute("preserveAspectRatio", "none");
+    // 2. feColorMatrix — convert displacement map to grayscale for edge detection
+    const cmEdge = document.createElementNS(ns, "feColorMatrix");
+    cmEdge.setAttribute("in", "DISPLACEMENT_MAP");
+    cmEdge.setAttribute("type", "matrix");
+    cmEdge.setAttribute("values", "0.3 0.3 0.3 0 0  0.3 0.3 0.3 0 0  0.3 0.3 0.3 0 0  0 0 0 1 0");
+    cmEdge.setAttribute("result", "EDGE_INTENSITY");
 
-    // Embed radialGradient as standalone SVG data URI
-    const pctI = Math.max(30, 80 - a * 2);
-    const gradSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">' +
-      '<defs><radialGradient id="g" cx="50%" cy="50%" r="50%">' +
-      '<stop offset="0%" stop-color="black" stop-opacity="0"/>' +
-      '<stop offset="' + pctI + '%" stop-color="black" stop-opacity="0"/>' +
-      '<stop offset="100%" stop-color="white" stop-opacity="1"/>' +
-      '</radialGradient></defs>' +
-      '<rect width="100" height="100" fill="url(#g)"/></svg>';
-    fiMask.setAttribute("href", "data:image/svg+xml;base64," + btoa(gradSvg));
-    this._fiMask = fiMask;
-    this._pctI = pctI;
+    // 3. feComponentTransfer — threshold edge intensity into binary mask
+    const ctEdge = document.createElementNS(ns, "feComponentTransfer");
+    ctEdge.setAttribute("in", "EDGE_INTENSITY");
+    ctEdge.setAttribute("result", "EDGE_MASK");
+    const feFuncA_edge = document.createElementNS(ns, "feFuncA");
+    feFuncA_edge.setAttribute("type", "discrete");
+    feFuncA_edge.setAttribute("tableValues", "0 " + (a * 0.05) + " 1");
+    ctEdge.appendChild(feFuncA_edge);
 
-    // feOffset — center passthrough
+    // 4. feOffset — preserve original source for center passthrough
     const fo = document.createElementNS(ns, "feOffset");
     fo.setAttribute("in", "SourceGraphic");
     fo.setAttribute("dx", "0");
     fo.setAttribute("dy", "0");
-    fo.setAttribute("result", "CO");
+    fo.setAttribute("result", "CENTER_ORIGINAL");
 
-    // R channel displacement
+    // 5. Red channel displacement
     const dR = document.createElementNS(ns, "feDisplacementMap");
     dR.setAttribute("in", "SourceGraphic");
-    dR.setAttribute("in2", "DM");
+    dR.setAttribute("in2", "DISPLACEMENT_MAP");
     dR.setAttribute("scale", -s);
     dR.setAttribute("x-channel-selector", "R");
     dR.setAttribute("y-channel-selector", "B");
-    dR.setAttribute("result", "RD");
+    dR.setAttribute("result", "RED_DISPLACED");
     this._dR = dR;
 
     const cmR = document.createElementNS(ns, "feColorMatrix");
-    cmR.setAttribute("in", "RD");
+    cmR.setAttribute("in", "RED_DISPLACED");
     cmR.setAttribute("type", "matrix");
     cmR.setAttribute("values", "1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0");
-    cmR.setAttribute("result", "RC");
+    cmR.setAttribute("result", "RED_CHANNEL");
 
-    // G channel displacement
+    // 6. Green channel displacement
     const dG = document.createElementNS(ns, "feDisplacementMap");
     dG.setAttribute("in", "SourceGraphic");
-    dG.setAttribute("in2", "DM");
+    dG.setAttribute("in2", "DISPLACEMENT_MAP");
     dG.setAttribute("scale", -s * (1 + a * .05));
     dG.setAttribute("x-channel-selector", "R");
     dG.setAttribute("y-channel-selector", "B");
-    dG.setAttribute("result", "GN");
+    dG.setAttribute("result", "GREEN_DISPLACED");
     this._dG = dG;
 
     const cmG = document.createElementNS(ns, "feColorMatrix");
-    cmG.setAttribute("in", "GN");
+    cmG.setAttribute("in", "GREEN_DISPLACED");
     cmG.setAttribute("type", "matrix");
     cmG.setAttribute("values", "0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0");
-    cmG.setAttribute("result", "GC");
+    cmG.setAttribute("result", "GREEN_CHANNEL");
 
-    // B channel displacement
+    // 7. Blue channel displacement
     const dB = document.createElementNS(ns, "feDisplacementMap");
     dB.setAttribute("in", "SourceGraphic");
-    dB.setAttribute("in2", "DM");
+    dB.setAttribute("in2", "DISPLACEMENT_MAP");
     dB.setAttribute("scale", -s * (1 + a * .1));
     dB.setAttribute("x-channel-selector", "R");
     dB.setAttribute("y-channel-selector", "B");
-    dB.setAttribute("result", "BL");
+    dB.setAttribute("result", "BLUE_DISPLACED");
     this._dB = dB;
 
     const cmB = document.createElementNS(ns, "feColorMatrix");
-    cmB.setAttribute("in", "BL");
+    cmB.setAttribute("in", "BLUE_DISPLACED");
     cmB.setAttribute("type", "matrix");
     cmB.setAttribute("values", "0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0");
-    cmB.setAttribute("result", "BC");
+    cmB.setAttribute("result", "BLUE_CHANNEL");
 
-    // Blend channels
+    // 8. Blend channels with screen mode for chromatic aberration
     const bl1 = document.createElementNS(ns, "feBlend");
-    bl1.setAttribute("in", "GC"); bl1.setAttribute("in2", "BC");
-    bl1.setAttribute("mode", "screen"); bl1.setAttribute("result", "GB");
+    bl1.setAttribute("in", "GREEN_CHANNEL"); bl1.setAttribute("in2", "BLUE_CHANNEL");
+    bl1.setAttribute("mode", "screen"); bl1.setAttribute("result", "GB_COMBINED");
 
     const bl2 = document.createElementNS(ns, "feBlend");
-    bl2.setAttribute("in", "RC"); bl2.setAttribute("in2", "GB");
-    bl2.setAttribute("mode", "screen"); bl2.setAttribute("result", "RGB");
+    bl2.setAttribute("in", "RED_CHANNEL"); bl2.setAttribute("in2", "GB_COMBINED");
+    bl2.setAttribute("mode", "screen"); bl2.setAttribute("result", "RGB_COMBINED");
 
-    // Gaussian blur softening
+    // 9. Gaussian blur to soften aberration
     const gb = document.createElementNS(ns, "feGaussianBlur");
-    gb.setAttribute("in", "RGB");
+    gb.setAttribute("in", "RGB_COMBINED");
     gb.setAttribute("stdDeviation", Math.max(.1, .5 - a * .1));
-    gb.setAttribute("result", "BLR");
+    gb.setAttribute("result", "ABERRATED_BLURRED");
     this._gb = gb;
 
-    // Apply edge mask — displacement only at edges
+    // 10. Apply edge mask — aberration only at edges
     const c1 = document.createElementNS(ns, "feComposite");
-    c1.setAttribute("in", "BLR"); c1.setAttribute("in2", "DM_MASK");
-    c1.setAttribute("operator", "in"); c1.setAttribute("result", "ED");
+    c1.setAttribute("in", "ABERRATED_BLURRED"); c1.setAttribute("in2", "EDGE_MASK");
+    c1.setAttribute("operator", "in"); c1.setAttribute("result", "EDGE_ABERRATION");
 
-    // Invert mask for center passthrough
+    // 11. Invert mask for center passthrough
     const ect2 = document.createElementNS(ns, "feComponentTransfer");
-    ect2.setAttribute("in", "DM_MASK"); ect2.setAttribute("result", "INV");
+    ect2.setAttribute("in", "EDGE_MASK"); ect2.setAttribute("result", "INVERTED_MASK");
     const fA2 = document.createElementNS(ns, "feFuncA");
     fA2.setAttribute("type", "table"); fA2.setAttribute("tableValues", "1 0");
     ect2.appendChild(fA2);
 
     const c2 = document.createElementNS(ns, "feComposite");
-    c2.setAttribute("in", "CO"); c2.setAttribute("in2", "INV");
-    c2.setAttribute("operator", "in"); c2.setAttribute("result", "CL");
+    c2.setAttribute("in", "CENTER_ORIGINAL"); c2.setAttribute("in2", "INVERTED_MASK");
+    c2.setAttribute("operator", "in"); c2.setAttribute("result", "CENTER_CLEAN");
 
+    // 12. Combine edge aberration with clean center
     const c3 = document.createElementNS(ns, "feComposite");
-    c3.setAttribute("in", "ED"); c3.setAttribute("in2", "CL");
+    c3.setAttribute("in", "EDGE_ABERRATION"); c3.setAttribute("in2", "CENTER_CLEAN");
     c3.setAttribute("operator", "over");
 
-    filter.append(fi, fiMask, fo, dR, cmR, dG, cmG, dB, cmB, bl1, bl2, gb, c1, ect2, c2, c3);
+    filter.append(fi, cmEdge, ctEdge, fo, dR, cmR, dG, cmG, dB, cmB, bl1, bl2, gb, c1, ect2, c2, c3);
     defs.appendChild(filter);
     svg.appendChild(defs);
     return svg;
@@ -331,15 +325,6 @@ class GlassCard {
     this._dG.setAttribute("scale", -s * (1 + a * .05));
     this._dB.setAttribute("scale", -s * (1 + a * .1));
     this._gb.setAttribute("stdDeviation", Math.max(.1, .5 - a * .1));
-    const pct = Math.max(30, 80 - a * 2);
-    const gs = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">' +
-      '<defs><radialGradient id="g" cx="50%" cy="50%" r="50%">' +
-      '<stop offset="0%" stop-color="black" stop-opacity="0"/>' +
-      '<stop offset="' + pct + '%" stop-color="black" stop-opacity="0"/>' +
-      '<stop offset="100%" stop-color="white" stop-opacity="1"/>' +
-      '</radialGradient></defs>' +
-      '<rect width="100" height="100" fill="url(#g)"/></svg>';
-    this._fiMask.setAttribute("href", "data:image/svg+xml;base64," + btoa(gs));
 
     const warp = this.el.querySelector(".glass-warp");
     const bf = "blur(" + (4 + ef.blur * 32) + "px) saturate(" + ef.sat + "%)";
