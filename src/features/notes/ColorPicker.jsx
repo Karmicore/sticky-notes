@@ -51,18 +51,21 @@ function hsvToHex(h, s, v) {
 
 export default function ColorPicker({ color, onChange }) {
   const [hsv, setHsv] = useState(() => hexToHsv(color || "#FFEB3B"));
+  const hsvRef = useRef(hsv);
   const svRef = useRef(null);
   const hueRef = useRef(null);
-  const dragging = useRef(null); // "sv" | "hue" | null
+  const dragging = useRef(null);
+  const onChangeRef = useRef(onChange);
+
+  useEffect(() => { hsvRef.current = hsv; }, [hsv]);
+  useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
 
   // Sync from parent color prop
   useEffect(() => {
-    if (color) {
-      setHsv(hexToHsv(color));
-    }
+    if (color) setHsv(hexToHsv(color));
   }, [color]);
 
-  // Draw SV panel
+  // Draw SV panel (only when hue changes)
   useEffect(() => {
     const canvas = svRef.current;
     if (!canvas) return;
@@ -72,7 +75,6 @@ export default function ColorPicker({ color, onChange }) {
     if (!ctx) return;
 
     const [r, g, b] = hsvToRgb(hsv[0], 1, 1);
-
     const gradH = ctx.createLinearGradient(0, 0, w, 0);
     gradH.addColorStop(0, "#fff");
     gradH.addColorStop(1, `rgb(${r},${g},${b})`);
@@ -86,7 +88,7 @@ export default function ColorPicker({ color, onChange }) {
     ctx.fillRect(0, 0, w, h);
   }, [hsv[0]]);
 
-  // Draw hue strip
+  // Draw hue strip (once)
   useEffect(() => {
     const canvas = hueRef.current;
     if (!canvas) return;
@@ -102,38 +104,36 @@ export default function ColorPicker({ color, onChange }) {
     ctx.fillRect(0, 0, w, h);
   }, []);
 
-  const emitColor = useCallback((h, s, v) => {
-    setHsv([h, s, v]);
-    onChange(hsvToHex(h, s, v));
-  }, [onChange]);
+  // Single pointer handler — reads from refs, never stale
+  const applyPointer = useCallback((e, type) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const cur = hsvRef.current;
+    if (type === "sv") {
+      const s = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      const v = Math.max(0, Math.min(1, 1 - (e.clientY - rect.top) / rect.height));
+      setHsv([cur[0], s, v]);
+      onChangeRef.current(hsvToHex(cur[0], s, v));
+    } else {
+      const h = Math.max(0, Math.min(360, ((e.clientY - rect.top) / rect.height) * 360));
+      setHsv([h, cur[1], cur[2]]);
+      onChangeRef.current(hsvToHex(h, cur[1], cur[2]));
+    }
+  }, []); // no deps — uses refs
 
   const handlePointerDown = useCallback((e, type) => {
     e.preventDefault();
     dragging.current = type;
     e.currentTarget.setPointerCapture(e.pointerId);
-    updateFromPointer(e, type);
-  }, []);
+    applyPointer(e, type);
+  }, [applyPointer]);
 
   const handlePointerMove = useCallback((e) => {
-    if (!dragging.current) return;
-    updateFromPointer(e, dragging.current);
-  }, []);
+    if (dragging.current) applyPointer(e, dragging.current);
+  }, [applyPointer]);
 
   const handlePointerUp = useCallback(() => {
     dragging.current = null;
   }, []);
-
-  function updateFromPointer(e, type) {
-    const rect = e.currentTarget.getBoundingClientRect();
-    if (type === "sv") {
-      const s = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-      const v = Math.max(0, Math.min(1, 1 - (e.clientY - rect.top) / rect.height));
-      emitColor(hsv[0], s, v);
-    } else {
-      const h = Math.max(0, Math.min(360, ((e.clientY - rect.top) / rect.height) * 360));
-      emitColor(h, hsv[1], hsv[2]);
-    }
-  }
 
   const [h, s, v] = hsv;
   const cursorX = s * 100;
