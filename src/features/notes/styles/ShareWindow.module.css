@@ -7,6 +7,7 @@
   color: #eee;
   font-family: system-ui, -apple-system, sans-serif;
   user-select: none;
+  position: relative;
 }
 
 .header {
@@ -71,7 +72,13 @@
 }
 
 .pickerPanel {
-  background: rgba(0, 0, 0, 0.4);
+  position: absolute;
+  top: 40px;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
   padding: 8px 12px 10px;
   display: flex;
   flex-direction: column;
