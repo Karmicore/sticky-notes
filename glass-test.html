@@ -16,7 +16,7 @@ h1{text-align:center;font-size:24px;margin-bottom:4px}
 .name{font-size:15px;font-weight:700;margin-bottom:2px}
 .desc{font-size:11px;color:#8b949e;margin-bottom:12px;line-height:1.4}
 .mode-tag{display:inline-block;font-size:9px;padding:2px 7px;border-radius:4px;background:#58a6ff22;color:#58a6ff;margin-bottom:8px}
-.preview{width:100%;height:280px;border-radius:12px;position:relative;overflow:hidden;margin-bottom:14px;cursor:crosshair}
+.preview{width:100%;height:280px;border-radius:12px;position:relative;margin-bottom:14px;cursor:crosshair}
 .glass-el{position:absolute;border-radius:999px;pointer-events:none;top:50%;left:50%;width:65%;height:42px;transform:translate(-50%,-50%);transition:transform .3s cubic-bezier(.25,.46,.45,.94)}
 .glass-el.rect{border-radius:8px}
 .glass-warp{position:absolute;inset:0;border-radius:inherit}
@@ -94,7 +94,7 @@ class GlassCard {
     const ns = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(ns, "svg");
     svg.setAttribute("aria-hidden", "true");
-    svg.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none";
+    svg.style.cssText = "position:absolute;inset:0;pointer-events:none";
 
     const defs = document.createElementNS(ns, "defs");
     const filter = document.createElementNS(ns, "filter");
@@ -107,30 +107,49 @@ class GlassCard {
 
     const ef = this.ef;
     const s = ef.ds, a = ef.ab;
+    const pct = Math.max(30, 80 - a * 2);
 
-    // feImage — displacement map
+    // Radial gradient edge mask — smooth falloff from center to edges
+    const rg = document.createElementNS(ns, "radialGradient");
+    rg.id = this.filterId + "-em";
+    rg.setAttribute("cx", "50%");
+    rg.setAttribute("cy", "50%");
+    rg.setAttribute("r", "50%");
+    const stop1 = document.createElementNS(ns, "stop");
+    stop1.setAttribute("offset", "0%");
+    stop1.setAttribute("stop-color", "black");
+    stop1.setAttribute("stop-opacity", "0");
+    const stop2 = document.createElementNS(ns, "stop");
+    stop2.setAttribute("offset", pct + "%");
+    stop2.setAttribute("stop-color", "black");
+    stop2.setAttribute("stop-opacity", "0");
+    this._stop2 = stop2;
+    const stop3 = document.createElementNS(ns, "stop");
+    stop3.setAttribute("offset", "100%");
+    stop3.setAttribute("stop-color", "white");
+    stop3.setAttribute("stop-opacity", "1");
+    rg.append(stop1, stop2, stop3);
+
+    // feImage — displacement map with explicit x/y/width/height
     const fi = document.createElementNS(ns, "feImage");
+    fi.setAttribute("x", "0");
+    fi.setAttribute("y", "0");
+    fi.setAttribute("width", "100%");
+    fi.setAttribute("height", "100%");
     fi.setAttribute("result", "DM");
     fi.setAttribute("preserveAspectRatio", "xMidYMid slice");
     fi.setAttribute("href", MAPS[ef.mode]);
     this._fi = fi;
 
-    // feColorMatrix — grayscale
-    const ecm = document.createElementNS(ns, "feColorMatrix");
-    ecm.setAttribute("in", "DM");
-    ecm.setAttribute("type", "matrix");
-    ecm.setAttribute("values", "0.3 0.3 0.3 0 0  0.3 0.3 0.3 0 0  0.3 0.3 0.3 0 0  0 0 0 1 0");
-    ecm.setAttribute("result", "EI");
-
-    // feComponentTransfer — edge mask
-    const ect = document.createElementNS(ns, "feComponentTransfer");
-    ect.setAttribute("in", "EI");
-    ect.setAttribute("result", "EM");
-    const fA = document.createElementNS(ns, "feFuncA");
-    fA.setAttribute("type", "discrete");
-    fA.setAttribute("tableValues", "0 " + (a * .05) + " 1");
-    ect.appendChild(fA);
-    this._fA = fA;
+    // Edge mask via radialGradient — smooth falloff from center to edges
+    const fiMask = document.createElementNS(ns, "feImage");
+    fiMask.setAttribute("x", "0");
+    fiMask.setAttribute("y", "0");
+    fiMask.setAttribute("width", "100%");
+    fiMask.setAttribute("height", "100%");
+    fiMask.setAttribute("result", "DM_MASK");
+    fiMask.setAttribute("preserveAspectRatio", "none");
+    fiMask.setAttribute("href", "url(#" + this.filterId + "-em)");
 
     // feOffset — center passthrough
     const fo = document.createElementNS(ns, "feOffset");
@@ -203,14 +222,14 @@ class GlassCard {
     gb.setAttribute("result", "BLR");
     this._gb = gb;
 
-    // Edge composite
+    // Apply edge mask — displacement only at edges
     const c1 = document.createElementNS(ns, "feComposite");
-    c1.setAttribute("in", "BLR"); c1.setAttribute("in2", "EM");
+    c1.setAttribute("in", "BLR"); c1.setAttribute("in2", "DM_MASK");
     c1.setAttribute("operator", "in"); c1.setAttribute("result", "ED");
 
     // Invert mask for center passthrough
     const ect2 = document.createElementNS(ns, "feComponentTransfer");
-    ect2.setAttribute("in", "EM"); ect2.setAttribute("result", "INV");
+    ect2.setAttribute("in", "DM_MASK"); ect2.setAttribute("result", "INV");
     const fA2 = document.createElementNS(ns, "feFuncA");
     fA2.setAttribute("type", "table"); fA2.setAttribute("tableValues", "1 0");
     ect2.appendChild(fA2);
@@ -223,8 +242,8 @@ class GlassCard {
     c3.setAttribute("in", "ED"); c3.setAttribute("in2", "CL");
     c3.setAttribute("operator", "over");
 
-    filter.append(fi, ecm, ect, fo, dR, cmR, dG, cmG, dB, cmB, bl1, bl2, gb, c1, ect2, c2, c3);
-    defs.appendChild(filter);
+    filter.append(fi, fiMask, fo, dR, cmR, dG, cmG, dB, cmB, bl1, bl2, gb, c1, ect2, c2, c3);
+    defs.append(rg, filter);
     svg.appendChild(defs);
     return svg;
   }
@@ -254,10 +273,18 @@ class GlassCard {
         '<input type="range" min="0" max="100" value="' + ef.ds + '" id="s-' + i + '">' +
         '<span class="slider-val" id="v-' + i + '">' + ef.ds + '</span></div>';
 
-    // Insert per-card SVG inside preview
+    // Insert per-card SVG inside .glass-el + ResizeObserver for pixel sizing
     const preview = card.querySelector("#p-" + i);
-    preview.insertBefore(this._buildSvg(), preview.firstChild);
+    const glassEl = card.querySelector("#o-" + i);
+    const svg = this._buildSvg();
+    glassEl.insertBefore(svg, glassEl.firstChild);
     drawBg(card.querySelector("#bg-" + i));
+    const ro = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      svg.setAttribute("width", width);
+      svg.setAttribute("height", height);
+    });
+    ro.observe(glassEl);
 
     this.el = card.querySelector("#o-" + i);
     this.preview = preview;
@@ -313,7 +340,7 @@ class GlassCard {
     this._dG.setAttribute("scale", -s * (1 + a * .05));
     this._dB.setAttribute("scale", -s * (1 + a * .1));
     this._gb.setAttribute("stdDeviation", Math.max(.1, .5 - a * .1));
-    this._fA.setAttribute("tableValues", "0 " + (a * .05) + " 1");
+    this._stop2.setAttribute("offset", Math.max(30, 80 - a * 2) + "%");
 
     const warp = this.el.querySelector(".glass-warp");
     const bf = "blur(" + (4 + ef.blur * 32) + "px) saturate(" + ef.sat + "%)";
