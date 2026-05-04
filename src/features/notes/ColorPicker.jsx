@@ -66,25 +66,24 @@ export default function ColorPicker({ color, onChange }) {
   useEffect(() => {
     const canvas = svRef.current;
     if (!canvas) return;
+    const w = canvas.width;
+    const h = canvas.height;
     const ctx = canvas.getContext("2d");
-    const { width, height } = canvas;
+    if (!ctx) return;
 
-    // Base hue color
     const [r, g, b] = hsvToRgb(hsv[0], 1, 1);
 
-    // White → hue gradient (horizontal = saturation)
-    const gradH = ctx.createLinearGradient(0, 0, width, 0);
+    const gradH = ctx.createLinearGradient(0, 0, w, 0);
     gradH.addColorStop(0, "#fff");
     gradH.addColorStop(1, `rgb(${r},${g},${b})`);
     ctx.fillStyle = gradH;
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, w, h);
 
-    // Transparent → black gradient (vertical = value)
-    const gradV = ctx.createLinearGradient(0, 0, 0, height);
+    const gradV = ctx.createLinearGradient(0, 0, 0, h);
     gradV.addColorStop(0, "rgba(0,0,0,0)");
     gradV.addColorStop(1, "#000");
     ctx.fillStyle = gradV;
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, w, h);
   }, [hsv[0]]);
 
   // Draw hue strip
@@ -92,13 +91,15 @@ export default function ColorPicker({ color, onChange }) {
     const canvas = hueRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    const { height } = canvas;
-    const grad = ctx.createLinearGradient(0, 0, 0, height);
+    if (!ctx) return;
+    const w = canvas.width;
+    const h = canvas.height;
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
     for (let i = 0; i <= 6; i++) {
       grad.addColorStop(i / 6, `hsl(${i * 60}, 100%, 50%)`);
     }
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, canvas.width, height);
+    ctx.fillRect(0, 0, w, h);
   }, []);
 
   const emitColor = useCallback((h, s, v) => {
@@ -141,25 +142,31 @@ export default function ColorPicker({ color, onChange }) {
 
   return (
     <div className={styles.picker}>
-      <div
-        ref={svRef}
-        className={styles.svPanel}
-        onPointerDown={(e) => handlePointerDown(e, "sv")}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-      >
+      <div className={styles.svWrap}>
+        <canvas
+          ref={svRef}
+          width={180}
+          height={180}
+          className={styles.svPanel}
+          onPointerDown={(e) => handlePointerDown(e, "sv")}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+        />
         <div
           className={styles.svCursor}
           style={{ left: `${cursorX}%`, top: `${cursorY}%` }}
         />
       </div>
-      <div
-        ref={hueRef}
-        className={styles.hueStrip}
-        onPointerDown={(e) => handlePointerDown(e, "hue")}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-      >
+      <div className={styles.hueWrap}>
+        <canvas
+          ref={hueRef}
+          width={18}
+          height={180}
+          className={styles.hueStrip}
+          onPointerDown={(e) => handlePointerDown(e, "hue")}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+        />
         <div
           className={styles.hueCursor}
           style={{ top: `${hueY}%` }}

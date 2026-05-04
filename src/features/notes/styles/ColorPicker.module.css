@@ -4,13 +4,19 @@
   padding: 8px;
 }
 
+.svWrap {
+  position: relative;
+  width: 180px;
+  height: 180px;
+}
+
 .svPanel {
   width: 180px;
   height: 180px;
   border-radius: 6px;
-  position: relative;
   cursor: crosshair;
   touch-action: none;
+  display: block;
 }
 
 .svCursor {
@@ -24,13 +30,19 @@
   pointer-events: none;
 }
 
+.hueWrap {
+  position: relative;
+  width: 18px;
+  height: 180px;
+}
+
 .hueStrip {
   width: 18px;
   height: 180px;
   border-radius: 9px;
-  position: relative;
   cursor: pointer;
   touch-action: none;
+  display: block;
 }
 
 .hueCursor {

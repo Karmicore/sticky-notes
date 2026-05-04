@@ -30,6 +30,7 @@ function getGradient(color) {
 
 // Generate a darker gradient stop from a hex color via HSV
 function hexToGradient(hex) {
+  if (!hex || hex.length < 7 || hex[0] !== "#") return "#1a1a2e";
   const r = parseInt(hex.slice(1, 3), 16) / 255;
   const g = parseInt(hex.slice(3, 5), 16) / 255;
   const b = parseInt(hex.slice(5, 7), 16) / 255;
@@ -208,9 +209,9 @@ export default function ShareWindow() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
+      <div className={styles.header} style={{ WebkitAppRegion: "drag" }}>
         <span className={styles.title}>{t("share.title")}</span>
-        <div className={styles.headerActions}>
+        <div className={styles.headerActions} style={{ WebkitAppRegion: "no-drag" }}>
           <div className={styles.pickerWrap}>
             <button
               className={`${styles.iconBtn} ${showPicker ? styles.iconBtnActive : ""}`}
