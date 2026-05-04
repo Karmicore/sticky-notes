@@ -79,6 +79,14 @@ const texts = {
   // 默认便签标题
   'note.defaultTitle': { zh: '便签', en: 'Note' },
   'note.duplicateSuffix': { zh: '(副本)', en: '(copy)' },
+
+  // 分享窗口
+  'share.title': { zh: '分享今日进度', en: 'Share Progress' },
+  'share.copy': { zh: '复制到剪贴板', en: 'Copy to Clipboard' },
+  'share.save': { zh: '保存图片', en: 'Save Image' },
+  'share.saved': { zh: '已保存', en: 'Saved' },
+  'share.saveFailed': { zh: '保存失败', en: 'Save failed' },
+  'share.copyFailed': { zh: '复制失败', en: 'Copy failed' },
 };
 
 /**

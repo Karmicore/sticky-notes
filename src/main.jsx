@@ -9,6 +9,7 @@ import { useAutoSave } from "./features/notes/hooks/useAutoSave";
 import { useWindowLifecycle } from "./features/notes/hooks/useWindowLifecycle";
 import NoteWindow from "./features/notes/NoteWindow";
 import ExportPopup from "./features/notes/ExportPopup";
+import ShareWindow from "./features/notes/ShareWindow";
 
 const appWindow = getCurrentWindow();
 const label = appWindow.label;
@@ -25,6 +26,10 @@ function NoteRoute({ noteId }) {
 function App() {
   if (label === "export") {
     return <ExportPopup />;
+  }
+
+  if (label === "share") {
+    return <ShareWindow />;
   }
 
   if (label.startsWith("note-")) {

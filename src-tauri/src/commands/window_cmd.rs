@@ -275,3 +275,33 @@ pub fn toggle_note_collapsed(
 pub fn open_export_window(app: AppHandle) -> Result<(), String> {
     spawn_export_window(&app, None)
 }
+
+// ── Share window ──
+
+pub fn spawn_share_window(app: &AppHandle) -> Result<(), String> {
+    let label = "share";
+    if let Some(window) = app.get_webview_window(label) {
+        window.show().ok();
+        window.set_focus().ok();
+        return Ok(());
+    }
+
+    WebviewWindowBuilder::new(app, label, tauri::WebviewUrl::App("share.html".into()))
+        .title("Share")
+        .inner_size(640.0, 480.0)
+        .min_inner_size(400.0, 350.0)
+        .decorations(true)
+        .resizable(true)
+        .always_on_top(true)
+        .skip_taskbar(true)
+        .focused(true)
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn open_share_window(app: AppHandle) -> Result<(), String> {
+    spawn_share_window(&app)
+}

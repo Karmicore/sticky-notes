@@ -13,6 +13,7 @@ export default defineConfig(async () => ({
       input: {
         note: resolve(__dirname, "note.html"),
         export: resolve(__dirname, "export.html"),
+        share: resolve(__dirname, "share.html"),
       },
     },
   },

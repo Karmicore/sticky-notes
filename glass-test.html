@@ -87,10 +87,17 @@ h1 { text-align: center; font-size: 24px; margin-bottom: 4px; }
   box-shadow: 0 0 10px rgba(255,255,255,0.5);
 }
 
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0d1117; }
+::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
 .slider-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
 .slider-row label { font-size: 11px; color: #8b949e; white-space: nowrap; min-width: 60px; }
-.slider-row input[type=range] { flex: 1; height: 4px; -webkit-appearance: none; appearance: none; background: #30363d; border-radius: 2px; outline: none; cursor: pointer; }
-.slider-row input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #58a6ff; cursor: pointer; }
+.slider-row input[type=range] { flex: 1; height: 6px; -webkit-appearance: none; appearance: none; background: linear-gradient(90deg, #1f6feb55, #58a6ff); border-radius: 3px; outline: none; cursor: pointer; }
+.slider-row input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #58a6ff; cursor: pointer; box-shadow: 0 0 8px rgba(88,166,255,0.5); }
+.slider-row input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #58a6ff; cursor: pointer; border: none; box-shadow: 0 0 8px rgba(88,166,255,0.5); }
 .slider-val { font-size: 11px; color: #58a6ff; min-width: 36px; text-align: right; }
 
 .info-box {
@@ -121,195 +128,96 @@ h1 { text-align: center; font-size: 24px; margin-bottom: 4px; }
 
 <script>
 // ══════════════════════════════════════════════════════
-// rdev/liquid-glass-react 核心实现 (vanilla JS 移植)
+// 液态玻璃 — feTurbulence + feDisplacementMap + 色差
 // ══════════════════════════════════════════════════════
 
-// 位移图 (来自 rdev/liquid-glass-react)
-const MAPS = {
-  standard: "https://raw.githubusercontent.com/rdev/liquid-glass-react/master/src/utils.ts",
-  // 用内联 SVG 生成的模拟位移图作为 fallback
-};
+const svgNS = "http://www.w3.org/2000/svg";
 
-// SVG filter 生成器 — 色差 + 边缘遮罩
-function createGlassFilter(id, displacementUrl, opts) {
-  const {
-    displacementScale = 70,
-    aberrationIntensity = 2,
-    edgeMaskStart = 76,  // 80 - aberration*2
-  } = opts;
+// 创建 SVG filter（只需创建一次）
+function createGlassFilter(id, opts) {
+  const { scale, blur, baseFreq, aberration } = opts;
+  const existing = document.getElementById(id);
+  if (existing) existing.remove();
 
-  let el = document.getElementById(id);
-  if (el) el.remove();
-
-  const svgNS = "http://www.w3.org/2000/svg";
   const defs = document.getElementById("svgDefs");
-
-  // Filter
   const filter = document.createElementNS(svgNS, "filter");
-  filter.setAttribute("id", id);
-  filter.setAttribute("x", "-35%");
-  filter.setAttribute("y", "-35%");
-  filter.setAttribute("width", "170%");
-  filter.setAttribute("height", "170%");
+  filter.id = id;
+  filter.setAttribute("x", "-20%");
+  filter.setAttribute("y", "-20%");
+  filter.setAttribute("width", "140%");
+  filter.setAttribute("height", "140%");
   filter.setAttribute("colorInterpolationFilters", "sRGB");
 
-  // feImage — 位移图
-  const feImg = document.createElementNS(svgNS, "feImage");
-  feImg.setAttribute("href", displacementUrl);
-  feImg.setAttribute("result", "DISPLACEMENT_MAP");
-  feImg.setAttribute("preserveAspectRatio", "xMidYMid slice");
+  // feTurbulence — 有机噪声作为位移源
+  const feTurb = document.createElementNS(svgNS, "feTurbulence");
+  feTurb.setAttribute("type", "turbulence");
+  feTurb.setAttribute("baseFrequency", baseFreq);
+  feTurb.setAttribute("numOctaves", "3");
+  feTurb.setAttribute("seed", id.replace(/\D/g, "") || "1");
+  feTurb.setAttribute("stitchTiles", "stitch");
+  feTurb.setAttribute("result", "TURB");
+  filter.appendChild(feTurb);
 
-  // 边缘遮罩 — radialGradient
-  const gradId = id + "-edge-mask";
-  const grad = document.createElementNS(svgNS, "radialGradient");
-  grad.setAttribute("id", gradId);
-  grad.setAttribute("cx", "50%"); grad.setAttribute("cy", "50%"); grad.setAttribute("r", "50%");
-  const s1 = document.createElementNS(svgNS, "stop");
-  s1.setAttribute("offset", "0%"); s1.setAttribute("stop-color", "black"); s1.setAttribute("stop-opacity", "0");
-  const s2 = document.createElementNS(svgNS, "stop");
-  s2.setAttribute("offset", edgeMaskStart + "%"); s2.setAttribute("stop-color", "black"); s2.setAttribute("stop-opacity", "0");
-  const s3 = document.createElementNS(svgNS, "stop");
-  s3.setAttribute("offset", "100%"); s3.setAttribute("stop-color", "white"); s3.setAttribute("stop-opacity", "1");
-  grad.append(s1, s2, s3);
+  // feDisplacementMap — 用噪声位移源图形
+  const feDisp = document.createElementNS(svgNS, "feDisplacementMap");
+  feDisp.setAttribute("in", "SourceGraphic");
+  feDisp.setAttribute("in2", "TURB");
+  feDisp.setAttribute("scale", scale);
+  feDisp.setAttribute("xChannelSelector", "R");
+  feDisp.setAttribute("yChannelSelector", "G");
+  feDisp.setAttribute("result", "DISPLACED");
+  filter.appendChild(feDisp);
 
-  // feColorMatrix — 灰度
-  const feGray = document.createElementNS(svgNS, "feColorMatrix");
-  feGray.setAttribute("in", "DISPLACEMENT_MAP"); feGray.setAttribute("type", "matrix");
-  feGray.setAttribute("values", "0.3 0.3 0.3 0 0  0.3 0.3 0.3 0 0  0.3 0.3 0.3 0 0  0 0 0 1 0");
-  feGray.setAttribute("result", "EDGE_INTENSITY");
+  // 色差模拟：R/G/B 通道分别用 feColorMatrix 提取后微调
+  // R 通道 — 偏移 +0.5%
+  const feR = document.createElementNS(svgNS, "feColorMatrix");
+  feR.setAttribute("in", "DISPLACED");
+  feR.setAttribute("type", "matrix");
+  // 提取 R，略微偏移（通过 matrix 的第4列偏移）
+  feR.setAttribute("values", "1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0");
+  feR.setAttribute("result", "R_CH");
+  filter.appendChild(feR);
 
-  // feComponentTransfer — 边缘遮罩
-  const feMask = document.createElementNS(svgNS, "feComponentTransfer");
-  feMask.setAttribute("in", "EDGE_INTENSITY"); feMask.setAttribute("result", "EDGE_MASK");
-  const feFuncA = document.createElementNS(svgNS, "feFuncA");
-  feFuncA.setAttribute("type", "discrete");
-  feFuncA.setAttribute("tableValues", `0 ${aberrationIntensity * 0.05} 1`);
-  feMask.appendChild(feFuncA);
+  // G 通道
+  const feG = document.createElementNS(svgNS, "feColorMatrix");
+  feG.setAttribute("in", "DISPLACED");
+  feG.setAttribute("type", "matrix");
+  feG.setAttribute("values", "0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0");
+  feG.setAttribute("result", "G_CH");
+  filter.appendChild(feG);
 
-  // 原始未位移图像
-  const feCenter = document.createElementNS(svgNS, "feOffset");
-  feCenter.setAttribute("in", "SourceGraphic"); feCenter.setAttribute("dx", "0"); feCenter.setAttribute("dy", "0");
-  feCenter.setAttribute("result", "CENTER_ORIGINAL");
+  // B 通道
+  const feB = document.createElementNS(svgNS, "feColorMatrix");
+  feB.setAttribute("in", "DISPLACED");
+  feB.setAttribute("type", "matrix");
+  feB.setAttribute("values", "0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0");
+  feB.setAttribute("result", "B_CH");
+  filter.appendChild(feB);
 
-  // R 通道位移
-  const feR = document.createElementNS(svgNS, "feDisplacementMap");
-  feR.setAttribute("in", "SourceGraphic"); feR.setAttribute("in2", "DISPLACEMENT_MAP");
-  feR.setAttribute("scale", -displacementScale);
-  feR.setAttribute("xChannelSelector", "R"); feR.setAttribute("yChannelSelector", "B");
-  feR.setAttribute("result", "RED_DISPLACED");
-  const feRMat = document.createElementNS(svgNS, "feColorMatrix");
-  feRMat.setAttribute("in", "RED_DISPLACED"); feRMat.setAttribute("type", "matrix");
-  feRMat.setAttribute("values", "1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0");
-  feRMat.setAttribute("result", "RED_CHANNEL");
+  // 合并 R+G+B（screen blend 模拟色散）
+  const feBlendRG = document.createElementNS(svgNS, "feBlend");
+  feBlendRG.setAttribute("in", "R_CH");
+  feBlendRG.setAttribute("in2", "G_CH");
+  feBlendRG.setAttribute("mode", "screen");
+  feBlendRG.setAttribute("result", "RG");
+  filter.appendChild(feBlendRG);
 
-  // G 通道位移
-  const sG = -displacementScale - aberrationIntensity * 0.05 * displacementScale;
-  const feG = document.createElementNS(svgNS, "feDisplacementMap");
-  feG.setAttribute("in", "SourceGraphic"); feG.setAttribute("in2", "DISPLACEMENT_MAP");
-  feG.setAttribute("scale", sG);
-  feG.setAttribute("xChannelSelector", "R"); feG.setAttribute("yChannelSelector", "B");
-  feG.setAttribute("result", "GREEN_DISPLACED");
-  const feGMat = document.createElementNS(svgNS, "feColorMatrix");
-  feGMat.setAttribute("in", "GREEN_DISPLACED"); feGMat.setAttribute("type", "matrix");
-  feGMat.setAttribute("values", "0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0");
-  feGMat.setAttribute("result", "GREEN_CHANNEL");
-
-  // B 通道位移
-  const sB = -displacementScale - aberrationIntensity * 0.1 * displacementScale;
-  const feB = document.createElementNS(svgNS, "feDisplacementMap");
-  feB.setAttribute("in", "SourceGraphic"); feB.setAttribute("in2", "DISPLACEMENT_MAP");
-  feB.setAttribute("scale", sB);
-  feB.setAttribute("xChannelSelector", "R"); feB.setAttribute("yChannelSelector", "B");
-  feB.setAttribute("result", "BLUE_DISPLACED");
-  const feBMat = document.createElementNS(svgNS, "feColorMatrix");
-  feBMat.setAttribute("in", "BLUE_DISPLACED"); feBMat.setAttribute("type", "matrix");
-  feBMat.setAttribute("values", "0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0");
-  feBMat.setAttribute("result", "BLUE_CHANNEL");
-
-  // 合并 RGB — screen blend
-  const feBlendGB = document.createElementNS(svgNS, "feBlend");
-  feBlendGB.setAttribute("in", "GREEN_CHANNEL"); feBlendGB.setAttribute("in2", "BLUE_CHANNEL");
-  feBlendGB.setAttribute("mode", "screen"); feBlendGB.setAttribute("result", "GB_COMBINED");
   const feBlendRGB = document.createElementNS(svgNS, "feBlend");
-  feBlendRGB.setAttribute("in", "RED_CHANNEL"); feBlendRGB.setAttribute("in2", "GB_COMBINED");
-  feBlendRGB.setAttribute("mode", "screen"); feBlendRGB.setAttribute("result", "RGB_COMBINED");
+  feBlendRGB.setAttribute("in", "RG");
+  feBlendRGB.setAttribute("in2", "B_CH");
+  feBlendRGB.setAttribute("mode", "screen");
+  feBlendRGB.setAttribute("result", "RGB");
+  filter.appendChild(feBlendRGB);
 
-  // 柔化色差
+  // 高斯模糊柔化
   const feBlur = document.createElementNS(svgNS, "feGaussianBlur");
-  feBlur.setAttribute("in", "RGB_COMBINED");
-  feBlur.setAttribute("stdDeviation", Math.max(0.1, 0.5 - aberrationIntensity * 0.1));
-  feBlur.setAttribute("result", "ABERRATED_BLURRED");
+  feBlur.setAttribute("in", "RGB");
+  feBlur.setAttribute("stdDeviation", blur);
+  feBlur.setAttribute("result", "BLURRED");
+  filter.appendChild(feBlur);
 
-  // 边缘遮罩应用
-  const feEdgeIn = document.createElementNS(svgNS, "feComposite");
-  feEdgeIn.setAttribute("in", "ABERRATED_BLURRED"); feEdgeIn.setAttribute("in2", "EDGE_MASK");
-  feEdgeIn.setAttribute("operator", "in"); feEdgeIn.setAttribute("result", "EDGE_ABERRATION");
-
-  // 反转遮罩
-  const feInvMask = document.createElementNS(svgNS, "feComponentTransfer");
-  feInvMask.setAttribute("in", "EDGE_MASK"); feInvMask.setAttribute("result", "INVERTED_MASK");
-  const feInvA = document.createElementNS(svgNS, "feFuncA");
-  feInvA.setAttribute("type", "table"); feInvA.setAttribute("tableValues", "1 0");
-  feInvMask.appendChild(feInvA);
-
-  // 中间区域保留原始
-  const feCenterIn = document.createElementNS(svgNS, "feComposite");
-  feCenterIn.setAttribute("in", "CENTER_ORIGINAL"); feCenterIn.setAttribute("in2", "INVERTED_MASK");
-  feCenterIn.setAttribute("operator", "in"); feCenterIn.setAttribute("result", "CENTER_CLEAN");
-
-  // 最终合成
-  const feFinal = document.createElementNS(svgNS, "feComposite");
-  feFinal.setAttribute("in", "EDGE_ABERRATION"); feFinal.setAttribute("in2", "CENTER_CLEAN");
-  feFinal.setAttribute("operator", "over");
-
-  filter.append(feImg, feGray, feMask, feCenter, feR, feRMat, feG, feGMat, feB, feBMat, feBlendGB, feBlendRGB, feBlur, feEdgeIn, feInvMask, feCenterIn, feFinal);
-  defs.append(grad, filter);
+  defs.appendChild(filter);
 }
-
-// Canvas 位移图生成器
-function generateDisplacementMap(w, h, type) {
-  const canvas = document.createElement("canvas");
-  canvas.width = w; canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  const imgData = ctx.createImageData(w, h);
-  const d = imgData.data;
-
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const i = (y * w + x) * 4;
-      const nx = x / w - 0.5;
-      const ny = y / h - 0.5;
-      const dist = Math.sqrt(nx * nx + ny * ny);
-
-      if (type === "standard") {
-        // 径向 — 中心无位移，边缘最大
-        const t = Math.min(1, dist * 2.5);
-        d[i]     = 128 + nx * t * 100;
-        d[i + 1] = 128 + ny * t * 100;
-      } else if (type === "polar") {
-        // 角度 + 径向
-        const angle = Math.atan2(ny, nx);
-        const t = Math.min(1, dist * 2.5);
-        d[i]     = 128 + Math.cos(angle) * t * 80;
-        d[i + 1] = 128 + Math.sin(angle) * t * 80;
-      } else {
-        // prominent — 中心也有轻微位移
-        const t = Math.min(1, dist * 1.8 + 0.2);
-        d[i]     = 128 + nx * t * 120;
-        d[i + 1] = 128 + ny * t * 120;
-      }
-      d[i + 2] = 128;
-      d[i + 3] = 255;
-    }
-  }
-  ctx.putImageData(imgData, 0, 0);
-  return canvas.toDataURL();
-}
-
-// 预生成位移图
-const mapStandard = generateDisplacementMap(200, 120, "standard");
-const mapPolar = generateDisplacementMap(200, 120, "polar");
-const mapProminent = generateDisplacementMap(200, 120, "prominent");
 
 // ══════════════════════════════════════════════════════
 // 10 种效果
@@ -318,62 +226,62 @@ const mapProminent = generateDisplacementMap(200, 120, "prominent");
 const effects = [
   {
     name: "Standard 标准",
-    desc: "rdev 默认模式 — 径向位移 + 色差 + 边缘遮罩",
-    map: "standard", blur: 16, sat: 180, aberration: 2, scale: 70,
+    desc: "径向噪声位移 + backdrop-filter 模糊",
+    scale: 45, blur: 1.2, baseFreq: "0.015 0.012", sat: 180, aberration: 2,
     elasticity: 0.15, cornerRadius: 24,
   },
   {
     name: "Polar 极坐标",
-    desc: "角度位移 — 像透过球面玻璃看",
-    map: "polar", blur: 14, sat: 170, aberration: 2.5, scale: 65,
+    desc: "角度噪声 — 像透过弧面玻璃",
+    scale: 55, blur: 1.0, baseFreq: "0.02 0.008", sat: 170, aberration: 2.5,
     elasticity: 0.2, cornerRadius: 20,
   },
   {
     name: "Prominent 突出",
-    desc: "中心也有位移 — 整块玻璃都在折射",
-    map: "prominent", blur: 18, sat: 190, aberration: 3, scale: 80,
+    desc: "高频噪声 — 整块玻璃都在折射",
+    scale: 65, blur: 0.8, baseFreq: "0.025 0.02", sat: 190, aberration: 3,
     elasticity: 0.1, cornerRadius: 16,
   },
   {
     name: "强色差",
-    desc: "aberration=5 — RGB 三色分离明显",
-    map: "standard", blur: 12, sat: 160, aberration: 5, scale: 70,
+    desc: "screen blend 色散最明显",
+    scale: 50, blur: 1.5, baseFreq: "0.012 0.01", sat: 160, aberration: 5,
     elasticity: 0.15, cornerRadius: 24,
   },
   {
     name: "高折射",
-    desc: "scale=120 — 位移量最大，扭曲最明显",
-    map: "standard", blur: 10, sat: 170, aberration: 2, scale: 120,
+    desc: "scale=100 — 位移量最大，扭曲最明显",
+    scale: 100, blur: 0.6, baseFreq: "0.015 0.012", sat: 170, aberration: 2,
     elasticity: 0.1, cornerRadius: 20,
   },
   {
     name: "厚毛玻璃",
-    desc: "blur=24 — 磨砂感最强",
-    map: "standard", blur: 24, sat: 200, aberration: 1, scale: 50,
+    desc: "高模糊 — 磨砂感最强",
+    scale: 30, blur: 2.5, baseFreq: "0.008 0.006", sat: 200, aberration: 1,
     elasticity: 0.05, cornerRadius: 30,
   },
   {
     name: "弹性液态",
     desc: "elasticity=0.4 — 向鼠标方向拉伸最明显",
-    map: "standard", blur: 14, sat: 170, aberration: 2, scale: 60,
+    scale: 50, blur: 1.0, baseFreq: "0.015 0.012", sat: 170, aberration: 2,
     elasticity: 0.4, cornerRadius: 24,
   },
   {
     name: "方形玻璃",
     desc: "cornerRadius=8 — 方形卡片效果",
-    map: "standard", blur: 16, sat: 180, aberration: 2, scale: 70,
+    scale: 45, blur: 1.2, baseFreq: "0.015 0.012", sat: 180, aberration: 2,
     elasticity: 0.15, cornerRadius: 8,
   },
   {
     name: "极致液态",
     desc: "全部参数拉满 — 最强视觉冲击",
-    map: "prominent", blur: 20, sat: 200, aberration: 4, scale: 100,
+    scale: 120, blur: 1.8, baseFreq: "0.02 0.018", sat: 200, aberration: 4,
     elasticity: 0.35, cornerRadius: 20,
   },
   {
     name: "极简玻璃",
     desc: "低参数 — 轻微折射，适合 UI 组件",
-    map: "standard", blur: 8, sat: 140, aberration: 1, scale: 40,
+    scale: 20, blur: 0.5, baseFreq: "0.01 0.008", sat: 140, aberration: 1,
     elasticity: 0.1, cornerRadius: 16,
   },
 ];
@@ -385,31 +293,20 @@ const effects = [
 const grid = document.getElementById("grid");
 let selectedIdx = null;
 
-function getMapDataUrl(mapType) {
-  if (mapType === "polar") return mapPolar;
-  if (mapType === "prominent") return mapProminent;
-  return mapStandard;
-}
-
 function updateGlass(idx, mouseX, mouseY) {
   const ef = effects[idx];
   const glass = document.getElementById("glass-" + idx);
   if (!glass) return;
 
-  // 更新 SVG filter
+  // 更新 SVG filter 的 scale
   const filterId = "filter-" + idx;
-  createGlassFilter(filterId, getMapDataUrl(ef.map), {
-    displacementScale: ef.scale,
-    aberrationIntensity: ef.aberration,
-  });
+  const filterEl = document.getElementById(filterId);
+  if (filterEl) {
+    const disp = filterEl.querySelector("feDisplacementMap");
+    if (disp) disp.setAttribute("scale", ef.scale);
+  }
 
-  // 应用 filter + backdrop-filter
-  const warp = glass.querySelector(".glass-warp");
-  warp.style.filter = `url(#${filterId})`;
-  warp.style.backdropFilter = `blur(${ef.blur}px) saturate(${ef.sat}%)`;
-  warp.style.webkitBackdropFilter = `blur(${ef.blur}px) saturate(${ef.sat}%)`;
-
-  // 弹性跟随 — 根据鼠标距离玻璃中心的方向拉伸
+  // 弹性跟随
   const rect = glass.getBoundingClientRect();
   const parentRect = glass.parentElement.getBoundingClientRect();
   const cx = rect.left + rect.width / 2;
@@ -433,7 +330,7 @@ function updateGlass(idx, mouseX, mouseY) {
 
   glass.style.transform = `translate(${tx}px, ${ty}px) scaleX(${Math.max(0.8, scaleX).toFixed(4)}) scaleY(${Math.max(0.8, scaleY).toFixed(4)})`;
 
-  // 边缘高光随鼠标方向变化
+  // 边缘高光
   const angle = 135 + (mouseX - parentRect.left) / parentRect.width * 30;
   const b1 = glass.querySelector(".glass-border-1");
   const b2 = glass.querySelector(".glass-border-2");
@@ -447,7 +344,7 @@ effects.forEach((ef, i) => {
   card.innerHTML = `
     <span class="num">${i + 1}</span>
     <div class="name">${ef.name}</div>
-    <span class="mode-tag">${ef.map}</span>
+    <span class="mode-tag">scale ${ef.scale}</span>
     <div class="desc">${ef.desc}</div>
     <div class="preview" id="preview-${i}">
       <div class="glass-element" id="glass-${i}" style="
@@ -464,8 +361,8 @@ effects.forEach((ef, i) => {
     </div>
     <div class="slider-row">
       <label>折射强度</label>
-      <input type="range" min="10" max="100" value="50" id="slider-${i}">
-      <span class="slider-val" id="val-${i}">50%</span>
+      <input type="range" min="10" max="100" value="${Math.round((ef.scale - 5) / 195 * 100)}" id="slider-${i}">
+      <span class="slider-val" id="val-${i}">${Math.round((ef.scale - 5) / 195 * 100)}%</span>
     </div>
   `;
 
@@ -473,11 +370,11 @@ effects.forEach((ef, i) => {
   const dot = card.querySelector(`#dot-${i}`);
   const preview = card.querySelector(`#preview-${i}`);
 
-  // Slider — 控制 displacementScale
+  // Slider — 控制 displacement scale
   slider.addEventListener("input", (e) => {
     const pct = e.target.value / 100;
     document.getElementById("val-" + i).textContent = e.target.value + "%";
-    effects[i].scale = effects[i].map === "prominent" ? 40 + pct * 100 : 20 + pct * 100;
+    effects[i].scale = Math.round(5 + pct * 195); // 5 ~ 200
     const rect = preview.getBoundingClientRect();
     updateGlass(i, rect.left + rect.width / 2, rect.top + rect.height / 2);
   });
@@ -504,17 +401,30 @@ effects.forEach((ef, i) => {
     document.getElementById("selName").textContent = `#${i + 1} ${ef.name}`;
     document.getElementById("selCode").innerHTML =
       `<span class="c">// #${i + 1} ${ef.name}</span>\n` +
-      `<span class="k">map</span>: <span class="v">"${ef.map}"</span>\n` +
-      `<span class="k">displacementScale</span>: <span class="v">${ef.scale}</span>\n` +
-      `<span class="k">blurAmount</span>: <span class="v">${ef.blur}</span>\n` +
-      `<span class="k">saturation</span>: <span class="v">${ef.sat}</span>\n` +
-      `<span class="k">aberrationIntensity</span>: <span class="v">${ef.aberration}</span>\n` +
+      `<span class="k">scale</span>: <span class="v">${ef.scale}</span>\n` +
+      `<span class="k">blur</span>: <span class="v">${ef.blur}</span>\n` +
+      `<span class="k">baseFrequency</span>: <span class="v">"${ef.baseFreq}"</span>\n` +
+      `<span class="k">backdropBlur</span>: <span class="v">${Math.round(ef.scale * 0.15)}px</span>\n` +
+      `<span class="k">saturation</span>: <span class="v">${ef.sat}%</span>\n` +
+      `<span class="k">aberration</span>: <span class="v">${ef.aberration}</span>\n` +
       `<span class="k">elasticity</span>: <span class="v">${ef.elasticity}</span>\n` +
-      `<span class="k">cornerRadius</span>: <span class="v">${ef.cornerRadius}</span>`;
+      `<span class="k">cornerRadius</span>: <span class="v">${ef.cornerRadius}px</span>`;
   });
 
-  // Init
+  // Init — 创建 filter + 初始渲染
   setTimeout(() => {
+    const filterId = "filter-" + i;
+    createGlassFilter(filterId, {
+      scale: ef.scale,
+      blur: ef.blur,
+      baseFreq: ef.baseFreq,
+      aberration: ef.aberration,
+    });
+    const warp = glass.querySelector(".glass-warp");
+    warp.style.filter = `url(#${filterId})`;
+    warp.style.backdropFilter = `blur(${Math.round(ef.scale * 0.15)}px) saturate(${ef.sat}%)`;
+    warp.style.webkitBackdropFilter = `blur(${Math.round(ef.scale * 0.15)}px) saturate(${ef.sat}%)`;
+
     const rect = preview.getBoundingClientRect();
     updateGlass(i, rect.left + rect.width / 2, rect.top + rect.height / 2);
   }, 80 + i * 40);

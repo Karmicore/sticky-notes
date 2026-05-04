@@ -34,6 +34,8 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(move |_app, shortcut, _event| {
@@ -91,8 +93,10 @@ pub fn run() {
             commands::window_cmd::collapse_all_notes,
             commands::window_cmd::expand_all_notes,
             commands::window_cmd::open_export_window,
+            commands::window_cmd::open_share_window,
             commands::export_cmd::export_notes_copy,
             commands::export_cmd::export_notes_cut,
+            commands::export_cmd::copy_image_to_clipboard,
             commands::config_cmd::get_export_selected_ids,
             commands::config_cmd::set_export_selected_ids,
             commands::config_cmd::get_language,

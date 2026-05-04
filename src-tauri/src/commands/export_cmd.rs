@@ -96,6 +96,30 @@ pub fn do_export_cut(ids: &[i32], app: &tauri::AppHandle, svc: &NoteService) -> 
     Ok(())
 }
 
+#[tauri::command]
+pub fn copy_image_to_clipboard(data: Vec<u8>) -> Result<(), String> {
+    use std::io::Cursor;
+
+    // Decode PNG from bytes
+    let img = image::load(Cursor::new(&data), image::ImageFormat::Png)
+        .map_err(|e| format!("Failed to decode PNG: {}", e))?;
+    let rgba = img.to_rgba8();
+    let (w, h) = rgba.dimensions();
+
+    // Use arboard directly for image clipboard support
+    let mut clipboard = arboard::Clipboard::new().map_err(|e| e.to_string())?;
+    let img_data = arboard::ImageData {
+        width: w as usize,
+        height: h as usize,
+        bytes: rgba.into_raw().into(),
+    };
+    clipboard
+        .set_image(img_data)
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
