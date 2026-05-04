@@ -90,6 +90,8 @@ const texts = {
   'share.portrait': { zh: '竖版', en: 'Portrait' },
   'share.landscape': { zh: '横版', en: 'Landscape' },
   'share.noSelection': { zh: '请先选中一段文字', en: 'Select some text first' },
+  'share.pickColor': { zh: '选择颜色', en: 'Pick Color' },
+  'share.editQuote': { zh: '点击编辑鼓励语', en: 'Click to edit quote' },
   'menu.note.share': { zh: '分享', en: 'Share' },
 };
 

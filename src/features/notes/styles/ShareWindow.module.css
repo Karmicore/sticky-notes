@@ -39,6 +39,51 @@
   border-radius: 4px;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+
+.iconBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.iconBtnActive {
+  background: rgba(79, 195, 247, 0.2);
+  color: #4fc3f7;
+}
+
+.pickerPanel {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 8px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.pickerHint {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
 .closeBtn:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
@@ -234,6 +279,34 @@
   position: relative;
   z-index: 1;
   margin-top: 16px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.encourageText:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.quoteInput {
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  letter-spacing: 0.5px;
+  position: relative;
+  z-index: 1;
+  margin-top: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 6px 12px;
+  width: 80%;
+  outline: none;
+  font-family: inherit;
+}
+
+.quoteInput:focus {
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .branding {

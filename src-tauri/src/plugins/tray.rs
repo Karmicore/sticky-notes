@@ -97,7 +97,6 @@ impl TrayPlugin {
         };
         let toggle_collapse = MenuItem::with_id(app, "toggle_collapse", toggle_text, true, None::<&str>)
             .map_err(|e| e.to_string())?;
-        let toggle_collapse_handle = toggle_collapse.clone();
 
         let tray_menu = Self::build_menu(app, &toggle_collapse)?;
 
@@ -112,11 +111,10 @@ impl TrayPlugin {
                     if let Some(svc) = app.try_state::<Arc<NoteService>>() {
                         if window_cmd::any_collapsed(app) {
                             window_cmd::expand_all_note_windows(app, &svc);
-                            toggle_collapse_handle.set_text(t("折叠全部", "Collapse All")).ok();
                         } else {
                             window_cmd::collapse_all_note_windows(app, &svc);
-                            toggle_collapse_handle.set_text(t("展开全部", "Expand All")).ok();
                         }
+                        Self::rebuild_menu(app);
                     }
                 }
                 "new" => {

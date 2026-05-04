@@ -1,0 +1,46 @@
+.picker {
+  display: flex;
+  gap: 10px;
+  padding: 8px;
+}
+
+.svPanel {
+  width: 180px;
+  height: 180px;
+  border-radius: 6px;
+  position: relative;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.svCursor {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.hueStrip {
+  width: 18px;
+  height: 180px;
+  border-radius: 9px;
+  position: relative;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.hueCursor {
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  height: 6px;
+  border: 2px solid #fff;
+  border-radius: 3px;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+  transform: translateY(-50%);
+  pointer-events: none;
+}

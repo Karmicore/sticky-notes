@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { t } from "../../lib/i18n";
 import { getRandomQuote } from "../../lib/quotes";
+import ColorPicker from "./ColorPicker";
 import styles from "./styles/ShareWindow.module.css";
 
 const GRADIENTS = {
@@ -25,6 +26,38 @@ const CHECKBOX_RE = /^(⬜|⏳|✅) /;
 function getGradient(color) {
   const c = color?.toUpperCase();
   return GRADIENTS[c] || ["#1a1a2e", "#16213e"];
+}
+
+// Generate a darker gradient stop from a hex color via HSV
+function hexToGradient(hex) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const d = max - min;
+  let h = 0;
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d + 6) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+  }
+  const s = max === 0 ? 0 : d / max;
+  const v = max;
+  // Darker stop: reduce value by 35%
+  const v2 = Math.max(0, v - 0.35);
+  const c2 = v2 * s;
+  const x2 = c2 * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m2 = v2 - c2;
+  let r2, g2, b2;
+  if (h < 60) { r2 = c2; g2 = x2; b2 = 0; }
+  else if (h < 120) { r2 = x2; g2 = c2; b2 = 0; }
+  else if (h < 180) { r2 = 0; g2 = c2; b2 = x2; }
+  else if (h < 240) { r2 = 0; g2 = x2; b2 = c2; }
+  else if (h < 300) { r2 = x2; g2 = 0; b2 = c2; }
+  else { r2 = c2; g2 = 0; b2 = x2; }
+  const toHex = (c) => Math.round((c + m2) * 255).toString(16).padStart(2, "0");
+  return `#${toHex(r2)}${toHex(g2)}${toHex(b2)}`;
 }
 
 function parseHash() {
@@ -69,6 +102,13 @@ export default function ShareWindow() {
   const appWindow = getCurrentWindow();
   const quote = useMemo(getRandomQuote, []);
 
+  // Customization state
+  const [showPicker, setShowPicker] = useState(false);
+  const [customColor, setCustomColor] = useState(null);
+  const [customQuote, setCustomQuote] = useState(null);
+  const [editingQuote, setEditingQuote] = useState(false);
+  const quoteInputRef = useRef(null);
+
   useEffect(() => {
     invoke("get_note", { id: noteId })
       .then(setNote)
@@ -76,12 +116,30 @@ export default function ShareWindow() {
       .finally(() => setLoading(false));
   }, [noteId]);
 
-  const gradient = getGradient(color);
+  const gradient = customColor
+    ? [customColor, hexToGradient(customColor)]
+    : getGradient(color);
+  const displayQuote = customQuote ?? quote;
   const content = note?.content || "";
   const { items, done, total } = parseTodos(content);
   const hasTodos = total > 0;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
   const plainContent = content.replace(CHECKBOX_RE, "").replace(/\n{2,}/g, "\n").trim();
+
+  const handleColorChange = useCallback((hex) => {
+    setCustomColor(hex);
+  }, []);
+
+  const handleQuoteEdit = useCallback(() => {
+    setEditingQuote(true);
+    setTimeout(() => quoteInputRef.current?.focus(), 0);
+  }, []);
+
+  const handleQuoteCommit = useCallback((value) => {
+    const trimmed = value.trim();
+    setCustomQuote(trimmed || null);
+    setEditingQuote(false);
+  }, []);
 
   const generatePng = useCallback(async () => {
     if (!cardRef.current) return null;
@@ -152,8 +210,33 @@ export default function ShareWindow() {
     <div className={styles.container}>
       <div className={styles.header}>
         <span className={styles.title}>{t("share.title")}</span>
-        <button className={styles.closeBtn} onClick={handleClose}>×</button>
+        <div className={styles.headerActions}>
+          <button
+            className={`${styles.iconBtn} ${showPicker ? styles.iconBtnActive : ""}`}
+            onClick={() => setShowPicker(!showPicker)}
+            title={t("share.pickColor")}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="13.5" cy="6.5" r="2.5" />
+              <circle cx="6" cy="12" r="2.5" />
+              <circle cx="18" cy="12" r="2.5" />
+              <circle cx="8" cy="18" r="2.5" />
+              <circle cx="16" cy="18" r="2.5" />
+            </svg>
+          </button>
+          <button className={styles.closeBtn} onClick={handleClose}>×</button>
+        </div>
       </div>
+
+      {showPicker && (
+        <div className={styles.pickerPanel}>
+          <ColorPicker
+            color={customColor || color}
+            onChange={handleColorChange}
+          />
+          <div className={styles.pickerHint}>{t("share.pickColor")}</div>
+        </div>
+      )}
 
       <div className={styles.preview}>
         <div
@@ -200,7 +283,27 @@ export default function ShareWindow() {
             <span className={styles.dividerLine} />
           </div>
 
-          <div className={styles.encourageText}>{quote}</div>
+          {editingQuote ? (
+            <input
+              ref={quoteInputRef}
+              className={styles.quoteInput}
+              defaultValue={customQuote || ""}
+              placeholder={quote}
+              onBlur={(e) => handleQuoteCommit(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleQuoteCommit(e.target.value);
+                if (e.key === "Escape") setEditingQuote(false);
+              }}
+            />
+          ) : (
+            <div
+              className={styles.encourageText}
+              onClick={handleQuoteEdit}
+              title={t("share.editQuote")}
+            >
+              {customQuote || displayQuote}
+            </div>
+          )}
           <div className={styles.branding}>Sticky Notes</div>
         </div>
       </div>
