@@ -71,7 +71,7 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
     setAndPreserve(lines.join("\n"));
   }, [note.content, setAndPreserve]);
 
-  const handleTextareaClick = useCallback(() => {
+  const handleTextareaClick = useCallback((e) => {
     const ta = taRef.current;
     if (!ta || note.locked) return;
     const cursorPos = ta.selectionStart;
@@ -80,9 +80,10 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
     const charInLine = cursorPos - lineStart;
     const lineEnd = val.indexOf("\n", cursorPos);
     const line = val.substring(lineStart, lineEnd === -1 ? val.length : lineEnd);
+    console.log("[checkbox] click", { cursorPos, charInLine, line: JSON.stringify(line), match: CHECKBOX_RE.test(line), locked: note.locked });
     if (!CHECKBOX_RE.test(line)) return;
-    if (charInLine >= CB_LEN) return;
     const lineIdx = val.substring(0, cursorPos).split("\n").length - 1;
+    console.log("[checkbox] toggle", { lineIdx });
     toggleCb(lineIdx);
   }, [note.locked, toggleCb]);
 
