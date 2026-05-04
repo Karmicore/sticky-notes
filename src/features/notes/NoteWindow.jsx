@@ -17,8 +17,6 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
   const [activePanel, setActivePanel] = useState(null);
   const noteRef = useRef(note);
   const insertCheckboxRef = useRef(null);
-  const getSelectedTextRef = useRef(() => "");
-  const lastSelectedText = useRef("");
   noteRef.current = note;
 
   useEffect(() => {
@@ -80,12 +78,6 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
     onHide: () => appWindow.hide(),
     onPin: handlePin,
     insertCheckbox: () => insertCheckboxRef.current?.(),
-    getSelectedText: () => lastSelectedText.current || getSelectedTextRef.current?.() || "",
-    getWindowPosition: async () => {
-      const pos = await appWindow.outerPosition();
-      const size = await appWindow.outerSize();
-      return { x: pos.x + size.width, y: pos.y };
-    },
     showColorPanel: () => setActivePanel("color"),
     showOpacityPanel: () => setActivePanel("opacity"),
   }), [noteId, edit, changeFontSize, changeOpacity, handleDelete, handlePin]);
@@ -99,8 +91,6 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
   }
 
   function handleMenuToggle(e) {
-    // Capture selection before menu steals focus
-    lastSelectedText.current = getSelectedTextRef.current?.() || "";
     const rect = e.currentTarget.getBoundingClientRect();
     popupNativeMenu(getCtx(), { x: rect.left, y: rect.bottom }).catch((err) => {
       console.error("[menu] nativeMenuClient error:", err);
@@ -116,7 +106,6 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
         <ColorPanel note={note} update={edit} onClose={() => setActivePanel(null)} />
       )}
       <NoteEditor note={note} update={edit} insertCheckboxRef={insertCheckboxRef}
-        getSelectedTextRef={getSelectedTextRef}
         style={{ display: note.collapsed ? "none" : undefined }} />
       <div className={styles.resizeGrip}
         style={{ display: note.collapsed ? "none" : undefined }} />

@@ -309,21 +309,18 @@ pub async fn open_export_window(app: AppHandle) -> Result<(), String> {
 
 // ── Share window ──
 
-pub fn spawn_share_window(app: &AppHandle, text: &str, color: &str, x: f64, y: f64) -> Result<(), String> {
-    let url = format!("share.html#text={}&color={}",
-        urlencoding::encode(text),
-        urlencoding::encode(color),
-    );
+pub fn spawn_share_window(app: &AppHandle, note_id: i32, color: &str) -> Result<(), String> {
+    let url = format!("share.html#noteId={}&color={}", note_id, urlencoding::encode(color));
     spawn_window(app, WindowConfig {
         label: "share".into(),
         url,
         title: "Share".into(),
-        width: 640.0,
-        height: 480.0,
-        x,
-        y,
+        width: 520.0,
+        height: 580.0,
+        x: 300.0,
+        y: 150.0,
         min_width: 400.0,
-        min_height: 350.0,
+        min_height: 400.0,
         decorations: true,
         resizable: true,
         always_on_top: true,
@@ -335,6 +332,6 @@ pub fn spawn_share_window(app: &AppHandle, text: &str, color: &str, x: f64, y: f
 }
 
 #[tauri::command]
-pub async fn open_share_window(app: AppHandle, text: String, color: String, x: f64, y: f64) -> Result<(), String> {
-    spawn_share_window(&app, &text, &color, x, y)
+pub async fn open_share_window(app: AppHandle, note_id: i32, color: String) -> Result<(), String> {
+    spawn_share_window(&app, note_id, &color)
 }

@@ -4,7 +4,7 @@ import styles from "./styles/NoteEditor.module.css";
 import { CHECKBOX_RE, CHECKBOX_PREFIX, CB_LEN, CB_NEXT } from "./utils/checkbox";
 import { t } from "../../lib/i18n";
 
-export default function NoteEditor({ note, update, insertCheckboxRef, getSelectedTextRef, style }) {
+export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
   const taRef = useRef(null);
 
   const setAndPreserve = useCallback((val) => {
@@ -33,19 +33,6 @@ export default function NoteEditor({ note, update, insertCheckboxRef, getSelecte
   useEffect(() => {
     if (insertCheckboxRef) insertCheckboxRef.current = insertCheckbox;
   }, [insertCheckbox, insertCheckboxRef]);
-
-  const getSelectedText = useCallback(() => {
-    const ta = taRef.current;
-    if (!ta) return "";
-    const start = ta.selectionStart;
-    const end = ta.selectionEnd;
-    if (start === end) return "";
-    return ta.value.substring(start, end).trim();
-  }, []);
-
-  useEffect(() => {
-    if (getSelectedTextRef) getSelectedTextRef.current = getSelectedText;
-  }, [getSelectedText, getSelectedTextRef]);
 
   const handleKeyDown = useCallback((e) => {
     if (e.key !== "Enter") return;
