@@ -278,7 +278,7 @@ pub fn open_export_window(app: AppHandle) -> Result<(), String> {
 
 // ── Share window ──
 
-pub fn spawn_share_window(app: &AppHandle) -> Result<(), String> {
+pub fn spawn_share_window(app: &AppHandle, x: f64, y: f64) -> Result<(), String> {
     let label = "share";
     if let Some(window) = app.get_webview_window(label) {
         window.show().ok();
@@ -289,8 +289,9 @@ pub fn spawn_share_window(app: &AppHandle) -> Result<(), String> {
     WebviewWindowBuilder::new(app, label, tauri::WebviewUrl::App("share.html".into()))
         .title("Share")
         .inner_size(640.0, 480.0)
+        .position(x, y)
         .min_inner_size(400.0, 350.0)
-        .decorations(true)
+        .decorations(false)
         .resizable(true)
         .always_on_top(true)
         .skip_taskbar(true)
@@ -302,6 +303,6 @@ pub fn spawn_share_window(app: &AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn open_share_window(app: AppHandle) -> Result<(), String> {
-    spawn_share_window(&app)
+pub fn open_share_window(app: AppHandle, x: f64, y: f64) -> Result<(), String> {
+    spawn_share_window(&app, x, y)
 }

@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { toPng } from "html-to-image";
 import { CHECKBOX_RE } from "./utils/checkbox";
 import { t } from "../../lib/i18n";
 import styles from "./styles/ShareWindow.module.css";
@@ -31,14 +30,20 @@ function truncate(str, max) {
 export default function ShareWindow() {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [status, setStatus] = useState(null);
   const cardRef = useRef(null);
   const appWindow = getCurrentWindow();
 
   useEffect(() => {
     invoke("load_all_notes")
-      .then((all) => setNotes(all.filter((n) => n.visible)))
-      .catch(console.error)
+      .then((all) => {
+        setNotes(all.filter((n) => n.visible));
+      })
+      .catch((e) => {
+        console.error("Failed to load notes:", e);
+        setError(String(e));
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -52,6 +57,8 @@ export default function ShareWindow() {
 
   const generatePng = useCallback(async () => {
     if (!cardRef.current) return null;
+    // Dynamic import to avoid crash if html-to-image fails to load
+    const { toPng } = await import("html-to-image");
     const dataUrl = await toPng(cardRef.current, {
       width: CARD_W * 2,
       height: CARD_H * 2,
@@ -76,13 +83,13 @@ export default function ShareWindow() {
       });
       if (path) {
         await writeBinaryFile(path, pngBytes);
-        setStatus("已保存");
+        setStatus(t("share.saved"));
       } else {
         setStatus(null);
       }
     } catch (e) {
       console.error(e);
-      setStatus("保存失败");
+      setStatus(t("share.saveFailed"));
     }
   }, [dateStr, generatePng]);
 
@@ -92,24 +99,13 @@ export default function ShareWindow() {
       const pngBytes = await generatePng();
       if (!pngBytes) return;
 
-      // Use Tauri command to copy image to clipboard
       await invoke("copy_image_to_clipboard", {
         data: Array.from(pngBytes),
       });
       setStatus(t("export.success"));
     } catch (e) {
       console.error(e);
-      // Fallback: try browser clipboard API
-      try {
-        const blob = new Blob([pngBytes], { type: "image/png" });
-        await navigator.clipboard.write([
-          new ClipboardItem({ "image/png": blob }),
-        ]);
-        setStatus(t("export.success"));
-      } catch (e2) {
-        console.error(e2);
-        setStatus("复制失败");
-      }
+      setStatus(t("share.copyFailed"));
     }
   }, [generatePng]);
 
@@ -117,34 +113,46 @@ export default function ShareWindow() {
     appWindow.close();
   }, [appWindow]);
 
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <span className={styles.title}>{t("share.title")}</span>
+          <button className={styles.closeBtn} onClick={handleClose}>{"×"}</button>
+        </div>
+        <div className={styles.preview}>
+          <div style={{ color: "#f44336", fontSize: 13, textAlign: "center" }}>
+            Error: {error}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <span className={styles.title}>{t("share.title")}</span>
-        <button className={styles.closeBtn} onClick={handleClose}>
-          {"×"}
-        </button>
+        <button className={styles.closeBtn} onClick={handleClose}>{"×"}</button>
       </div>
 
       <div className={styles.preview}>
         <div ref={cardRef} className={styles.card}>
           <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>{"Today’s Progress"}</div>
+            <div className={styles.cardTitle}>{"Today's Progress"}</div>
             <div className={styles.cardDate}>{dateStr}</div>
           </div>
 
           <div className={styles.noteList}>
             {loading ? (
               <div style={{ color: "#666", fontSize: 13 }}>Loading...</div>
+            ) : notes.length === 0 ? (
+              <div style={{ color: "#666", fontSize: 13 }}>No notes</div>
             ) : (
               notes.slice(0, 6).map((note) => {
                 const { done, total } = parseCheckboxState(note.content);
                 const statusIcon =
-                  total > 0
-                    ? done === total
-                      ? "✅"
-                      : "⏳"
-                    : "";
+                  total > 0 ? (done === total ? "✅" : "⏳") : "";
                 return (
                   <div key={note.id} className={styles.noteItem}>
                     <div
@@ -180,9 +188,7 @@ export default function ShareWindow() {
                 />
               </div>
               <div className={styles.statsText}>
-                <span>
-                  {totalDone}/{totalTasks} done
-                </span>
+                <span>{totalDone}/{totalTasks} done</span>
                 <span>{progressPct}%</span>
               </div>
             </div>

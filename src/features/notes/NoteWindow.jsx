@@ -101,7 +101,19 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
     <div className={styles.noteWindow} style={{ backgroundColor: hexToRgba(note.color, note.opacity), filter: focused ? "none" : "brightness(0.93)", "--glass": note.glass }}>
       <TitleBar note={note} editingTitle={editingTitle} setEditingTitle={setEditingTitle}
         commitTitle={commitTitle} onClose={handleClose} onMenuToggle={handleMenuToggle}
-        onCollapseToggle={handleCollapseToggle} onShare={() => invoke("open_share_window").catch(console.error)} />
+        onCollapseToggle={handleCollapseToggle} onShare={async () => {
+          try {
+            const pos = await appWindow.outerPosition();
+            const size = await appWindow.outerSize();
+            // Place share window to the right of current note
+            await invoke("open_share_window", {
+              x: pos.x + size.width + 8,
+              y: pos.y,
+            });
+          } catch (e) {
+            console.error(e);
+          }
+        }} />
       {activePanel && (
         <ColorPanel note={note} update={edit} onClose={() => setActivePanel(null)} />
       )}
