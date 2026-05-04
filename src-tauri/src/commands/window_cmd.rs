@@ -2,10 +2,59 @@ use std::sync::Arc;
 
 use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
 use tauri::webview::WebviewWindowBuilder;
-use tauri::{LogicalPosition, Size};
+use tauri::Size;
 
 use crate::app_core::note::Note;
 use crate::app_core::service::NoteService;
+
+// ── WindowConfig: single source of truth for window creation ──
+
+struct WindowConfig {
+    label: String,
+    url: String,
+    title: String,
+    width: f64,
+    height: f64,
+    x: f64,
+    y: f64,
+    min_width: f64,
+    min_height: f64,
+    decorations: bool,
+    resizable: bool,
+    always_on_top: bool,
+    skip_taskbar: bool,
+    transparent: bool,
+    focused: bool,
+    visible: bool,
+}
+
+fn spawn_window(app: &AppHandle, cfg: WindowConfig) -> Result<(), String> {
+    if app.get_webview_window(&cfg.label).is_some() {
+        // Already exists — show and focus
+        if let Some(w) = app.get_webview_window(&cfg.label) {
+            w.show().ok();
+            w.set_focus().ok();
+        }
+        return Ok(());
+    }
+
+    WebviewWindowBuilder::new(app, &cfg.label, tauri::WebviewUrl::App(cfg.url.into()))
+        .title(&cfg.title)
+        .inner_size(cfg.width, cfg.height)
+        .position(cfg.x, cfg.y)
+        .min_inner_size(cfg.min_width, cfg.min_height)
+        .decorations(cfg.decorations)
+        .resizable(cfg.resizable)
+        .always_on_top(cfg.always_on_top)
+        .skip_taskbar(cfg.skip_taskbar)
+        .transparent(cfg.transparent)
+        .focused(cfg.focused)
+        .visible(cfg.visible)
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
 
 // ── Shared helpers (used by both commands and tray) ──
 
@@ -43,27 +92,24 @@ pub fn any_collapsed(app: &AppHandle) -> bool {
 // ── Window spawning ──
 
 pub fn spawn_note_window(app: &AppHandle, note: &Note) -> Result<(), String> {
-    let label = format!("note-{}", note.id);
-    if app.get_webview_window(&label).is_some() {
-        return Ok(());
-    }
-
-    let url = format!("note.html#color={}", note.color.trim_start_matches('#'));
-    WebviewWindowBuilder::new(app, &label, tauri::WebviewUrl::App(url.into()))
-        .title(&note.title)
-        .inner_size(note.width as f64, note.height as f64)
-        .position(note.pos_x as f64, note.pos_y as f64)
-        .min_inner_size(180.0, 100.0)
-        .visible(false)
-        .decorations(false)
-        .resizable(true)
-        .always_on_top(note.is_always_on_top)
-        .skip_taskbar(true)
-        .transparent(true)
-        .build()
-        .map_err(|e| e.to_string())?;
-
-    Ok(())
+    spawn_window(app, WindowConfig {
+        label: format!("note-{}", note.id),
+        url: format!("note.html#color={}", note.color.trim_start_matches('#')),
+        title: note.title.clone(),
+        width: note.width as f64,
+        height: note.height as f64,
+        x: note.pos_x as f64,
+        y: note.pos_y as f64,
+        min_width: 180.0,
+        min_height: 100.0,
+        decorations: false,
+        resizable: true,
+        always_on_top: note.is_always_on_top,
+        skip_taskbar: true,
+        transparent: true,
+        focused: false,
+        visible: false,
+    })
 }
 
 // ── Export popup window ──
@@ -72,50 +118,35 @@ pub fn spawn_export_window(
     app: &AppHandle,
     tray_rect: Option<&tauri::Rect>,
 ) -> Result<(), String> {
-    let label = "export";
-    if let Some(window) = app.get_webview_window(label) {
-        window.show().ok();
-        window.set_focus().ok();
-        return Ok(());
-    }
-
-    let width = 320.0;
-    let height = 420.0;
-
-    // Try to position near the tray icon; fall back to center of screen
-    let position = if let Some(rect) = tray_rect {
-        match rect.position {
-            tauri::Position::Logical(pos) => {
-                let x = pos.x - width / 2.0;
-                let y = pos.y - height - 8.0;
-                LogicalPosition::new(x.max(0.0), y.max(0.0))
-            }
-            tauri::Position::Physical(pos) => {
-                // Assume 1x scale for simplicity
-                let x = pos.x as f64 - width / 2.0;
-                let y = pos.y as f64 - height - 8.0;
-                LogicalPosition::new(x.max(0.0), y.max(0.0))
-            }
+    let (w, h) = (320.0, 420.0);
+    let (x, y) = match tray_rect.and_then(|r| Some(r.position)) {
+        Some(tauri::Position::Logical(pos)) => {
+            ((pos.x - w / 2.0).max(0.0), (pos.y - h - 8.0).max(0.0))
         }
-    } else {
-        // Fallback: center of screen
-        LogicalPosition::new(300.0, 200.0)
+        Some(tauri::Position::Physical(pos)) => {
+            ((pos.x as f64 - w / 2.0).max(0.0), (pos.y as f64 - h - 8.0).max(0.0))
+        }
+        _ => (300.0, 200.0),
     };
 
-    WebviewWindowBuilder::new(app, label, tauri::WebviewUrl::App("export.html".into()))
-        .title("Export")
-        .inner_size(width, height)
-        .position(position.x, position.y)
-        .min_inner_size(280.0, 300.0)
-        .decorations(true)
-        .resizable(true)
-        .always_on_top(true)
-        .skip_taskbar(true)
-        .focused(true)
-        .build()
-        .map_err(|e| e.to_string())?;
-
-    Ok(())
+    spawn_window(app, WindowConfig {
+        label: "export".into(),
+        url: "export.html".into(),
+        title: "Export".into(),
+        width: w,
+        height: h,
+        x,
+        y,
+        min_width: 280.0,
+        min_height: 300.0,
+        decorations: true,
+        resizable: true,
+        always_on_top: true,
+        skip_taskbar: true,
+        transparent: false,
+        focused: true,
+        visible: true,
+    })
 }
 
 // ── Tauri commands ──
@@ -279,27 +310,24 @@ pub fn open_export_window(app: AppHandle) -> Result<(), String> {
 // ── Share window ──
 
 pub fn spawn_share_window(app: &AppHandle, x: f64, y: f64) -> Result<(), String> {
-    let label = "share";
-    if let Some(window) = app.get_webview_window(label) {
-        window.show().ok();
-        window.set_focus().ok();
-        return Ok(());
-    }
-
-    WebviewWindowBuilder::new(app, label, tauri::WebviewUrl::App("share.html".into()))
-        .title("Share")
-        .inner_size(640.0, 480.0)
-        .position(x, y)
-        .min_inner_size(400.0, 350.0)
-        .decorations(true)
-        .resizable(true)
-        .always_on_top(true)
-        .skip_taskbar(true)
-        .focused(true)
-        .build()
-        .map_err(|e| e.to_string())?;
-
-    Ok(())
+    spawn_window(app, WindowConfig {
+        label: "share".into(),
+        url: "share.html".into(),
+        title: "Share".into(),
+        width: 640.0,
+        height: 480.0,
+        x,
+        y,
+        min_width: 400.0,
+        min_height: 350.0,
+        decorations: true,
+        resizable: true,
+        always_on_top: true,
+        skip_taskbar: true,
+        transparent: false,
+        focused: true,
+        visible: true,
+    })
 }
 
 #[tauri::command]

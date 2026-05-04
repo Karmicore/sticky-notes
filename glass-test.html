@@ -2,13 +2,12 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>液态玻璃效果测试 — rdev/liquid-glass-react</title>
+<title>液态玻璃效果测试 — 像素级折射</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #0d1117; color: #e6edf3; font-family: system-ui; padding: 20px 20px 80px; }
 h1 { text-align: center; font-size: 24px; margin-bottom: 4px; }
 .subtitle { text-align: center; color: #8b949e; font-size: 13px; margin-bottom: 28px; }
-.subtitle a { color: #58a6ff; text-decoration: none; }
 
 .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; max-width: 1000px; margin: 0 auto; }
 .card {
@@ -25,36 +24,15 @@ h1 { text-align: center; font-size: 24px; margin-bottom: 4px; }
 .preview {
   width: 100%; height: 180px; border-radius: 12px; position: relative;
   overflow: hidden; margin-bottom: 14px; cursor: crosshair;
-  /* 人脸/复杂图案背景 */
-  background:
-    /* 网格 */
-    repeating-linear-gradient(0deg, transparent, transparent 29px, rgba(255,255,255,0.04) 29px, rgba(255,255,255,0.04) 30px),
-    repeating-linear-gradient(90deg, transparent, transparent 29px, rgba(255,255,255,0.04) 29px, rgba(255,255,255,0.04) 30px),
-    /* 密集文字 */
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Ctext font-family='monospace' font-size='8' fill='rgba(180,200,255,0.25)'%3E%3Ctspan x='0' y='10'%3Econst glass = new LiquidGlass({ width: 300, height: 200 })%3C/tspan%3E%3Ctspan x='0' y='20'%3Efragment: (uv, mouse) => { const d = roundedRectSDF(uv.x - 0.5, uv.y - 0.5, 0.3, 0.2, 0.05); %3C/tspan%3E%3Ctspan x='0' y='30'%3Econst t = smoothStep(0.01, -0.01, d); return texture(uv.x + dx * t, uv.y + dy * t); }%3C/tspan%3E%3Ctspan x='0' y='40'%3EdisplacementScale: 70, blurAmount: 0.0625, saturation: 140%3C/tspan%3E%3Ctspan x='0' y='50'%3EaberrationIntensity: 2, elasticity: 0.15, cornerRadius: 999%3C/tspan%3E%3Ctspan x='0' y='60'%3EfeDisplacementMap feImage feColorMatrix feComponentTransfer feBlend%3C/tspan%3E%3Ctspan x='0' y='70'%3Echromatic aberration R/G/B channels displaced separately%3C/tspan%3E%3Ctspan x='0' y='80'%3E液态玻璃 Apple Liquid Glass iOS 26 macOS Tahoe WWDC 2025%3C/tspan%3E%3Ctspan x='0' y='90'%3Eedge bending refraction frosty level arbitrary child elements%3C/tspan%3E%3Ctspan x='0' y='100'%3Eelasticity hover click effects highlights underlying light%3C/tspan%3E%3Ctspan x='0' y='110'%3Estandard polar prominent shader modes SVG filter canvas displacement%3C/tspan%3E%3Ctspan x='0' y='120'%3EABCDEFGHIJKLMNOPQRSTabcdefghijklmnopqrst01234567890%3C/tspan%3E%3Ctspan x='0' y='130'%3E便签内容测试液态玻璃折射扭曲色差弹性跟随边缘高光%3C/tspan%3E%3Ctspan x='0' y='140'%3EUV坐标 SDF函数 smoothStep roundedRectSDF circleSDF %3C/tspan%3E%3Ctspan x='0' y='150'%3Ebackdrop-filter blur saturate brightness contrast%3C/tspan%3E%3Ctspan x='0' y='160'%3Emix-blend-mode screen overlay feGaussianBlur stdDeviation%3C/tspan%3E%3Ctspan x='0' y='170'%3EdisplacementScale aberrationIntensity radialGradient edge-mask%3C/tspan%3E%3Ctspan x='0' y='180'%3ErequestAnimationFrame canvas displacement map pixel-by-pixel%3C/tspan%3E%3Ctext%3E%3C/svg%3E"),
-    /* 彩色色块模拟人脸/复杂图案 */
-    radial-gradient(ellipse at 50% 35%, #e8b89a 0%, #d4956b 25%, #c47a52 40%, transparent 55%),
-    radial-gradient(ellipse at 38% 30%, #3a2a1a 0%, transparent 12%),
-    radial-gradient(ellipse at 62% 30%, #3a2a1a 0%, transparent 12%),
-    radial-gradient(ellipse at 50% 52%, #c47a52 0%, transparent 8%),
-    radial-gradient(ellipse at 50% 45%, #d4956b 0%, transparent 20%),
-    radial-gradient(ellipse at 30% 50%, #2a1a0a 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 50%, #2a1a0a 0%, transparent 50%),
-    radial-gradient(circle at 25% 20%, #1a1a2e 0%, transparent 30%),
-    radial-gradient(circle at 75% 20%, #1a1a2e 0%, transparent 30%),
-    linear-gradient(180deg, #1a1a2e 0%, #16213e 30%, #0f3460 70%, #1a1a2e 100%);
-  background-size: 30px 30px, 30px 30px, 400px 200px, 100% 100%;
 }
 
 .glass-element {
-  position: absolute;
-  border-radius: 999px;
-  overflow: hidden;
+  position: absolute; border-radius: 999px; overflow: hidden;
   transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
 }
-.glass-warp {
-  position: absolute; inset: 0;
-  border-radius: inherit;
+.glass-canvas {
+  position: absolute; inset: 0; border-radius: inherit;
 }
 .glass-content {
   position: relative; z-index: 1;
@@ -63,13 +41,11 @@ h1 { text-align: center; font-size: 24px; margin-bottom: 4px; }
   display: flex; align-items: center; justify-content: center;
   height: 100%; padding: 0 20px; white-space: nowrap;
 }
-/* 边缘高光层 */
 .glass-border-1, .glass-border-2 {
   position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
   padding: 1.5px;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+  -webkit-mask-composite: xor; mask-composite: exclude;
 }
 .glass-border-1 {
   mix-blend-mode: screen; opacity: 0.25;
@@ -113,7 +89,7 @@ h1 { text-align: center; font-size: 24px; margin-bottom: 4px; }
 <body>
 
 <h1>液态玻璃效果测试</h1>
-<p class="subtitle">基于 <a href="https://github.com/rdev/liquid-glass-react">rdev/liquid-glass-react</a> 的位移图 + 色差技术 — 在预览区移动鼠标</p>
+<p class="subtitle">Canvas 像素级折射 — 拖动滑块看折射率变化 — 在预览区移动鼠标</p>
 
 <div class="grid" id="grid"></div>
 
@@ -123,100 +99,187 @@ h1 { text-align: center; font-size: 24px; margin-bottom: 4px; }
   <pre id="selCode">// 点击卡片选择效果</pre>
 </div>
 
-<!-- SVG filters injected by JS -->
-<svg style="position:absolute;width:0;height:0;" aria-hidden="true"><defs id="svgDefs"></defs></svg>
-
 <script>
 // ══════════════════════════════════════════════════════
-// 液态玻璃 — feTurbulence + feDisplacementMap + 色差
+// Canvas 像素级折射引擎
 // ══════════════════════════════════════════════════════
 
-const svgNS = "http://www.w3.org/2000/svg";
+// 绘制复杂背景到 canvas（模拟人脸/密集图案）
+function drawBackground(ctx, w, h) {
+  // 深色底
+  ctx.fillStyle = "#1a1a2e";
+  ctx.fillRect(0, 0, w, h);
 
-// 创建 SVG filter（只需创建一次）
-function createGlassFilter(id, opts) {
-  const { scale, blur, baseFreq, aberration } = opts;
-  const existing = document.getElementById(id);
-  if (existing) existing.remove();
+  // 网格
+  ctx.strokeStyle = "rgba(255,255,255,0.04)";
+  ctx.lineWidth = 1;
+  for (let x = 0; x < w; x += 30) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+  }
+  for (let y = 0; y < h; y += 30) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+  }
 
-  const defs = document.getElementById("svgDefs");
-  const filter = document.createElementNS(svgNS, "filter");
-  filter.id = id;
-  filter.setAttribute("x", "-20%");
-  filter.setAttribute("y", "-20%");
-  filter.setAttribute("width", "140%");
-  filter.setAttribute("height", "140%");
-  filter.setAttribute("colorInterpolationFilters", "sRGB");
+  // 密集代码文字
+  const code = [
+    "const glass = new LiquidGlass({ displacement: 70, blur: 16 })",
+    "fragment: (uv, mouse) => { const d = roundedRectSDF(uv); }",
+    "feDisplacementMap feImage feColorMatrix feComponentTransfer",
+    "chromatic aberration R/G/B channels displaced separately",
+    "便签内容测试液态玻璃折射扭曲色差弹性跟随边缘高光",
+    "UV坐标 SDF函数 smoothStep roundedRectSDF circleSDF",
+    "backdrop-filter blur saturate brightness contrast",
+    "displacementScale aberrationIntensity radialGradient",
+    "ABCDEFGHIJKLMNOPQRSTabcdefghijklmnopqrst01234567890",
+    "requestAnimationFrame canvas displacement map pixel",
+    "elasticity hover click highlights underlying light",
+    "standard polar prominent shader modes SVG filter canvas",
+  ];
+  ctx.font = "8px monospace";
+  ctx.fillStyle = "rgba(180,200,255,0.2)";
+  for (let y = 0; y < h; y += 14) {
+    const line = code[(y / 14) % code.length | 0];
+    ctx.fillText(line, 4, y + 10);
+  }
 
-  // feTurbulence — 有机噪声作为位移源
-  const feTurb = document.createElementNS(svgNS, "feTurbulence");
-  feTurb.setAttribute("type", "turbulence");
-  feTurb.setAttribute("baseFrequency", baseFreq);
-  feTurb.setAttribute("numOctaves", "3");
-  feTurb.setAttribute("seed", id.replace(/\D/g, "") || "1");
-  feTurb.setAttribute("stitchTiles", "stitch");
-  feTurb.setAttribute("result", "TURB");
-  filter.appendChild(feTurb);
+  // 肤色调椭圆（模拟人脸）
+  const grd1 = ctx.createRadialGradient(w*0.5, h*0.35, 0, w*0.5, h*0.35, w*0.45);
+  grd1.addColorStop(0, "#e8b89a");
+  grd1.addColorStop(0.4, "#d4956b");
+  grd1.addColorStop(0.7, "#c47a52");
+  grd1.addColorStop(1, "transparent");
+  ctx.fillStyle = grd1;
+  ctx.fillRect(0, 0, w, h);
 
-  // feDisplacementMap — 用噪声位移源图形
-  const feDisp = document.createElementNS(svgNS, "feDisplacementMap");
-  feDisp.setAttribute("in", "SourceGraphic");
-  feDisp.setAttribute("in2", "TURB");
-  feDisp.setAttribute("scale", scale);
-  feDisp.setAttribute("xChannelSelector", "R");
-  feDisp.setAttribute("yChannelSelector", "G");
-  feDisp.setAttribute("result", "DISPLACED");
-  filter.appendChild(feDisp);
+  // 眼睛
+  ctx.fillStyle = "#3a2a1a";
+  ctx.beginPath(); ctx.ellipse(w*0.38, h*0.30, w*0.04, h*0.06, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(w*0.62, h*0.30, w*0.04, h*0.06, 0, 0, Math.PI*2); ctx.fill();
 
-  // 色差模拟：R/G/B 通道分别用 feColorMatrix 提取后微调
-  // R 通道 — 偏移 +0.5%
-  const feR = document.createElementNS(svgNS, "feColorMatrix");
-  feR.setAttribute("in", "DISPLACED");
-  feR.setAttribute("type", "matrix");
-  // 提取 R，略微偏移（通过 matrix 的第4列偏移）
-  feR.setAttribute("values", "1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0");
-  feR.setAttribute("result", "R_CH");
-  filter.appendChild(feR);
+  // 鼻子
+  ctx.fillStyle = "rgba(180,120,80,0.3)";
+  ctx.beginPath(); ctx.ellipse(w*0.5, h*0.45, w*0.03, h*0.06, 0, 0, Math.PI*2); ctx.fill();
 
-  // G 通道
-  const feG = document.createElementNS(svgNS, "feColorMatrix");
-  feG.setAttribute("in", "DISPLACED");
-  feG.setAttribute("type", "matrix");
-  feG.setAttribute("values", "0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0");
-  feG.setAttribute("result", "G_CH");
-  filter.appendChild(feG);
+  // 嘴
+  ctx.fillStyle = "#c47a52";
+  ctx.beginPath(); ctx.ellipse(w*0.5, h*0.55, w*0.06, h*0.03, 0, 0, Math.PI*2); ctx.fill();
 
-  // B 通道
-  const feB = document.createElementNS(svgNS, "feColorMatrix");
-  feB.setAttribute("in", "DISPLACED");
-  feB.setAttribute("type", "matrix");
-  feB.setAttribute("values", "0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0");
-  feB.setAttribute("result", "B_CH");
-  filter.appendChild(feB);
+  // 彩色圆形装饰
+  const colors = ["#ff6b6b","#ffd93d","#6bcb77","#4d96ff","#ff6b9d","#c084fc","#22d3ee"];
+  for (let i = 0; i < 12; i++) {
+    const cx = Math.random() * w, cy = Math.random() * h, r = 8 + Math.random() * 20;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.fillStyle = colors[i % colors.length] + "40";
+    ctx.fill();
+  }
+}
 
-  // 合并 R+G+B（screen blend 模拟色散）
-  const feBlendRG = document.createElementNS(svgNS, "feBlend");
-  feBlendRG.setAttribute("in", "R_CH");
-  feBlendRG.setAttribute("in2", "G_CH");
-  feBlendRG.setAttribute("mode", "screen");
-  feBlendRG.setAttribute("result", "RG");
-  filter.appendChild(feBlendRG);
+// SDF 函数
+function roundedRectSDF(x, y, rx, ry, radius) {
+  const dx = Math.max(Math.abs(x) - rx + radius, 0);
+  const dy = Math.max(Math.abs(y) - ry + radius, 0);
+  return Math.sqrt(dx*dx + dy*dy) - radius;
+}
 
-  const feBlendRGB = document.createElementNS(svgNS, "feBlend");
-  feBlendRGB.setAttribute("in", "RG");
-  feBlendRGB.setAttribute("in2", "B_CH");
-  feBlendRGB.setAttribute("mode", "screen");
-  feBlendRGB.setAttribute("result", "RGB");
-  filter.appendChild(feBlendRGB);
+function circleSDF(x, y, r) {
+  return Math.sqrt(x*x + y*y) - r;
+}
 
-  // 高斯模糊柔化
-  const feBlur = document.createElementNS(svgNS, "feGaussianBlur");
-  feBlur.setAttribute("in", "RGB");
-  feBlur.setAttribute("stdDeviation", blur);
-  feBlur.setAttribute("result", "BLURRED");
-  filter.appendChild(feBlur);
+function smoothStep(edge0, edge1, x) {
+  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+}
 
-  defs.appendChild(filter);
+// 渲染折射 canvas
+function renderRefraction(canvas, bgData, params) {
+  const { width, height } = canvas;
+  const ctx = canvas.getContext("2d");
+  const out = ctx.createImageData(width, height);
+  const dst = out.data;
+  const src = bgData.data;
+
+  const {
+    refractionIndex = 1.5,  // 折射率 — 核心参数
+    chromaticAberration = 0, // 色差
+    shape = "pill",          // pill | rect | circle
+    cornerRadius = 0.5,
+    mouseX = 0.5, mouseY = 0.5,
+    elasticity = 0,
+  } = params;
+
+  // 玻璃区域（归一化坐标）
+  const gx = 0.5, gy = 0.5, gw = 0.325, gh = 0.23;
+
+  for (let py = 0; py < height; py++) {
+    for (let px = 0; px < width; px++) {
+      const i = (py * width + px) * 4;
+      const nx = px / width;
+      const ny = py / height;
+
+      // 判断是否在玻璃区域内
+      const dx = (nx - gx) / gw;
+      const dy = (ny - gy) / gh;
+      let dist;
+      if (shape === "circle") {
+        dist = Math.sqrt(dx*dx + dy*dy);
+      } else {
+        const r = cornerRadius;
+        dist = roundedRectSDF(dx, dy, 1, 1, r * 0.5);
+      }
+
+      // 平滑边缘
+      const edge = smoothStep(0.15, -0.05, dist);
+
+      if (edge > 0.01) {
+        // 折射位移 — 基于折射率
+        const refractStrength = (refractionIndex - 1.0) * 0.15; // 1.0=无折射, 1.5=中等, 2.0=强
+        const edgeFade = edge * edge; // 边缘折射更强
+
+        // 基于距离中心的方向计算折射
+        const cx = nx - gx, cy = ny - gy;
+        const cDist = Math.sqrt(cx*cx + cy*cy);
+        const nx2 = cDist > 0 ? cx / cDist : 0;
+        const ny2 = cDist > 0 ? cy / cDist : 0;
+
+        // 边缘弯曲 — 距离中心越远折射越大
+        const bendX = nx2 * refractStrength * edgeFade * 0.3;
+        const bendY = ny2 * refractStrength * edgeFade * 0.3;
+
+        // 色差 — R/G/B 通道分别偏移不同量
+        const rShift = chromaticAberration * 0.003;
+        const bShift = -chromaticAberration * 0.003;
+
+        // 采样 R 通道
+        const srX = Math.round((nx + bendX + rShift * nx2) * width);
+        const srY = Math.round((ny + bendY + rShift * ny2) * height);
+        const srI = (Math.max(0, Math.min(height-1, srY)) * width + Math.max(0, Math.min(width-1, srX))) * 4;
+
+        // 采样 G 通道
+        const sgX = Math.round((nx + bendX) * width);
+        const sgY = Math.round((ny + bendY) * height);
+        const sgI = (Math.max(0, Math.min(height-1, sgY)) * width + Math.max(0, Math.min(width-1, sgX))) * 4;
+
+        // 采样 B 通道
+        const sbX = Math.round((nx + bendX + bShift * nx2) * width);
+        const sbY = Math.round((ny + bendY + bShift * ny2) * height);
+        const sbI = (Math.max(0, Math.min(height-1, sbY)) * width + Math.max(0, Math.min(width-1, sbX))) * 4;
+
+        // 合成 — 加一点玻璃白度
+        const glassWhite = 0.12 * edge;
+        dst[i]     = Math.min(255, src[srI]     * (1-glassWhite*0.5) + 255 * glassWhite * 0.7);
+        dst[i + 1] = Math.min(255, src[sgI + 1] * (1-glassWhite*0.5) + 255 * glassWhite * 0.8);
+        dst[i + 2] = Math.min(255, src[sbI + 2] * (1-glassWhite*0.5) + 255 * glassWhite * 0.9);
+        dst[i + 3] = Math.round(255 * edge);
+      } else {
+        // 玻璃外 — 透明，显示底层背景
+        dst[i] = src[i];
+        dst[i + 1] = src[i + 1];
+        dst[i + 2] = src[i + 2];
+        dst[i + 3] = 0;
+      }
+    }
+  }
+  ctx.putImageData(out, 0, 0);
 }
 
 // ══════════════════════════════════════════════════════
@@ -226,63 +289,63 @@ function createGlassFilter(id, opts) {
 const effects = [
   {
     name: "Standard 标准",
-    desc: "径向噪声位移 + backdrop-filter 模糊",
-    scale: 45, blur: 1.2, baseFreq: "0.015 0.012", sat: 180, aberration: 2,
-    elasticity: 0.15, cornerRadius: 24,
+    desc: "折射率 1.44 — 普通玻璃",
+    refractionIndex: 1.44, chromaticAberration: 2,
+    shape: "pill", cornerRadius: 0.5, elasticity: 0.15,
   },
   {
-    name: "Polar 极坐标",
-    desc: "角度噪声 — 像透过弧面玻璃",
-    scale: 55, blur: 1.0, baseFreq: "0.02 0.008", sat: 170, aberration: 2.5,
-    elasticity: 0.2, cornerRadius: 20,
+    name: "水 晶",
+    desc: "折射率 1.55 — 水晶材质",
+    refractionIndex: 1.55, chromaticAberration: 3,
+    shape: "pill", cornerRadius: 0.5, elasticity: 0.2,
   },
   {
-    name: "Prominent 突出",
-    desc: "高频噪声 — 整块玻璃都在折射",
-    scale: 65, blur: 0.8, baseFreq: "0.025 0.02", sat: 190, aberration: 3,
-    elasticity: 0.1, cornerRadius: 16,
+    name: "钻 石",
+    desc: "折射率 2.42 — 钻石级折射",
+    refractionIndex: 2.42, chromaticAberration: 5,
+    shape: "pill", cornerRadius: 0.5, elasticity: 0.1,
   },
   {
     name: "强色差",
-    desc: "screen blend 色散最明显",
-    scale: 50, blur: 1.5, baseFreq: "0.012 0.01", sat: 160, aberration: 5,
-    elasticity: 0.15, cornerRadius: 24,
+    desc: "折射率 1.5 + 色差 8 — 彩虹边缘",
+    refractionIndex: 1.5, chromaticAberration: 8,
+    shape: "pill", cornerRadius: 0.5, elasticity: 0.15,
   },
   {
-    name: "高折射",
-    desc: "scale=100 — 位移量最大，扭曲最明显",
-    scale: 100, blur: 0.6, baseFreq: "0.015 0.012", sat: 170, aberration: 2,
-    elasticity: 0.1, cornerRadius: 20,
+    name: "厚透镜",
+    desc: "折射率 1.8 — 厚玻璃强弯曲",
+    refractionIndex: 1.8, chromaticAberration: 2,
+    shape: "pill", cornerRadius: 0.5, elasticity: 0.1,
   },
   {
-    name: "厚毛玻璃",
-    desc: "高模糊 — 磨砂感最强",
-    scale: 30, blur: 2.5, baseFreq: "0.008 0.006", sat: 200, aberration: 1,
-    elasticity: 0.05, cornerRadius: 30,
+    name: "毛玻璃",
+    desc: "折射率 1.3 + 轻微模糊感",
+    refractionIndex: 1.3, chromaticAberration: 1,
+    shape: "pill", cornerRadius: 0.5, elasticity: 0.05,
   },
   {
     name: "弹性液态",
-    desc: "elasticity=0.4 — 向鼠标方向拉伸最明显",
-    scale: 50, blur: 1.0, baseFreq: "0.015 0.012", sat: 170, aberration: 2,
-    elasticity: 0.4, cornerRadius: 24,
+    desc: "弹性 0.4 — 向鼠标方向拉伸",
+    refractionIndex: 1.5, chromaticAberration: 2,
+    shape: "pill", cornerRadius: 0.5, elasticity: 0.4,
   },
   {
     name: "方形玻璃",
-    desc: "cornerRadius=8 — 方形卡片效果",
-    scale: 45, blur: 1.2, baseFreq: "0.015 0.012", sat: 180, aberration: 2,
-    elasticity: 0.15, cornerRadius: 8,
+    desc: "方形卡片 — 折射率 1.5",
+    refractionIndex: 1.5, chromaticAberration: 2,
+    shape: "rect", cornerRadius: 0.15, elasticity: 0.15,
   },
   {
     name: "极致液态",
-    desc: "全部参数拉满 — 最强视觉冲击",
-    scale: 120, blur: 1.8, baseFreq: "0.02 0.018", sat: 200, aberration: 4,
-    elasticity: 0.35, cornerRadius: 20,
+    desc: "折射率 2.0 + 色差 6 — 最强视觉冲击",
+    refractionIndex: 2.0, chromaticAberration: 6,
+    shape: "pill", cornerRadius: 0.5, elasticity: 0.35,
   },
   {
     name: "极简玻璃",
-    desc: "低参数 — 轻微折射，适合 UI 组件",
-    scale: 20, blur: 0.5, baseFreq: "0.01 0.008", sat: 140, aberration: 1,
-    elasticity: 0.1, cornerRadius: 16,
+    desc: "折射率 1.2 — 轻微折射，适合 UI",
+    refractionIndex: 1.2, chromaticAberration: 0.5,
+    shape: "pill", cornerRadius: 0.5, elasticity: 0.1,
   },
 ];
 
@@ -292,30 +355,52 @@ const effects = [
 
 const grid = document.getElementById("grid");
 let selectedIdx = null;
+const bgCache = {};
+
+function getBgCanvas(w, h) {
+  const key = w + "x" + h;
+  if (!bgCache[key]) {
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    drawBackground(c.getContext("2d"), w, h);
+    bgCache[key] = c;
+  }
+  return bgCache[key];
+}
 
 function updateGlass(idx, mouseX, mouseY) {
   const ef = effects[idx];
   const glass = document.getElementById("glass-" + idx);
-  if (!glass) return;
+  const canvas = document.getElementById("canvas-" + idx);
+  if (!glass || !canvas) return;
 
-  // 更新 SVG filter 的 scale
-  const filterId = "filter-" + idx;
-  const filterEl = document.getElementById(filterId);
-  if (filterEl) {
-    const disp = filterEl.querySelector("feDisplacementMap");
-    if (disp) disp.setAttribute("scale", ef.scale);
-  }
+  const w = canvas.width, h = canvas.height;
+  const bg = getBgCanvas(w, h);
+  const bgData = bg.getContext("2d").getImageData(0, 0, w, h);
+
+  // 归一化鼠标位置（相对于 preview 区域）
+  const preview = glass.parentElement;
+  const rect = preview.getBoundingClientRect();
+  const mx = (mouseX - rect.left) / rect.width;
+  const my = (mouseY - rect.top) / rect.height;
+
+  renderRefraction(canvas, bgData, {
+    refractionIndex: ef.refractionIndex,
+    chromaticAberration: ef.chromaticAberration,
+    shape: ef.shape,
+    cornerRadius: ef.cornerRadius,
+    mouseX: mx, mouseY: my,
+    elasticity: ef.elasticity,
+  });
 
   // 弹性跟随
-  const rect = glass.getBoundingClientRect();
-  const parentRect = glass.parentElement.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
+  const cx = rect.left + rect.width * 0.5;
+  const cy = rect.top + rect.height * 0.5;
   const dx = mouseX - cx;
   const dy = mouseY - cy;
   const dist = Math.sqrt(dx * dx + dy * dy);
-  const edgeDistX = Math.max(0, Math.abs(dx) - rect.width / 2);
-  const edgeDistY = Math.max(0, Math.abs(dy) - rect.height / 2);
+  const edgeDistX = Math.max(0, Math.abs(dx) - rect.width * 0.3);
+  const edgeDistY = Math.max(0, Math.abs(dy) - rect.height * 0.2);
   const edgeDist = Math.sqrt(edgeDistX * edgeDistX + edgeDistY * edgeDistY);
   const activationZone = 200;
   const fadeIn = edgeDist > activationZone ? 0 : 1 - edgeDist / activationZone;
@@ -331,7 +416,7 @@ function updateGlass(idx, mouseX, mouseY) {
   glass.style.transform = `translate(${tx}px, ${ty}px) scaleX(${Math.max(0.8, scaleX).toFixed(4)}) scaleY(${Math.max(0.8, scaleY).toFixed(4)})`;
 
   // 边缘高光
-  const angle = 135 + (mouseX - parentRect.left) / parentRect.width * 30;
+  const angle = 135 + (mouseX - rect.left) / rect.width * 30;
   const b1 = glass.querySelector(".glass-border-1");
   const b2 = glass.querySelector(".glass-border-2");
   if (b1) b1.style.background = `linear-gradient(${angle}deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.12) 33%, rgba(255,255,255,0.4) 66%, rgba(255,255,255,0) 100%)`;
@@ -341,18 +426,19 @@ function updateGlass(idx, mouseX, mouseY) {
 effects.forEach((ef, i) => {
   const card = document.createElement("div");
   card.className = "card";
+  const initSliderVal = Math.round((ef.refractionIndex - 1.0) / 1.5 * 100);
   card.innerHTML = `
     <span class="num">${i + 1}</span>
     <div class="name">${ef.name}</div>
-    <span class="mode-tag">scale ${ef.scale}</span>
+    <span class="mode-tag">n=${ef.refractionIndex}</span>
     <div class="desc">${ef.desc}</div>
     <div class="preview" id="preview-${i}">
+      <canvas class="glass-canvas" id="canvas-${i}" width="300" height="140"></canvas>
       <div class="glass-element" id="glass-${i}" style="
         width: 65%; height: 42px; top: 50%; left: 50%;
         transform: translate(-50%, -50%);
-        box-shadow: 0 12px 40px rgba(0,0,0,0.25);
       ">
-        <div class="glass-warp"></div>
+        <canvas class="glass-canvas" id="glassCanvas-${i}" width="200" height="42"></canvas>
         <div class="glass-content">Liquid Glass</div>
         <div class="glass-border-1"></div>
         <div class="glass-border-2"></div>
@@ -360,9 +446,9 @@ effects.forEach((ef, i) => {
       <div class="mouse-dot" id="dot-${i}"></div>
     </div>
     <div class="slider-row">
-      <label>折射强度</label>
-      <input type="range" min="10" max="100" value="${Math.round((ef.scale - 5) / 195 * 100)}" id="slider-${i}">
-      <span class="slider-val" id="val-${i}">${Math.round((ef.scale - 5) / 195 * 100)}%</span>
+      <label>折射率</label>
+      <input type="range" min="0" max="100" value="${initSliderVal}" id="slider-${i}">
+      <span class="slider-val" id="val-${i}">${ef.refractionIndex.toFixed(2)}</span>
     </div>
   `;
 
@@ -370,13 +456,19 @@ effects.forEach((ef, i) => {
   const dot = card.querySelector(`#dot-${i}`);
   const preview = card.querySelector(`#preview-${i}`);
 
-  // Slider — 控制 displacement scale
+  // Slider — 控制折射率
   slider.addEventListener("input", (e) => {
     const pct = e.target.value / 100;
-    document.getElementById("val-" + i).textContent = e.target.value + "%";
-    effects[i].scale = Math.round(5 + pct * 195); // 5 ~ 200
-    const rect = preview.getBoundingClientRect();
-    updateGlass(i, rect.left + rect.width / 2, rect.top + rect.height / 2);
+    effects[i].refractionIndex = 1.0 + pct * 1.5; // 1.0 ~ 2.5
+    document.getElementById("val-" + i).textContent = effects[i].refractionIndex.toFixed(2);
+    // 重绘背景层
+    const bgCanvas = document.getElementById("canvas-" + i);
+    const bgCtx = bgCanvas.getContext("2d");
+    drawBackground(bgCtx, bgCanvas.width, bgCanvas.height);
+    delete bgCache[bgCanvas.width + "x" + bgCanvas.height];
+    // 重绘折射
+    const rect2 = preview.getBoundingClientRect();
+    updateGlass(i, rect2.left + rect2.width / 2, rect2.top + rect2.height / 2);
   });
 
   // Mouse
@@ -388,8 +480,8 @@ effects.forEach((ef, i) => {
   });
   preview.addEventListener("mouseleave", () => {
     dot.style.display = "none";
-    const rect = preview.getBoundingClientRect();
-    updateGlass(i, rect.left + rect.width / 2, rect.top + rect.height / 2);
+    const rect2 = preview.getBoundingClientRect();
+    updateGlass(i, rect2.left + rect2.width / 2, rect2.top + rect2.height / 2);
   });
 
   // Select
@@ -401,33 +493,17 @@ effects.forEach((ef, i) => {
     document.getElementById("selName").textContent = `#${i + 1} ${ef.name}`;
     document.getElementById("selCode").innerHTML =
       `<span class="c">// #${i + 1} ${ef.name}</span>\n` +
-      `<span class="k">scale</span>: <span class="v">${ef.scale}</span>\n` +
-      `<span class="k">blur</span>: <span class="v">${ef.blur}</span>\n` +
-      `<span class="k">baseFrequency</span>: <span class="v">"${ef.baseFreq}"</span>\n` +
-      `<span class="k">backdropBlur</span>: <span class="v">${Math.round(ef.scale * 0.15)}px</span>\n` +
-      `<span class="k">saturation</span>: <span class="v">${ef.sat}%</span>\n` +
-      `<span class="k">aberration</span>: <span class="v">${ef.aberration}</span>\n` +
-      `<span class="k">elasticity</span>: <span class="v">${ef.elasticity}</span>\n` +
-      `<span class="k">cornerRadius</span>: <span class="v">${ef.cornerRadius}px</span>`;
+      `<span class="k">refractionIndex</span>: <span class="v">${ef.refractionIndex}</span>  <span class="c">// 折射率 (1.0=无, 1.5=玻璃, 2.4=钻石)</span>\n` +
+      `<span class="k">chromaticAberration</span>: <span class="v">${ef.chromaticAberration}</span>  <span class="c">// 色差 (0=无, 5=强)</span>\n` +
+      `<span class="k">shape</span>: <span class="v">"${ef.shape}"</span>\n` +
+      `<span class="k">elasticity</span>: <span class="v">${ef.elasticity}</span>  <span class="c">// 弹性跟随</span>`;
   });
 
-  // Init — 创建 filter + 初始渲染
+  // Init — 绘制背景 + 初始折射
   setTimeout(() => {
-    const filterId = "filter-" + i;
-    createGlassFilter(filterId, {
-      scale: ef.scale,
-      blur: ef.blur,
-      baseFreq: ef.baseFreq,
-      aberration: ef.aberration,
-    });
-    const warp = glass.querySelector(".glass-warp");
-    warp.style.filter = `url(#${filterId})`;
-    warp.style.backdropFilter = `blur(${Math.round(ef.scale * 0.15)}px) saturate(${ef.sat}%)`;
-    warp.style.webkitBackdropFilter = `blur(${Math.round(ef.scale * 0.15)}px) saturate(${ef.sat}%)`;
-
-    const rect = preview.getBoundingClientRect();
-    updateGlass(i, rect.left + rect.width / 2, rect.top + rect.height / 2);
-  }, 80 + i * 40);
+    const rect2 = preview.getBoundingClientRect();
+    updateGlass(i, rect2.left + rect2.width / 2, rect2.top + rect2.height / 2);
+  }, 50 + i * 30);
 
   grid.appendChild(card);
 });
