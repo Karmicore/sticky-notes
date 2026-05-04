@@ -18,6 +18,7 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
   const noteRef = useRef(note);
   const insertCheckboxRef = useRef(null);
   const getSelectedTextRef = useRef(() => "");
+  const lastSelectedText = useRef("");
   noteRef.current = note;
 
   useEffect(() => {
@@ -79,7 +80,7 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
     onHide: () => appWindow.hide(),
     onPin: handlePin,
     insertCheckbox: () => insertCheckboxRef.current?.(),
-    getSelectedText: () => getSelectedTextRef.current?.(),
+    getSelectedText: () => lastSelectedText.current || getSelectedTextRef.current?.() || "",
     getWindowPosition: async () => {
       const pos = await appWindow.outerPosition();
       const size = await appWindow.outerSize();
@@ -98,6 +99,8 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
   }
 
   function handleMenuToggle(e) {
+    // Capture selection before menu steals focus
+    lastSelectedText.current = getSelectedTextRef.current?.() || "";
     const rect = e.currentTarget.getBoundingClientRect();
     popupNativeMenu(getCtx(), { x: rect.left, y: rect.bottom }).catch((err) => {
       console.error("[menu] nativeMenuClient error:", err);

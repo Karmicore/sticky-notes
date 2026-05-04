@@ -102,15 +102,22 @@ export const commands = {
   "note.share": {
     label: () => t("menu.note.share"),
     shortcut: "",
-    run: async (ctx) => {
-      const selectedText = ctx.getSelectedText?.();
-      if (!selectedText) return;
-      const pos = await ctx.getWindowPosition?.();
-      await invoke("open_share_window", {
-        text: selectedText,
-        color: ctx.note.color,
-        x: pos ? pos.x + 660 : 300,
-        y: pos ? pos.y : 200,
+    run: (ctx) => {
+      const selectedText = ctx.getSelectedText?.() || "";
+      ctx.getWindowPosition?.().then((pos) => {
+        invoke("open_share_window", {
+          text: selectedText,
+          color: ctx.note.color,
+          x: pos ? pos.x + 660 : 300,
+          y: pos ? pos.y : 200,
+        }).catch(console.error);
+      }).catch(() => {
+        invoke("open_share_window", {
+          text: selectedText,
+          color: ctx.note.color,
+          x: 300,
+          y: 200,
+        }).catch(console.error);
       });
     },
   },
