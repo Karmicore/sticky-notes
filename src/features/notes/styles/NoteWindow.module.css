@@ -15,24 +15,7 @@
     inset 0 -2px 0 rgba(0, 0, 0, calc(var(--glass) * 0.15));
 }
 
-.noteWindow::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 0.5px;
-  pointer-events: none;
-  z-index: 50;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, calc(var(--glass) * 0.35)) 0%,
-    rgba(255, 255, 255, calc(var(--glass) * 0.12)) 35%,
-    rgba(255, 255, 255, calc(var(--glass) * 0.04)) 60%,
-    rgba(0, 0, 0, calc(var(--glass) * 0.06)) 100%
-  );
-  box-shadow:
-    inset 2px 2px 2px 0 rgba(255, 255, 255, calc(var(--glass) * 0.6)),
-    inset -1px -1px 1px 1px rgba(255, 255, 255, calc(var(--glass) * 0.4));
-}
+/* Glass highlight/edge effects now handled by LiquidGlass component */
 
 .resizeGrip {
   position: absolute;

@@ -7,6 +7,7 @@ import NoteEditor from "./NoteEditor";
 import ColorPanel from "./ColorPanel";
 import { popupNativeMenu } from "../../lib/nativeMenu";
 import { hexToRgba } from "../../lib/color";
+import LiquidGlass from "./LiquidGlass";
 import styles from "./styles/NoteWindow.module.css";
 
 const appWindow = getCurrentWindow();
@@ -99,6 +100,7 @@ export default function NoteWindow({ noteId, note, update, edit, saveNow, cancel
 
   return (
     <div className={styles.noteWindow} style={{ backgroundColor: hexToRgba(note.color, note.opacity), filter: focused ? "none" : "brightness(0.93)", "--glass": note.glass }}>
+      <LiquidGlass glass={note.glass} color={note.color} />
       <TitleBar note={note} editingTitle={editingTitle} setEditingTitle={setEditingTitle}
         commitTitle={commitTitle} onClose={handleClose} onMenuToggle={handleMenuToggle}
         onCollapseToggle={handleCollapseToggle} />
