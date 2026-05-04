@@ -28,7 +28,7 @@ export function useWindowLifecycle(noteId, saveNow, update) {
     if (noteId === null) return;
     const unlisten = appWindow.onResized(({ payload: size }) => {
       if (transitioning.current) return;
-      update({ width: size.width, height: size.height });
+      update({ width: size.width, height: size.height, expanded_width: size.width, expanded_height: size.height });
     });
     return () => { unlisten.then((fn) => fn()); };
   }, [noteId, update]);

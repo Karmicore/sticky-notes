@@ -73,8 +73,12 @@ impl NoteService {
 
     pub fn duplicate_note(&self, source_id: i32, suffix: &str) -> Result<Note, String> {
         let source = self.get_note(source_id)?;
-        let x = source.pos_x + 30;
-        let y = source.pos_y + 30;
+        // Use expanded dimensions if source is collapsed
+        let (w, h) = if source.collapsed {
+            (source.expanded_width, source.expanded_height)
+        } else {
+            (source.width, source.height)
+        };
         let new_note = Note {
             id: self.alloc_id(),
             title: format!("{} {}", source.title, suffix),
@@ -82,16 +86,16 @@ impl NoteService {
             color: source.color,
             font_size: source.font_size,
             opacity: source.opacity,
-            width: source.width,
-            height: source.height,
+            width: w,
+            height: h,
             is_always_on_top: source.is_always_on_top,
             visible: source.visible,
-            pos_x: x,
-            pos_y: y,
+            pos_x: source.pos_x + 30,
+            pos_y: source.pos_y + 30,
             locked: false,
             collapsed: false,
-            expanded_height: source.expanded_height,
-            expanded_width: source.expanded_width,
+            expanded_height: h,
+            expanded_width: w,
             glass: source.glass,
         };
         self.repo.save(&new_note)?;
@@ -209,6 +213,32 @@ mod tests {
 
         let dup = svc.duplicate_note(0, "(副本)").unwrap();
         assert!(!dup.locked);
+        assert!(!dup.collapsed);
+    }
+
+    #[test]
+    fn duplicate_collapsed_note_uses_expanded_dimensions() {
+        let svc = make_service();
+        let mut original = svc.create_note("orig").unwrap();
+        original.width = 300;
+        original.height = 400;
+        original.expanded_width = 300;
+        original.expanded_height = 400;
+        svc.save_note(original.clone()).unwrap();
+
+        // Collapse the note — width/height become collapsed values
+        let mut collapsed_note = svc.get_note(0).unwrap();
+        collapsed_note.collapsed = true;
+        collapsed_note.width = 300;
+        collapsed_note.height = 28;
+        svc.save_note(collapsed_note).unwrap();
+
+        let dup = svc.duplicate_note(0, "(副本)").unwrap();
+        // Duplicate should use expanded dimensions, not collapsed
+        assert_eq!(dup.width, 300);
+        assert_eq!(dup.height, 400);
+        assert_eq!(dup.expanded_width, 300);
+        assert_eq!(dup.expanded_height, 400);
         assert!(!dup.collapsed);
     }
 
