@@ -16,7 +16,6 @@ const texts = {
   'menu.opacity.up': { zh: '透明度增大', en: 'Increase Opacity' },
   'menu.opacity.down': { zh: '透明度减小', en: 'Decrease Opacity' },
   'menu.opacity': { zh: '透明度', en: 'Opacity' },
-  'menu.glass': { zh: '液态玻璃', en: 'Liquid Glass' },
   'menu.color': { zh: '颜色', en: 'Color' },
   'menu.appearance': { zh: '外观', en: 'Appearance' },
   'menu.window.show_all': { zh: '显示全部', en: 'Show All' },

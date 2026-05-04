@@ -12,10 +12,6 @@ export default function ColorPanel({ note, update, onClose }) {
     update({ opacity: Number(e.target.value) / 100 });
   }, [update]);
 
-  const handleGlassChange = useCallback((e) => {
-    update({ glass: Number(e.target.value) / 100 });
-  }, [update]);
-
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
@@ -45,20 +41,6 @@ export default function ColorPanel({ note, update, onClose }) {
             max={100}
             value={Math.round(note.opacity * 100)}
             onChange={handleOpacityChange}
-          />
-        </div>
-        <div className={styles.section}>
-          <div className={`${styles.label} ${styles.opacityLabel}`}>
-            <span>{t("menu.glass")}</span>
-            <span className={styles.opacityValue}>{Math.round(note.glass * 100)}%</span>
-          </div>
-          <input
-            type="range"
-            className={styles.slider}
-            min={0}
-            max={100}
-            value={Math.round(note.glass * 100)}
-            onChange={handleGlassChange}
           />
         </div>
       </div>
