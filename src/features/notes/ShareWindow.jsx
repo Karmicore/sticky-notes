@@ -211,32 +211,33 @@ export default function ShareWindow() {
       <div className={styles.header}>
         <span className={styles.title}>{t("share.title")}</span>
         <div className={styles.headerActions}>
-          <button
-            className={`${styles.iconBtn} ${showPicker ? styles.iconBtnActive : ""}`}
-            onClick={() => setShowPicker(!showPicker)}
-            title={t("share.pickColor")}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="13.5" cy="6.5" r="2.5" />
-              <circle cx="6" cy="12" r="2.5" />
-              <circle cx="18" cy="12" r="2.5" />
-              <circle cx="8" cy="18" r="2.5" />
-              <circle cx="16" cy="18" r="2.5" />
-            </svg>
-          </button>
+          <div className={styles.pickerWrap}>
+            <button
+              className={`${styles.iconBtn} ${showPicker ? styles.iconBtnActive : ""}`}
+              onClick={() => setShowPicker(!showPicker)}
+              title={t("share.pickColor")}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="13.5" cy="6.5" r="2.5" />
+                <circle cx="6" cy="12" r="2.5" />
+                <circle cx="18" cy="12" r="2.5" />
+                <circle cx="8" cy="18" r="2.5" />
+                <circle cx="16" cy="18" r="2.5" />
+              </svg>
+            </button>
+            {showPicker && (
+              <div className={styles.pickerPanel}>
+                <ColorPicker
+                  color={customColor || color}
+                  onChange={handleColorChange}
+                />
+                <div className={styles.pickerHint}>{t("share.pickColor")}</div>
+              </div>
+            )}
+          </div>
           <button className={styles.closeBtn} onClick={handleClose}>×</button>
         </div>
       </div>
-
-      {showPicker && (
-        <div className={styles.pickerPanel}>
-          <ColorPicker
-            color={customColor || color}
-            onChange={handleColorChange}
-          />
-          <div className={styles.pickerHint}>{t("share.pickColor")}</div>
-        </div>
-      )}
 
       <div className={styles.preview}>
         <div
