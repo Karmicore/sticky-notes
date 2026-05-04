@@ -109,6 +109,19 @@ export default function ShareWindow() {
   const [customQuote, setCustomQuote] = useState(null);
   const [editingQuote, setEditingQuote] = useState(false);
   const quoteInputRef = useRef(null);
+  const pickerWrapRef = useRef(null);
+
+  // Click outside to close picker
+  useEffect(() => {
+    if (!showPicker) return;
+    const onDown = (e) => {
+      if (pickerWrapRef.current && !pickerWrapRef.current.contains(e.target)) {
+        setShowPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [showPicker]);
 
   useEffect(() => {
     invoke("get_note", { id: noteId })
@@ -212,7 +225,7 @@ export default function ShareWindow() {
       <div className={styles.header} style={{ WebkitAppRegion: "drag" }}>
         <span className={styles.title}>{t("share.title")}</span>
         <div className={styles.headerActions} style={{ WebkitAppRegion: "no-drag" }}>
-          <div className={styles.pickerWrap}>
+          <div className={styles.pickerWrap} ref={pickerWrapRef}>
             <button
               className={`${styles.iconBtn} ${showPicker ? styles.iconBtnActive : ""}`}
               onClick={() => setShowPicker(!showPicker)}
