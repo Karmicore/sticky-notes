@@ -303,7 +303,7 @@ pub fn toggle_note_collapsed(
 }
 
 #[tauri::command]
-pub fn open_export_window(app: AppHandle) -> Result<(), String> {
+pub async fn open_export_window(app: AppHandle) -> Result<(), String> {
     spawn_export_window(&app, None)
 }
 
@@ -331,6 +331,6 @@ pub fn spawn_share_window(app: &AppHandle, x: f64, y: f64) -> Result<(), String>
 }
 
 #[tauri::command]
-pub fn open_share_window(app: AppHandle, x: f64, y: f64) -> Result<(), String> {
+pub async fn open_share_window(app: AppHandle, x: f64, y: f64) -> Result<(), String> {
     spawn_share_window(&app, x, y)
 }
