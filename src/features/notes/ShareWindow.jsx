@@ -174,13 +174,13 @@ export default function ShareWindow() {
       const pngBytes = await generatePng();
       if (!pngBytes) return;
       const { save } = await import("@tauri-apps/plugin-dialog");
-      const { writeBinaryFile } = await import("@tauri-apps/plugin-fs");
+      const { writeFile } = await import("@tauri-apps/plugin-fs");
       const path = await save({
         defaultPath: `share-${Date.now()}.png`,
         filters: [{ name: "PNG", extensions: ["png"] }],
       });
       if (path) {
-        await writeBinaryFile(path, pngBytes);
+        await writeFile(path, pngBytes);
         setStatus(t("share.saved"));
       } else {
         setStatus(null);

@@ -26,6 +26,16 @@
     "dialog:default",
     "dialog:allow-save",
     "fs:default",
-    "fs:allow-write-file"
+    "fs:allow-write-file",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        { "path": "$DOWNLOAD/**" },
+        { "path": "$DOCUMENT/**" },
+        { "path": "$DESKTOP/**" },
+        { "path": "$PICTURE/**" },
+        { "path": "$HOME/**" }
+      ]
+    }
   ]
 }
