@@ -1,44 +1,68 @@
-# 🗒️ Sticky Notes
+# Sticky Notes
 
-A lightweight, frameless sticky notes app for Windows. Each note is its own transparent window that snaps, sticks, and stays out of your way.
+Turn your desktop into a sticky wall. Lightweight, frameless, each note is its own window.
 
 ![Tauri 2](https://img.shields.io/badge/Tauri-2.x-blue)
 ![React](https://img.shields.io/badge/React-19-61dafb)
 ![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-0.2.0-orange)
 
 [中文](./README.md)
 
+---
+
+![Feature Demo](docs/images/feature-demo.gif)
+
 ## ✨ Features
 
-- **Multi-note management** — every note is an independent window, create / duplicate / delete freely
-- **12 colors + opacity** — right-click to pick color, adjust transparency from 20% to 100%
-- **Always on top & lock** — pin notes above all windows, lock to prevent accidental edits
-- **Collapse & expand** — fold notes down to just the title bar
-- **Window snapping** — notes magnetically snap to screen edges and each other
-- **Todo checkboxes** — `Ctrl+1` to insert, complete with confetti animation 🎉
-- **Full keyboard shortcuts** — new, duplicate, rename, pin, hide, font size, opacity...
-- **System tray** — hide all / show all / create new from tray menu
-- **Auto-save** — 800ms debounce, SQLite local storage
-- **Lightweight** — Tauri 2 + React 19, ~10MB install, minimal memory footprint
+**Note Management**
+- Each note is an independent transparent, frameless window — drag, resize, arrange freely
+- Create, duplicate, delete, rename, hide — all via keyboard shortcuts
+- Collapse/expand to save screen space
 
-## 📸 Screenshots
+**Appearance**
+- 12 color themes, switch with one click
+- Opacity slider from 10% to 100%
+- Font size adjustable from 8px to 72px
 
-![Features Demo](docs/images/features-demo.gif)
+**Window Behavior**
+- Always on top — pin notes above everything
+- Snap-to-edge — notes magnetically align with each other when dragged
+- Lock notes to prevent accidental edits
 
-![Create Note](docs/images/create-note.gif)
+**Todo Checklists**
+- `Ctrl+1` to insert a checkbox, click to cycle: todo → in progress → done
+- Confetti animation celebrates completion
 
-![Todo Complete](docs/images/todo-complete.gif)
+**Export & Share**
+- Select notes and export as Markdown to clipboard
+- Cut export: exports then clears the original notes
+- Generate beautiful share cards (gradient background + progress bar + motivational quote), save as PNG or copy to clipboard
 
-## 🚀 Install
+**System Tray**
+
+![Tray Menu](docs/images/tray-menu.png)
+
+- Hide All / Show All / Collapse All
+- New note, export settings, language switch
+- Left-click tray icon = show all notes
+
+**i18n**
+- Chinese / English bilingual support
+- Auto-detect system language, or switch manually
+
+## Install
 
 Download from [Releases](https://github.com/Karmicore/sticky-notes/releases):
 
-- `.exe` — NSIS installer (recommended)
-- `.msi` — MSI installer
+| Format | Description |
+|--------|-------------|
+| `.exe` | NSIS installer (recommended) |
+| `.msi` | MSI installer |
 
 Windows 10 / 11 supported.
 
-## ⌨️ Shortcuts
+## Shortcuts
 
 | Action | Shortcut |
 |--------|----------|
@@ -55,7 +79,7 @@ Windows 10 / 11 supported.
 | Hide all | `Alt+H` |
 | Delete | `Alt+Delete` |
 
-## 🛠️ Dev
+## Development
 
 ```bash
 npm install
@@ -66,25 +90,36 @@ npm run tauri dev
 npm run tauri build
 ```
 
-## 📁 Architecture
+### Tests
+
+```bash
+npm test                # Frontend tests (Vitest)
+cd src-tauri && cargo test  # Backend tests
+```
+
+## Architecture
 
 ```
 src-tauri/src/
   app_core/       Domain models & business logic
   infra/          SQLite persistence
   commands/       Tauri command adapters
+  plugins/        System tray
 
 src/
   features/notes/ React UI
   commands/       Command registry
-  lib/            Utilities
+  lib/            Utilities (i18n, color, menu)
 ```
 
 ## Tech Stack
 
-- **Frontend:** React 19, Vite, CSS Modules
-- **Backend:** Rust, Tauri 2.x, rusqlite
-- **Storage:** SQLite (`~/.stickynotes/notes.db`)
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 19, Vite, CSS Modules |
+| Backend | Rust, Tauri 2.x |
+| Storage | SQLite (`~/.stickynotes/notes.db`) |
+| Tests | Vitest, cargo test |
 
 ## License
 
