@@ -63,9 +63,7 @@ export default function NoteEditor({ note, update, insertCheckboxRef, style }) {
     const next = CB_NEXT[cur] || CHECKBOX_PREFIX;
     lines[idx] = next + line.substring(CB_LEN);
     if (next === "✅ ") {
-      const base = { spread: 50, startVelocity: 30, gravity: -0.5, ticks: 200, origin: { y: 0.8 }, scalar: 0.8 };
-      confetti({ ...base, particleCount: 15, shapes: ["circle"] });
-      setTimeout(() => confetti({ ...base, particleCount: 30, shapes: ["circle", "star"] }), 150);
+      confetti({ particleCount: 8, spread: 15, startVelocity: 8, gravity: -0.2, ticks: 400, origin: { x: 0.5, y: 1 }, shapes: ["circle"], scalar: 0.4, colors: ["#fff","#f5f5f5","#e0e0e0"] });
     }
     setAndPreserve(lines.join("\n"));
   }, [note.content, setAndPreserve]);
