@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>液态玻璃效果测试</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #1a1a2e; color: #eee; font-family: system-ui; padding: 20px 20px 60px; }
+h1 { text-align: center; margin-bottom: 6px; font-size: 22px; }
+.subtitle { text-align: center; color: #888; margin-bottom: 24px; font-size: 13px; }
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; max-width: 1200px; margin: 0 auto; }
+.card {
+  background: #16213e; border-radius: 12px; padding: 16px; text-align: center;
+  cursor: pointer; transition: all 0.15s; border: 2px solid transparent; position: relative;
+}
+.card:hover { border-color: #4fc3f7; transform: translateY(-2px); }
+.card.selected { border-color: #4fc3f7; }
+.num { font-size: 10px; color: #555; position: absolute; top: 5px; left: 7px; }
+.name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.desc { font-size: 10px; color: #777; line-height: 1.3; margin-bottom: 10px; }
+
+.preview {
+  width: 100%; height: 120px; border-radius: 8px; position: relative;
+  overflow: hidden; margin-bottom: 10px;
+}
+.preview-bg {
+  position: absolute; inset: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 11px, rgba(255,255,255,0.08) 11px, rgba(255,255,255,0.08) 12px),
+    repeating-linear-gradient(90deg, transparent, transparent 11px, rgba(255,255,255,0.08) 11px, rgba(255,255,255,0.08) 12px),
+    linear-gradient(135deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff);
+  background-size: 12px 12px, 12px 12px, 300% 300%;
+  animation: gradientMove 6s ease infinite;
+  overflow: hidden;
+}
+.preview-bg::before {
+  content: "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt 便签内容测试文字密密麻麻液态玻璃效果折射扭曲 打字机风格背景 ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 ";
+  position: absolute; inset: -20px;
+  font-size: 9px; line-height: 1.3; word-break: break-all;
+  color: rgba(255,255,255,0.25); font-family: monospace;
+  transform: rotate(-3deg) scale(1.1);
+  pointer-events: none;
+}
+.preview-bg::after {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255,100,100,0.5) 0%, transparent 40%),
+    radial-gradient(circle at 70% 60%, rgba(100,200,255,0.5) 0%, transparent 40%),
+    radial-gradient(circle at 50% 80%, rgba(255,220,100,0.4) 0%, transparent 35%);
+}
+@keyframes gradientMove {
+  0% { background-position: 0 0, 0 0, 0% 50%; }
+  50% { background-position: 0 0, 0 0, 100% 50%; }
+  100% { background-position: 0 0, 0 0, 0% 50%; }
+}
+.preview-glass {
+  position: absolute; inset: 0; transition: all 0.3s;
+}
+.preview-text {
+  position: absolute; bottom: 8px; left: 10px; font-size: 11px;
+  color: rgba(255,255,255,0.9); text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  z-index: 2;
+}
+
+.slider-row {
+  display: flex; align-items: center; gap: 8px;
+}
+.slider-row label { font-size: 10px; color: #888; white-space: nowrap; }
+.slider-row input[type=range] { flex: 1; height: 4px; -webkit-appearance: none; appearance: none; background: #333; border-radius: 2px; outline: none; cursor: pointer; }
+.slider-row input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #4fc3f7; cursor: pointer; }
+.slider-val { font-size: 10px; color: #4fc3f7; width: 32px; text-align: right; }
+
+/* SVG filter definitions */
+</style>
+</head>
+<body>
+
+<h1>液态玻璃效果测试</h1>
+<p class="subtitle">点击卡片选中，拖动 slider 调节液态程度，共 22 种效果（含 2 个开源库实现）</p>
+
+<div class="grid" id="grid"></div>
+
+<div style="max-width:1200px;margin:24px auto 0;text-align:center;background:#16213e;border-radius:12px;padding:20px;">
+  <h3 style="margin-bottom:8px;">已选效果</h3>
+  <p id="selectedName" style="color:#4fc3f7;font-size:14px;">未选择</p>
+  <p id="selectedCode" style="color:#666;font-size:11px;margin-top:8px;white-space:pre-wrap;text-align:left;max-width:600px;margin-left:auto;margin-right:auto;"></p>
+</div>
+
+<!-- SVG Filters -->
+<svg style="display:none" id="svg-filters">
+  <filter id="glass-distortion-1">
+    <feTurbulence type="fractalNoise" baseFrequency="0.015 0.015" numOctaves="2" seed="1"/>
+    <feGaussianBlur stdDeviation="2" result="softMap"/>
+    <feDisplacementMap in="SourceGraphic" in2="softMap" scale="80" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="glass-distortion-2">
+    <feTurbulence type="fractalNoise" baseFrequency="0.02 0.01" numOctaves="3" seed="2"/>
+    <feGaussianBlur stdDeviation="3" result="softMap"/>
+    <feDisplacementMap in="SourceGraphic" in2="softMap" scale="120" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="glass-distortion-3">
+    <feTurbulence type="fractalNoise" baseFrequency="0.008 0.012" numOctaves="1" seed="5"/>
+    <feGaussianBlur stdDeviation="4" result="softMap"/>
+    <feDisplacementMap in="SourceGraphic" in2="softMap" scale="150" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="glass-distortion-4">
+    <feTurbulence type="turbulence" baseFrequency="0.025 0.025" numOctaves="2" seed="3"/>
+    <feGaussianBlur stdDeviation="2" result="softMap"/>
+    <feDisplacementMap in="SourceGraphic" in2="softMap" scale="60" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<script>
+// ── Canvas displacement map generator (shuding/liquid-glass approach) ──
+function createLensDisplacementMap(w, h, intensity) {
+  const canvas = document.createElement("canvas");
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  const cx = w / 2, cy = h / 2;
+  const r = Math.min(w, h) / 2;
+
+  // Radial gradient simulating lens curvature
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+  grad.addColorStop(0, `rgba(128, 128, 0, ${intensity})`);
+  grad.addColorStop(0.7, `rgba(128, 128, 0, ${intensity * 0.6})`);
+  grad.addColorStop(1, "rgba(128, 128, 0, 0)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  // Add some noise for organic feel
+  const imgData = ctx.getImageData(0, 0, w, h);
+  for (let i = 0; i < imgData.data.length; i += 4) {
+    imgData.data[i] += (Math.random() - 0.5) * 10 * intensity;     // R → X displacement
+    imgData.data[i + 1] += (Math.random() - 0.5) * 10 * intensity; // G → Y displacement
+  }
+  ctx.putImageData(imgData, 0, 0);
+  return canvas.toDataURL();
+}
+
+// ── Physics-based refraction profile (archisvaze/liquid-glass approach) ──
+function createRefractionDisplacementMap(w, h, thickness, ior, intensity) {
+  const canvas = document.createElement("canvas");
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  const cx = w / 2, cy = h / 2;
+  const r = Math.min(w, h) / 2;
+  const eta = 1 / ior;
+
+  const imgData = ctx.createImageData(w, h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const dx = (x - cx) / r;
+      const dy = (y - cy) / r;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const idx = (y * w + x) * 4;
+
+      if (dist < 1) {
+        // Surface normal (simplified sphere)
+        const nz = Math.sqrt(Math.max(0, 1 - dist * dist));
+        const nx = -dx * 0.5;
+        const ny = -dy * 0.5;
+
+        // Snell's law refraction
+        const dot = nz;
+        const k = 1 - eta * eta * (1 - dot * dot);
+        if (k > 0) {
+          const refrX = -(eta * dot + Math.sqrt(k)) * nx;
+          const refrY = -(eta * dot + Math.sqrt(k)) * ny;
+          imgData.data[idx] = 128 + refrX * thickness * intensity;
+          imgData.data[idx + 1] = 128 + refrY * thickness * intensity;
+          imgData.data[idx + 2] = 128;
+          imgData.data[idx + 3] = 255;
+        } else {
+          // Total internal reflection
+          imgData.data[idx] = 128;
+          imgData.data[idx + 1] = 128;
+          imgData.data[idx + 2] = 128;
+          imgData.data[idx + 3] = 255;
+        }
+      } else {
+        // Outside glass — no displacement
+        imgData.data[idx] = 128;
+        imgData.data[idx + 1] = 128;
+        imgData.data[idx + 2] = 128;
+        imgData.data[idx + 3] = 0;
+      }
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+  return canvas.toDataURL();
+}
+
+// Create dynamic SVG filters for canvas-based effects
+function ensureDynamicFilter(id, dataUrl, scale) {
+  let existing = document.getElementById(id);
+  if (existing) existing.remove();
+
+  const svgNS = "http://www.w3.org/2000/svg";
+  const filter = document.createElementNS(svgNS, "filter");
+  filter.setAttribute("id", id);
+  filter.setAttribute("x", "-20%");
+  filter.setAttribute("y", "-20%");
+  filter.setAttribute("width", "140%");
+  filter.setAttribute("height", "140%");
+
+  const feImg = document.createElementNS(svgNS, "feImage");
+  feImg.setAttribute("href", dataUrl);
+  feImg.setAttribute("result", "map");
+  feImg.setAttribute("preserveAspectRatio", "none");
+
+  const feDisp = document.createElementNS(svgNS, "feDisplacementMap");
+  feDisp.setAttribute("in", "SourceGraphic");
+  feDisp.setAttribute("in2", "map");
+  feDisp.setAttribute("scale", scale);
+  feDisp.setAttribute("xChannelSelector", "R");
+  feDisp.setAttribute("yChannelSelector", "G");
+
+  filter.appendChild(feImg);
+  filter.appendChild(feDisp);
+  document.getElementById("svg-filters").appendChild(filter);
+}
+
+const effects = [
+  {
+    name: "纯内阴影",
+    desc: "只有 inset box-shadow，最轻量",
+    css: (v) => ({
+      boxShadow: `inset 0 0 ${v*30}px rgba(255,255,255,${v*0.3}), inset 0 ${v*2}px 0 rgba(255,255,255,${v*0.5}), inset 0 -${v*2}px 0 rgba(0,0,0,${v*0.15})`
+    })
+  },
+  {
+    name: "纯渐变覆盖",
+    desc: "从上到下的白色渐变 tint",
+    css: (v) => ({
+      background: `linear-gradient(180deg, rgba(255,255,255,${v*0.4}) 0%, rgba(255,255,255,${v*0.1}) 40%, rgba(0,0,0,${v*0.08}) 100%)`
+    })
+  },
+  {
+    name: "内阴影+渐变",
+    desc: "方案1+2 组合",
+    css: (v) => ({
+      boxShadow: `inset 0 0 ${v*30}px rgba(255,255,255,${v*0.3}), inset 0 ${v*2}px 0 rgba(255,255,255,${v*0.5}), inset 0 -${v*2}px 0 rgba(0,0,0,${v*0.15})`,
+      background: `linear-gradient(180deg, rgba(255,255,255,${v*0.35}) 0%, rgba(255,255,255,${v*0.08}) 40%, rgba(0,0,0,${v*0.06}) 100%)`
+    })
+  },
+  {
+    name: "光泽高光层",
+    desc: "模拟苹果 shine 层，两条 inset 白边",
+    css: (v) => ({
+      boxShadow: `inset 2px 2px ${v*2}px rgba(255,255,255,${v*0.6}), inset -1px -1px 1px rgba(255,255,255,${v*0.4}), inset 0 0 ${v*20}px rgba(255,255,255,${v*0.2})`
+    })
+  },
+  {
+    name: "backdrop-blur 毛玻璃",
+    desc: "模糊背景，经典毛玻璃",
+    css: (v) => ({
+      backdropFilter: `blur(${v*12}px) saturate(${1 + v*0.8})`,
+      background: `rgba(255,255,255,${v*0.2})`
+    })
+  },
+  {
+    name: "backdrop-blur+内阴影",
+    desc: "毛玻璃+厚度感",
+    css: (v) => ({
+      backdropFilter: `blur(${v*10}px)`,
+      background: `rgba(255,255,255,${v*0.15})`,
+      boxShadow: `inset 0 ${v*2}px 0 rgba(255,255,255,${v*0.4}), inset 0 -${v*2}px 0 rgba(0,0,0,${v*0.1})`
+    })
+  },
+  {
+    name: "backdrop-blur+渐变",
+    desc: "毛玻璃+顶部高光渐变",
+    css: (v) => ({
+      backdropFilter: `blur(${v*10}px)`,
+      background: `linear-gradient(180deg, rgba(255,255,255,${v*0.3}) 0%, rgba(255,255,255,${v*0.08}) 50%, rgba(0,0,0,${v*0.05}) 100%)`
+    })
+  },
+  {
+    name: "SVG 扭曲 A",
+    desc: "fractalNoise 细粒度扭曲",
+    css: (v) => ({
+      backdropFilter: `blur(${v*3}px)`,
+      filter: v > 0.05 ? `url(#glass-distortion-1)` : 'none',
+      background: `rgba(255,255,255,${v*0.25})`,
+      boxShadow: `inset 0 0 ${v*15}px rgba(255,255,255,${v*0.2})`
+    })
+  },
+  {
+    name: "SVG 扭曲 B",
+    desc: "fractalNoise 粗粒度，强扭曲",
+    css: (v) => ({
+      backdropFilter: `blur(${v*3}px)`,
+      filter: v > 0.05 ? `url(#glass-distortion-2)` : 'none',
+      background: `rgba(255,255,255,${v*0.2})`,
+      boxShadow: `inset 0 0 ${v*15}px rgba(255,255,255,${v*0.2})`
+    })
+  },
+  {
+    name: "SVG 扭曲 C",
+    desc: "单 octave，大位移",
+    css: (v) => ({
+      backdropFilter: `blur(${v*4}px)`,
+      filter: v > 0.05 ? `url(#glass-distortion-3)` : 'none',
+      background: `rgba(255,255,255,${v*0.22})`
+    })
+  },
+  {
+    name: "SVG turbulence 类型",
+    desc: "用 turbulence 而非 fractalNoise",
+    css: (v) => ({
+      backdropFilter: `blur(${v*3}px)`,
+      filter: v > 0.05 ? `url(#glass-distortion-4)` : 'none',
+      background: `rgba(255,255,255,${v*0.2})`,
+      boxShadow: `inset 0 0 ${v*10}px rgba(255,255,255,${v*0.15})`
+    })
+  },
+  {
+    name: "苹果完整方案",
+    desc: "blur+tint+shine 三层",
+    css: (v) => ({
+      backdropFilter: `blur(${v*8}px)`,
+      background: `rgba(255,255,255,${v*0.25})`,
+      boxShadow: `inset 2px 2px ${v*2}px rgba(255,255,255,${v*0.5}), inset -1px -1px 1px rgba(255,255,255,${v*0.35}), inset 0 0 ${v*25}px rgba(255,255,255,${v*0.2})`
+    })
+  },
+  {
+    name: "苹果完整+SVG",
+    desc: "三层+扭曲滤镜",
+    css: (v) => ({
+      backdropFilter: `blur(${v*5}px)`,
+      filter: v > 0.05 ? `url(#glass-distortion-1)` : 'none',
+      background: `rgba(255,255,255,${v*0.25})`,
+      boxShadow: `inset 2px 2px ${v*2}px rgba(255,255,255,${v*0.5}), inset -1px -1px 1px rgba(255,255,255,${v*0.35})`
+    })
+  },
+  {
+    name: "厚玻璃感",
+    desc: "强内阴影+深底部阴影",
+    css: (v) => ({
+      boxShadow: `inset 0 0 ${v*40}px rgba(255,255,255,${v*0.25}), inset 0 ${v*4}px 0 rgba(255,255,255,${v*0.5}), inset 0 -${v*4}px 0 rgba(0,0,0,${v*0.2}), 0 ${v*8}px ${v*24}px rgba(0,0,0,${v*0.15})`,
+      background: `linear-gradient(180deg, rgba(255,255,255,${v*0.3}) 0%, transparent 60%)`
+    })
+  },
+  {
+    name: "边缘发光",
+    desc: "外部 glow + 内部高光",
+    css: (v) => ({
+      boxShadow: `0 0 ${v*20}px rgba(255,255,255,${v*0.3}), inset 0 0 ${v*20}px rgba(255,255,255,${v*0.2}), inset 0 ${v*2}px 0 rgba(255,255,255,${v*0.4})`
+    })
+  },
+  {
+    name: "冰霜质感",
+    desc: "强 saturate + 亮色 tint",
+    css: (v) => ({
+      backdropFilter: `blur(${v*8}px) saturate(${1 + v*1.5}) brightness(${1 + v*0.1})`,
+      background: `rgba(200,230,255,${v*0.2})`,
+      boxShadow: `inset 0 0 ${v*15}px rgba(255,255,255,${v*0.3})`
+    })
+  },
+  {
+    name: "暖色玻璃",
+    desc: "带暖色调的玻璃",
+    css: (v) => ({
+      backdropFilter: `blur(${v*8}px)`,
+      background: `linear-gradient(180deg, rgba(255,240,220,${v*0.3}) 0%, rgba(255,220,180,${v*0.1}) 100%)`,
+      boxShadow: `inset 0 ${v*2}px 0 rgba(255,255,255,${v*0.4}), inset 0 -1px 0 rgba(0,0,0,${v*0.08})`
+    })
+  },
+  {
+    name: "冷色玻璃",
+    desc: "带冷色调的玻璃",
+    css: (v) => ({
+      backdropFilter: `blur(${v*8}px)`,
+      background: `linear-gradient(180deg, rgba(220,240,255,${v*0.3}) 0%, rgba(180,220,255,${v*0.1}) 100%)`,
+      boxShadow: `inset 0 ${v*2}px 0 rgba(255,255,255,${v*0.4}), inset 0 -1px 0 rgba(0,0,0,${v*0.08})`
+    })
+  },
+  {
+    name: "极简折射",
+    desc: "只有 SVG 扭曲，无其他修饰",
+    css: (v) => ({
+      filter: v > 0.05 ? `url(#glass-distortion-2)` : 'none',
+      background: `rgba(255,255,255,${v*0.15})`
+    })
+  },
+  {
+    name: "全效果叠加",
+    desc: "SVG扭曲+毛玻璃+内阴影+渐变",
+    css: (v) => ({
+      backdropFilter: `blur(${v*6}px) saturate(${1 + v*0.5})`,
+      filter: v > 0.05 ? `url(#glass-distortion-1)` : 'none',
+      background: `linear-gradient(180deg, rgba(255,255,255,${v*0.35}) 0%, rgba(255,255,255,${v*0.08}) 40%, rgba(0,0,0,${v*0.06}) 100%)`,
+      boxShadow: `inset 2px 2px ${v*2}px rgba(255,255,255,${v*0.5}), inset -1px -1px 1px rgba(255,255,255,${v*0.35}), inset 0 0 ${v*25}px rgba(255,255,255,${v*0.2})`
+    })
+  },
+  {
+    name: "Canvas 透镜折射",
+    desc: "shuding/liquid-glass — canvas 径向渐变位移图",
+    type: "lens",
+    css: (v) => ({
+      backdropFilter: `blur(${v*3}px) contrast(1.1) brightness(1.05)`,
+      filter: v > 0.05 ? `url(#lens-filter-${Math.max(1, Math.round(v*10))})` : 'none',
+      background: `rgba(255,255,255,${v*0.15})`,
+      boxShadow: `inset 0 0 ${v*15}px rgba(255,255,255,${v*0.2}), inset 0 ${v*2}px 0 rgba(255,255,255,${v*0.4})`
+    })
+  },
+  {
+    name: "物理折射 (IOR)",
+    desc: "archisvaze/liquid-glass — Snell 定律折射",
+    type: "refr",
+    css: (v) => ({
+      backdropFilter: `blur(${v*3}px) brightness(1.05) saturate(${1 + v*0.3})`,
+      filter: v > 0.05 ? `url(#refr-filter-${Math.max(1, Math.round(v*10))})` : 'none',
+      background: `rgba(255,255,255,${v*0.18})`,
+      boxShadow: `inset 2px 2px ${v*2}px rgba(255,255,255,${v*0.5}), inset -1px -1px 1px rgba(255,255,255,${v*0.3})`
+    })
+  }
+];
+
+// Generate per-intensity SVG filters for canvas-based effects (10 levels)
+(function() {
+  for (let level = 1; level <= 10; level++) {
+    const v = level / 10;
+    const lensMap = createLensDisplacementMap(200, 100, v);
+    const refrMap = createRefractionDisplacementMap(200, 100, 80, 1.5, v);
+    ensureDynamicFilter(`lens-filter-${level}`, lensMap, 20 + v * 50);
+    ensureDynamicFilter(`refr-filter-${level}`, refrMap, 20 + v * 50);
+  }
+})();
+
+let selectedIdx = null;
+const grid = document.getElementById("grid");
+
+effects.forEach((ef, i) => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <span class="num">${i + 1}</span>
+    <div class="name">${ef.name}</div>
+    <div class="desc">${ef.desc}</div>
+    <div class="preview">
+      <div class="preview-bg"></div>
+      <div class="preview-glass" id="glass-${i}"></div>
+      <div class="preview-text">便签内容预览</div>
+    </div>
+    <div class="slider-row">
+      <label>液态</label>
+      <input type="range" min="0" max="100" value="50" id="slider-${i}">
+      <span class="slider-val" id="val-${i}">50%</span>
+    </div>
+  `;
+
+  card.querySelector(`#slider-${i}`).addEventListener("input", (e) => {
+    const v = e.target.value / 100;
+    document.getElementById(`val-${i}`).textContent = e.target.value + "%";
+    const glass = document.getElementById(`glass-${i}`);
+    const style = ef.css(v);
+    Object.assign(glass.style, style);
+  });
+
+  card.addEventListener("click", (e) => {
+    if (e.target.type === "range") return;
+    selectedIdx = i;
+    document.querySelectorAll(".card").forEach(c => c.classList.remove("selected"));
+    card.classList.add("selected");
+    document.getElementById("selectedName").textContent = `#${i+1} ${ef.name}`;
+    const v = document.getElementById(`slider-${i}`).value / 100;
+    const style = ef.css(v);
+    const codeLines = Object.entries(style).map(([k, val]) => {
+      const cssKey = k.replace(/([A-Z])/g, "-$1").toLowerCase();
+      return `  ${cssKey}: ${val};`;
+    });
+    document.getElementById("selectedCode").textContent = `/* #${i+1} ${ef.name} — 液态 ${Math.round(v*100)}% */\n${codeLines.join("\n")}`;
+  });
+
+  // Init preview at 50%
+  const initGlass = card.querySelector(`#glass-${i}`);
+  Object.assign(initGlass.style, ef.css(0.5));
+
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>
