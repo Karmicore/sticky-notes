@@ -11,7 +11,7 @@ Turn your desktop into a sticky wall. Lightweight, frameless, each note is its o
 
 ---
 
-![Feature Demo](docs/images/feature-demo.gif)
+![Feature Demo](documents/images/feature-demo.gif)
 
 ## ✨ Features
 
@@ -34,20 +34,20 @@ Turn your desktop into a sticky wall. Lightweight, frameless, each note is its o
 - `Ctrl+1` to insert a checkbox, click to cycle: todo → in progress → done
 - Confetti animation celebrates completion
 
-![Todo Workflow](docs/images/todo-workflow.gif)
+![Todo Workflow](documents/images/todo-workflow.gif)
 
 **Export & Share**
 - Select notes and export as Markdown to clipboard
 - Cut export: exports then clears the original notes
 - Generate beautiful share cards (gradient background + progress bar + motivational quote), save as PNG or copy to clipboard
 
-![Export Panel](docs/images/export-panel.gif)
+![Export Panel](documents/images/export-panel.gif)
 
-![Share Card](docs/images/share-card.gif)
+![Share Card](documents/images/share-card.gif)
 
 **System Tray**
 
-![Tray Menu](docs/images/tray-export.png)
+![Tray Menu](documents/images/tray-export.png)
 
 - Hide All / Show All / Collapse All
 - New note, export settings, language switch

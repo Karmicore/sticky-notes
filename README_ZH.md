@@ -11,7 +11,7 @@
 
 ---
 
-![功能演示](docs/images/feature-demo.gif)
+![功能演示](documents/images/feature-demo.gif)
 
 ## ✨ 功能
 
@@ -34,20 +34,20 @@
 - `Ctrl+1` 插入 checkbox，点击切换状态：待办 → 进行中 → 完成
 - 完成瞬间有淡淡地庆祝
 
-![待办流程](docs/images/todo-workflow.gif)
+![待办流程](documents/images/todo-workflow.gif)
 
 **导出 & 分享**
 - 选中便签一键导出为 Markdown，复制到剪贴板
 - 剪切式导出：导出后自动清空原便签
 - 生成精美分享卡片（渐变背景 + 进度条 + 鼓励语），保存为 PNG 或复制到剪贴板
 
-![导出面板](docs/images/export-panel.gif)
+![导出面板](documents/images/export-panel.gif)
 
-![分享卡片](docs/images/share-card.gif)
+![分享卡片](documents/images/share-card.gif)
 
 **系统托盘**
 
-![托盘菜单](docs/images/tray-export.png)
+![托盘菜单](documents/images/tray-export.png)
 
 - 隐藏全部 / 显示全部 / 折叠全部
 - 新建便签、导出设置、语言切换

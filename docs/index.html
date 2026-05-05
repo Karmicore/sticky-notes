@@ -1,253 +1,643 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sticky Notes — 轻量桌面便签</title>
-  <meta name="description" content="轻量级 Windows 桌面便签，无边框透明窗口，每个便签独立管理。Tauri 2 + React 19，~10MB 安装。">
-  <meta property="og:title" content="Sticky Notes — Lightweight Desktop Notes">
-  <meta property="og:description" content="Frameless transparent windows, each note independent. Tauri 2 + React 19, ~10MB install.">
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sticky Notes — Turn Your Desktop Into a Wall of Notes</title>
+<meta name="description" content="Lightweight, frameless, and every note is an independent window. Built with Tauri 2.x + React.">
+<link rel="icon" type="image/png" href="images/logo.png">
+
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        amber: {
+          50: '#FFFBEB', 100: '#FEF3C7', 200: '#FDE68A', 300: '#FCD34D',
+          400: '#FBBF24', 500: '#F59E0B', 600: '#D97706', 700: '#B45309',
+          800: '#92400E', 900: '#78350F',
+        },
+        coral: {
+          400: '#FF8A80', 500: '#EF5350', 600: '#E53935', 700: '#C62828',
+        },
+      },
+      fontFamily: {
+        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+      },
+    },
+  },
+}
+</script>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- AOS Animations -->
+<link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+/* Smooth scrollbar */
+html { scroll-behavior: smooth; }
+
+/* Hero gradient background */
+.hero-bg {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(251, 191, 36, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 20%, rgba(239, 83, 80, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, #FFFBEB 0%, #FFFFFF 100%);
+}
+
+/* Floating sticky note animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(var(--rotate, 0deg)); }
+  50% { transform: translateY(-12px) rotate(var(--rotate, 0deg)); }
+}
+.float-1 { --rotate: -3deg; animation: float 4s ease-in-out infinite; }
+.float-2 { --rotate: 2deg; animation: float 5s ease-in-out infinite 0.5s; }
+.float-3 { --rotate: -1deg; animation: float 4.5s ease-in-out infinite 1s; }
+
+/* Glass card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 24px rgba(120, 53, 15, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-card:hover {
+  box-shadow: 0 8px 40px rgba(120, 53, 15, 0.12);
+  transform: translateY(-4px);
+}
+
+/* CTA button glow */
+.cta-glow {
+  position: relative;
+  overflow: hidden;
+}
+.cta-glow::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, #FBBF24, #EF5350, #FBBF24);
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s;
+  filter: blur(12px);
+}
+.cta-glow:hover::after { opacity: 0.6; }
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #D97706 0%, #EF5350 50%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Screenshot showcase */
+.screenshot-frame {
+  border-radius: 12px;
+  box-shadow:
+    0 20px 60px rgba(120, 53, 15, 0.15),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.screenshot-frame:hover { transform: scale(1.02); }
+
+/* Navbar glass */
+.nav-glass {
+  background: rgba(255, 251, 235, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(217, 119, 6, 0.1);
+}
+
+/* Keyboard shortcut key */
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FEF3C7 100%);
+  border: 1px solid #FDE68A;
+  border-radius: 6px;
+  box-shadow: 0 2px 0 #FBBF24;
+  font-size: 12px;
+  font-weight: 600;
+  color: #92400E;
+}
+
+/* Stats counter */
+.stat-number {
+  background: linear-gradient(135deg, #D97706, #EF5350);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Section divider */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #FDE68A, transparent);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .float-1, .float-2, .float-3 { animation: none; }
+  .glass-card:hover { transform: none; }
+  .screenshot-frame:hover { transform: none; }
+}
+</style>
 </head>
-<body>
-  <!-- Nav -->
-  <nav class="nav">
-    <div class="nav-inner">
-      <a href="#" class="nav-logo">🗒️ Sticky Notes</a>
-      <div class="nav-links">
-        <a href="#features" data-zh="功能" data-en="Features">功能</a>
-        <a href="#demo" data-zh="演示" data-en="Demo">演示</a>
-        <a href="#shortcuts" data-zh="快捷键" data-en="Shortcuts">快捷键</a>
-        <a href="#download" data-zh="下载" data-en="Download">下载</a>
-        <a href="https://github.com/Karmicore/sticky-notes" target="_blank" rel="noopener">GitHub</a>
-        <div class="lang-select" id="langSelect">
-          <button class="lang-btn" id="langBtn">EN</button>
-          <div class="lang-dropdown" id="langDropdown">
-            <button class="lang-option" data-lang="zh">🇨🇳 中文</button>
-            <button class="lang-option" data-lang="en">🇺🇸 English</button>
-          </div>
+
+<body class="bg-white text-amber-900 font-sans antialiased">
+
+<!-- ============ NAVBAR ============ -->
+<nav class="nav-glass fixed top-4 left-4 right-4 z-50 rounded-2xl px-6 py-3" data-aos="fade-down">
+  <div class="max-w-6xl mx-auto flex items-center justify-between">
+    <a href="#" class="flex items-center gap-3">
+      <img src="images/logo.png" alt="Sticky Notes Logo" class="w-9 h-9 rounded-lg">
+      <span class="font-bold text-lg text-amber-900">Sticky Notes</span>
+    </a>
+    <div class="hidden md:flex items-center gap-8 text-sm font-medium text-amber-800">
+      <a href="#features" class="hover:text-coral-500 transition-colors duration-200" data-i18n="nav_features">Features</a>
+      <a href="#gallery" class="hover:text-coral-500 transition-colors duration-200" data-i18n="nav_gallery">Gallery</a>
+      <a href="#shortcuts" class="hover:text-coral-500 transition-colors duration-200" data-i18n="nav_shortcuts">Shortcuts</a>
+      <a href="https://github.com/Karmicore/sticky-notes" target="_blank" rel="noopener" class="hover:text-coral-500 transition-colors duration-200">GitHub</a>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="langToggle" onclick="toggleLang()"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-100/60 hover:bg-amber-200/60 px-3 py-1.5 rounded-lg transition-colors duration-200 cursor-pointer">
+        <i data-lucide="languages" class="w-3.5 h-3.5"></i>
+        <span id="langLabel">中</span>
+      </button>
+      <a href="https://github.com/Karmicore/sticky-notes/releases" target="_blank" rel="noopener"
+         class="cta-glow inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-coral-500 text-white font-semibold text-sm px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-amber-500/25 transition-all duration-300">
+        <i data-lucide="download" class="w-4 h-4"></i>
+        <span data-i18n="nav_download">Download</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section class="hero-bg min-h-screen flex items-center pt-24 pb-16 px-4">
+  <div class="max-w-6xl mx-auto w-full grid lg:grid-cols-2 gap-12 items-center">
+    <!-- Left: Text -->
+    <div data-aos="fade-right" data-aos-delay="100">
+      <div class="inline-flex items-center gap-2 bg-amber-100/80 text-amber-800 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+        v0.2.0 — Tauri 2.x + React
+      </div>
+      <h1 class="text-5xl lg:text-6xl font-extrabold leading-tight mb-6" data-i18n="hero_title" data-i18n-html>
+        Turn Your Desktop<br>
+        <span class="gradient-text">Into a Wall of Notes</span>
+      </h1>
+      <p class="text-lg text-amber-800/70 leading-relaxed mb-8 max-w-lg" data-i18n="hero_desc">
+        Lightweight, frameless, and every note is an independent window. Drag freely, style instantly, track todos, share cards — your desktop, your way. (Easily export to AI for faster growth ✦)
+      </p>
+      <div class="flex flex-wrap gap-4">
+        <a href="https://github.com/Karmicore/sticky-notes/releases" target="_blank" rel="noopener"
+           class="cta-glow inline-flex items-center gap-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-base px-8 py-4 rounded-2xl hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-300">
+          <i data-lucide="download" class="w-5 h-5"></i>
+          <span data-i18n="hero_download">Download Installer</span>
+        </a>
+        <a href="https://github.com/Karmicore/sticky-notes" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 bg-white/80 border border-amber-200 text-amber-800 font-semibold text-base px-8 py-4 rounded-2xl hover:bg-amber-50 hover:border-amber-300 transition-all duration-200">
+          <i data-lucide="github" class="w-5 h-5"></i>
+          <span data-i18n="hero_source">View Source</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-6 mt-8 text-sm text-amber-700/60">
+        <span class="flex items-center gap-1.5">
+          <i data-lucide="monitor" class="w-4 h-4"></i>
+          Windows 10/11
+        </span>
+        <span class="flex items-center gap-1.5">
+          <i data-lucide="package" class="w-4 h-4"></i>
+          .exe / .msi
+        </span>
+        <span class="flex items-center gap-1.5">
+          <i data-lucide="scale" class="w-4 h-4"></i>
+          ~3MB
+        </span>
+      </div>
+    </div>
+
+    <!-- Right: Hero Screenshot with floating notes -->
+    <div class="relative flex justify-center" data-aos="fade-left" data-aos-delay="200">
+      <!-- Decorative floating notes -->
+      <div class="absolute -top-6 -left-4 w-20 h-16 bg-amber-200 rounded-lg float-1 shadow-lg opacity-60 z-0"></div>
+      <div class="absolute -top-2 -right-6 w-16 h-14 bg-coral-400/30 rounded-lg float-2 shadow-lg opacity-50 z-0"></div>
+      <div class="absolute -bottom-4 left-8 w-18 h-14 bg-amber-300/40 rounded-lg float-3 shadow-lg opacity-40 z-0"></div>
+
+      <img src="images/feature-demo.gif" alt="Sticky Notes 功能演示"
+           class="screenshot-frame relative z-10 w-full max-w-xl rounded-2xl">
+    </div>
+  </div>
+</section>
+
+<!-- ============ STATS BAR ============ -->
+<section class="py-12 px-4" data-aos="fade-up">
+  <div class="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+    <div>
+      <div class="stat-number text-3xl font-extrabold">12</div>
+      <div class="text-sm text-amber-700/60 mt-1" data-i18n="stat_themes">Color Themes</div>
+    </div>
+    <div>
+      <div class="stat-number text-3xl font-extrabold">15+</div>
+      <div class="text-sm text-amber-700/60 mt-1" data-i18n="stat_shortcuts">Shortcuts</div>
+    </div>
+    <div>
+      <div class="stat-number text-3xl font-extrabold">~3MB</div>
+      <div class="text-sm text-amber-700/60 mt-1" data-i18n="stat_size">Install Size</div>
+    </div>
+    <div>
+      <div class="stat-number text-3xl font-extrabold">2</div>
+      <div class="text-sm text-amber-700/60 mt-1" data-i18n="stat_lang">Languages</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider max-w-4xl mx-auto"></div>
+
+<!-- ============ FEATURES ============ -->
+<section id="features" class="py-20 px-4">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16" data-aos="fade-up">
+      <h2 class="text-4xl font-extrabold mb-4" data-i18n="feat_title">Every Detail, Crafted for You</h2>
+      <p class="text-amber-800/60 text-lg max-w-2xl mx-auto" data-i18n="feat_sub">
+        Not just sticky notes — a complete desktop productivity tool
+      </p>
+    </div>
+
+    <!-- Feature Grid -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Feature 1: 独立窗口 -->
+      <div class="glass-card rounded-2xl p-6 cursor-pointer" data-aos="fade-up" data-aos-delay="0">
+        <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center mb-4">
+          <i data-lucide="layout-grid" class="w-6 h-6 text-amber-600"></i>
         </div>
+        <h3 class="font-bold text-lg mb-2" data-i18n="f1_title">Independent Windows</h3>
+        <p class="text-amber-800/60 text-sm leading-relaxed" data-i18n="f1_desc">
+          Each note is a standalone transparent frameless window. Drag, resize, place anywhere you want.
+        </p>
       </div>
-    </div>
-  </nav>
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="hero-content">
-      <h1>Sticky Notes</h1>
-      <p class="hero-subtitle" data-zh="轻量级 Windows 桌面便签<br>无边框透明窗口，每个便签独立管理" data-en="A lightweight Windows desktop sticky notes app<br>Frameless transparent windows, each note independent">轻量级 Windows 桌面便签<br>无边框透明窗口，每个便签独立管理</p>
-      <div class="hero-badges">
-        <span class="badge">Tauri 2</span>
-        <span class="badge">React 19</span>
-        <span class="badge">~10MB</span>
-        <span class="badge">MIT</span>
+      <!-- Feature 2: 颜色主题 -->
+      <div class="glass-card rounded-2xl p-6 cursor-pointer" data-aos="fade-up" data-aos-delay="50">
+        <div class="w-12 h-12 rounded-xl bg-coral-400/10 flex items-center justify-center mb-4">
+          <i data-lucide="palette" class="w-6 h-6 text-coral-500"></i>
+        </div>
+        <h3 class="font-bold text-lg mb-2" data-i18n="f2_title">12 Color Themes</h3>
+        <p class="text-amber-800/60 text-sm leading-relaxed" data-i18n="f2_desc">
+          Switch colors instantly. Opacity 10%–100%, font size 8px–72px, fully adjustable.
+        </p>
       </div>
-      <div class="hero-actions">
-        <a href="https://github.com/Karmicore/sticky-notes/releases" class="btn btn-primary" data-zh="下载安装包" data-en="Download">下载安装包</a>
-        <a href="https://github.com/Karmicore/sticky-notes" class="btn btn-secondary" data-zh="查看源码" data-en="View Source">查看源码</a>
-      </div>
-    </div>
-    <div class="hero-visual">
-      <img src="images/features-demo.gif" alt="Sticky Notes demo" class="hero-gif">
-    </div>
-  </section>
 
-  <!-- Features -->
-  <section id="features" class="features">
-    <h2 data-zh="核心功能" data-en="Features">核心功能</h2>
-    <div class="feature-grid">
-      <div class="feature-card">
-        <div class="feature-icon">📝</div>
-        <h3 data-zh="多便签管理" data-en="Multi-Note">多便签管理</h3>
-        <p data-zh="每个便签独立窗口，自由创建、复制、删除" data-en="Each note is an independent window — create, duplicate, delete">每个便签独立窗口，自由创建、复制、删除</p>
+      <!-- Feature 3: 窗口行为 -->
+      <div class="glass-card rounded-2xl p-6 cursor-pointer" data-aos="fade-up" data-aos-delay="100">
+        <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center mb-4">
+          <i data-lucide="pin" class="w-6 h-6 text-amber-600"></i>
+        </div>
+        <h3 class="font-bold text-lg mb-2" data-i18n="f3_title">Smart Window Behavior</h3>
+        <p class="text-amber-800/60 text-sm leading-relaxed" data-i18n="f3_desc">
+          Always-on-top, lock to prevent accidental edits, auto-snap to other notes when dragging.
+        </p>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">🎨</div>
-        <h3 data-zh="12 种颜色" data-en="12 Colors">12 种颜色</h3>
-        <p data-zh="右键菜单选色，透明度 20%–100% 可调" data-en="Right-click to pick color, transparency 20%–100% adjustable">右键菜单选色，透明度 20%–100% 可调</p>
+
+      <!-- Feature 4: 待办清单 -->
+      <div class="glass-card rounded-2xl p-6 cursor-pointer" data-aos="fade-up" data-aos-delay="150">
+        <div class="w-12 h-12 rounded-xl bg-coral-400/10 flex items-center justify-center mb-4">
+          <i data-lucide="check-square" class="w-6 h-6 text-coral-500"></i>
+        </div>
+        <h3 class="font-bold text-lg mb-2" data-i18n="f4_title">Todo Checklist</h3>
+        <p class="text-amber-800/60 text-sm leading-relaxed">
+          <kbd class="kbd">Ctrl+1</kbd> <span data-i18n="f4_desc">Insert checkboxes with a shortcut. Click to toggle: Todo → In Progress → Done, with celebration effects.</span>
+        </p>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">📌</div>
-        <h3 data-zh="置顶 & 锁定" data-en="Pin & Lock">置顶 & 锁定</h3>
-        <p data-zh="便签置顶显示，锁定防误编辑" data-en="Pin notes above all windows, lock to prevent accidental edits">便签置顶显示，锁定防误编辑</p>
+
+      <!-- Feature 5: 分享卡片 -->
+      <div class="glass-card rounded-2xl p-6 cursor-pointer" data-aos="fade-up" data-aos-delay="200">
+        <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center mb-4">
+          <i data-lucide="share-2" class="w-6 h-6 text-amber-600"></i>
+        </div>
+        <h3 class="font-bold text-lg mb-2" data-i18n="f5_title">Export & Share</h3>
+        <p class="text-amber-800/60 text-sm leading-relaxed" data-i18n="f5_desc">
+          One-click Markdown export, generate beautiful share cards (gradient + progress bar + encouragement), save as PNG or copy to clipboard.
+        </p>
+        <p class="mt-3 text-xs text-amber-600/50 leading-relaxed" data-i18n="f5_tip">
+          (Export daily notes to GPT for review, reflection, and daily growth ✦)
+        </p>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">📎</div>
-        <h3 data-zh="窗口吸附" data-en="Window Snap">窗口吸附</h3>
-        <p data-zh="便签自动吸附屏幕边缘和其他便签" data-en="Notes magnetically snap to screen edges and each other">便签自动吸附屏幕边缘和其他便签</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">✅</div>
-        <h3 data-zh="待办复选框" data-en="Todo Checkboxes">待办复选框</h3>
-        <p data-zh="Ctrl+1 插入，完成时放烟花" data-en="Ctrl+1 to insert, confetti on completion">Ctrl+1 插入，完成时放烟花</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">⌨️</div>
-        <h3 data-zh="全快捷键" data-en="Full Shortcuts">全快捷键</h3>
-        <p data-zh="新建、复制、重命名、置顶、字号、透明度…" data-en="New, duplicate, rename, pin, font size, opacity…">新建、复制、重命名、置顶、字号、透明度…</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔄</div>
-        <h3 data-zh="折叠/展开" data-en="Collapse / Expand">折叠/展开</h3>
-        <p data-zh="折叠为仅标题栏，节省屏幕空间" data-en="Fold down to just the title bar, saves screen space">折叠为仅标题栏，节省屏幕空间</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📤</div>
-        <h3 data-zh="导出便签" data-en="Export Notes">导出便签</h3>
-        <p data-zh="复制式/剪切式导出到剪贴板" data-en="Copy or cut export to clipboard">复制式/剪切式导出到剪贴板</p>
+
+      <!-- Feature 6: 系统托盘 -->
+      <div class="glass-card rounded-2xl p-6 cursor-pointer" data-aos="fade-up" data-aos-delay="250">
+        <div class="w-12 h-12 rounded-xl bg-coral-400/10 flex items-center justify-center mb-4">
+          <i data-lucide="tray" class="w-6 h-6 text-coral-500"></i>
+        </div>
+        <h3 class="font-bold text-lg mb-2" data-i18n="f6_title">System Tray</h3>
+        <p class="text-amber-800/60 text-sm leading-relaxed" data-i18n="f6_desc">
+          Hide / Show / Collapse all notes, create new, export, switch language — one click on the tray icon to show all.
+        </p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Demo -->
-  <section id="demo" class="demo">
-    <h2 data-zh="功能演示" data-en="Demo">功能演示</h2>
-    <div class="demo-grid">
-      <div class="demo-item">
-        <img src="images/create-note.gif" alt="Create note">
-        <p data-zh="新建便签" data-en="Create Note">新建便签</p>
+<div class="section-divider max-w-4xl mx-auto"></div>
+
+<!-- ============ GALLERY ============ -->
+<section id="gallery" class="py-20 px-4">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16" data-aos="fade-up">
+      <h2 class="text-4xl font-extrabold mb-4" data-i18n="gallery_title">A Picture Is Worth a Thousand Words</h2>
+      <p class="text-amber-800/60 text-lg" data-i18n="gallery_sub">Real screenshots, what you see is what you get</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div data-aos="fade-up" data-aos-delay="0">
+        <img src="images/PixPin_2026-05-05_08-59-07.gif" alt="Context Menu"
+             class="screenshot-frame w-full rounded-xl cursor-pointer">
+        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium" data-i18n="cap_context">Todo Completion</p>
       </div>
-      <div class="demo-item">
-        <img src="images/todo-complete.gif" alt="Todo complete">
-        <p data-zh="待办完成烟花" data-en="Todo Confetti">待办完成烟花</p>
+      <div data-aos="fade-up" data-aos-delay="100">
+        <img src="images/image.png" alt="Appearance Settings"
+             class="screenshot-frame w-full rounded-xl cursor-pointer">
+        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium" data-i18n="cap_appearance">Appearance Settings</p>
       </div>
-      <div class="demo-item">
-        <img src="images/window-snap.png" alt="Window snap">
-        <p data-zh="窗口吸附" data-en="Window Snap">窗口吸附</p>
+      <div data-aos="fade-up" data-aos-delay="100">
+        <img src="images/PixPin_2026-05-05_09-12-36.gif" alt="Share Card"
+             class="screenshot-frame w-full rounded-xl cursor-pointer">
+        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium" data-i18n="cap_share">Share Card</p>
+      </div>
+      <div data-aos="fade-up" data-aos-delay="200">
+        <img src="images/tray-menu.png" alt="System Tray"
+             class="screenshot-frame w-full rounded-xl cursor-pointer">
+        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium" data-i18n="cap_tray">System Tray Menu</p>
+      </div>
+      <div data-aos="fade-up" data-aos-delay="200">
+        <img src="images/features-demo.gif" alt="Feature Demo"
+             class="screenshot-frame w-full rounded-xl cursor-pointer">
+        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium" data-i18n="cap_demo">Full Feature Demo</p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Shortcuts -->
-  <section id="shortcuts" class="shortcuts">
-    <h2 data-zh="快捷键" data-en="Keyboard Shortcuts">快捷键</h2>
-    <div class="shortcuts-table-wrapper">
-      <table class="shortcuts-table">
+<div class="section-divider max-w-4xl mx-auto"></div>
+
+<!-- ============ SHORTCUTS ============ -->
+<section id="shortcuts" class="py-20 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="text-center mb-12" data-aos="fade-up">
+      <h2 class="text-4xl font-extrabold mb-4" data-i18n="sc_title">Keyboard Shortcuts</h2>
+      <p class="text-amber-800/60 text-lg" data-i18n="sc_sub">Keyboard-first, maximum efficiency</p>
+    </div>
+
+    <div class="glass-card rounded-2xl overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+      <table class="w-full text-sm">
         <thead>
-          <tr>
-            <th data-zh="操作" data-en="Action">操作</th>
-            <th data-zh="快捷键" data-en="Shortcut">快捷键</th>
+          <tr class="border-b border-amber-200/50">
+            <th class="text-left px-6 py-4 font-semibold text-amber-900" data-i18n="sc_action">Action</th>
+            <th class="text-right px-6 py-4 font-semibold text-amber-900" data-i18n="sc_key">Shortcut</th>
           </tr>
         </thead>
-        <tbody>
-          <tr><td data-zh="新建便签" data-en="New note">新建便签</td><td><kbd>Ctrl</kbd> + <kbd>N</kbd></td></tr>
-          <tr><td data-zh="复制便签" data-en="Duplicate">复制便签</td><td><kbd>Ctrl</kbd> + <kbd>D</kbd></td></tr>
-          <tr><td data-zh="重命名" data-en="Rename">重命名</td><td><kbd>F2</kbd></td></tr>
-          <tr><td data-zh="隐藏便签" data-en="Hide note">隐藏便签</td><td><kbd>Alt</kbd> + <kbd>F4</kbd></td></tr>
-          <tr><td data-zh="置顶" data-en="Pin on top">置顶</td><td><kbd>Alt</kbd> + <kbd>T</kbd></td></tr>
-          <tr><td data-zh="锁定" data-en="Lock">锁定</td><td><kbd>Ctrl</kbd> + <kbd>L</kbd></td></tr>
-          <tr><td data-zh="添加待办" data-en="Add todo">添加待办</td><td><kbd>Ctrl</kbd> + <kbd>1</kbd></td></tr>
-          <tr><td data-zh="字号 +/−" data-en="Font +/−">字号 +/−</td><td><kbd>Ctrl</kbd> + <kbd>=</kbd> / <kbd>-</kbd></td></tr>
-          <tr><td data-zh="透明度 +/−" data-en="Opacity +/−">透明度 +/−</td><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>↑</kbd> / <kbd>↓</kbd></td></tr>
-          <tr><td data-zh="显示全部" data-en="Show all">显示全部</td><td><kbd>Alt</kbd> + <kbd>S</kbd></td></tr>
-          <tr><td data-zh="隐藏全部" data-en="Hide all">隐藏全部</td><td><kbd>Alt</kbd> + <kbd>H</kbd></td></tr>
-          <tr><td data-zh="删除便签" data-en="Delete note">删除便签</td><td><kbd>Alt</kbd> + <kbd>Delete</kbd></td></tr>
+        <tbody class="divide-y divide-amber-100/50">
+          <tr class="hover:bg-amber-50/50 transition-colors">
+            <td class="px-6 py-3.5" data-i18n="sc_new">New Note</td>
+            <td class="px-6 py-3.5 text-right"><kbd class="kbd">Ctrl</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">N</kbd></td>
+          </tr>
+          <tr class="hover:bg-amber-50/50 transition-colors">
+            <td class="px-6 py-3.5" data-i18n="sc_dup">Duplicate Note</td>
+            <td class="px-6 py-3.5 text-right"><kbd class="kbd">Ctrl</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">D</kbd></td>
+          </tr>
+          <tr class="hover:bg-amber-50/50 transition-colors">
+            <td class="px-6 py-3.5" data-i18n="sc_rename">Rename</td>
+            <td class="px-6 py-3.5 text-right"><kbd class="kbd">F2</kbd></td>
+          </tr>
+          <tr class="hover:bg-amber-50/50 transition-colors">
+            <td class="px-6 py-3.5" data-i18n="sc_pin">Pin / Unpin</td>
+            <td class="px-6 py-3.5 text-right"><kbd class="kbd">Alt</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">T</kbd></td>
+          </tr>
+          <tr class="hover:bg-amber-50/50 transition-colors">
+            <td class="px-6 py-3.5" data-i18n="sc_lock">Lock / Unlock</td>
+            <td class="px-6 py-3.5 text-right"><kbd class="kbd">Ctrl</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">L</kbd></td>
+          </tr>
+          <tr class="hover:bg-amber-50/50 transition-colors">
+            <td class="px-6 py-3.5" data-i18n="sc_todo">Add Todo</td>
+            <td class="px-6 py-3.5 text-right"><kbd class="kbd">Ctrl</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">1</kbd></td>
+          </tr>
+          <tr class="hover:bg-amber-50/50 transition-colors">
+            <td class="px-6 py-3.5" data-i18n="sc_font">Font Size</td>
+            <td class="px-6 py-3.5 text-right"><kbd class="kbd">Ctrl</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">=</kbd> / <kbd class="kbd">-</kbd></td>
+          </tr>
+          <tr class="hover:bg-amber-50/50 transition-colors">
+            <td class="px-6 py-3.5" data-i18n="sc_opacity">Opacity</td>
+            <td class="px-6 py-3.5 text-right"><kbd class="kbd">Ctrl</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">Shift</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">↑</kbd> / <kbd class="kbd">↓</kbd></td>
+          </tr>
+          <tr class="hover:bg-amber-50/50 transition-colors">
+            <td class="px-6 py-3.5" data-i18n="sc_showall">Show All Notes</td>
+            <td class="px-6 py-3.5 text-right"><kbd class="kbd">Alt</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">S</kbd></td>
+          </tr>
         </tbody>
       </table>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Tech -->
-  <section class="tech">
-    <h2 data-zh="技术栈" data-en="Tech Stack">技术栈</h2>
-    <div class="tech-grid">
-      <div class="tech-item">
-        <span class="tech-label" data-zh="前端" data-en="Frontend">前端</span>
-        <span class="tech-value">React 19 + Vite + CSS Modules</span>
+<div class="section-divider max-w-4xl mx-auto"></div>
+
+<!-- ============ TECH STACK ============ -->
+<section class="py-16 px-4" data-aos="fade-up">
+  <div class="max-w-4xl mx-auto text-center">
+    <p class="text-sm text-amber-700/50 font-medium mb-6" data-i18n="tech_title">Tech Stack</p>
+    <div class="flex flex-wrap justify-center gap-4">
+      <span class="inline-flex items-center gap-2 bg-amber-50 border border-amber-200/60 text-amber-800 text-sm font-medium px-4 py-2 rounded-full">
+        <i data-lucide="cpu" class="w-4 h-4"></i> Tauri 2.x
+      </span>
+      <span class="inline-flex items-center gap-2 bg-amber-50 border border-amber-200/60 text-amber-800 text-sm font-medium px-4 py-2 rounded-full">
+        <i data-lucide="atom" class="w-4 h-4"></i> React 19
+      </span>
+      <span class="inline-flex items-center gap-2 bg-amber-50 border border-amber-200/60 text-amber-800 text-sm font-medium px-4 py-2 rounded-full">
+        <i data-lucide="zap" class="w-4 h-4"></i> Vite
+      </span>
+      <span class="inline-flex items-center gap-2 bg-amber-50 border border-amber-200/60 text-amber-800 text-sm font-medium px-4 py-2 rounded-full">
+        <i data-lucide="database" class="w-4 h-4"></i> SQLite
+      </span>
+      <span class="inline-flex items-center gap-2 bg-amber-50 border border-amber-200/60 text-amber-800 text-sm font-medium px-4 py-2 rounded-full">
+        <i data-lucide="code" class="w-4 h-4"></i> Rust
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="py-20 px-4">
+  <div class="max-w-3xl mx-auto text-center" data-aos="zoom-in">
+    <div class="glass-card rounded-3xl p-12 bg-gradient-to-br from-amber-50 to-white">
+      <h2 class="text-4xl font-extrabold mb-4" data-i18n="cta_title">Start Using Sticky Notes</h2>
+      <p class="text-amber-800/60 text-lg mb-8 max-w-md mx-auto" data-i18n="cta_desc">
+        Free, open-source, lightweight. Download the installer and get started in seconds.
+      </p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a href="https://github.com/Karmicore/sticky-notes/releases" target="_blank" rel="noopener"
+           class="cta-glow inline-flex items-center gap-2.5 bg-gradient-to-r from-amber-500 to-coral-500 text-white font-bold text-lg px-10 py-4 rounded-2xl hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-300">
+          <i data-lucide="download" class="w-5 h-5"></i>
+          <span data-i18n="cta_download">Download Installer</span>
+        </a>
+        <a href="https://github.com/Karmicore/sticky-notes" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 bg-white border border-amber-200 text-amber-800 font-semibold text-lg px-10 py-4 rounded-2xl hover:bg-amber-50 transition-all duration-200">
+          <i data-lucide="github" class="w-5 h-5"></i>
+          GitHub
+        </a>
       </div>
-      <div class="tech-item">
-        <span class="tech-label" data-zh="后端" data-en="Backend">后端</span>
-        <span class="tech-value">Rust + Tauri 2.x + rusqlite</span>
-      </div>
-      <div class="tech-item">
-        <span class="tech-label" data-zh="存储" data-en="Storage">存储</span>
-        <span class="tech-value" data-zh="SQLite 本地存储" data-en="SQLite local storage">SQLite 本地存储</span>
-      </div>
-      <div class="tech-item">
-        <span class="tech-label" data-zh="体积" data-en="Size">体积</span>
-        <span class="tech-value" data-zh="~10MB 安装包，低内存占用" data-en="~10MB installer, minimal memory">~10MB 安装包，低内存占用</span>
+      <div class="flex justify-center gap-6 mt-6 text-sm text-amber-700/50">
+        <span data-i18n="cta_exe">.exe Installer</span>
+        <span class="text-amber-300">|</span>
+        <span data-i18n="cta_msi">.msi Installer</span>
+        <span class="text-amber-300">|</span>
+        <span>Windows 10/11</span>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Download -->
-  <section id="download" class="download">
-    <h2 data-zh="下载安装" data-en="Download">下载安装</h2>
-    <p data-zh="支持 Windows 10 / 11" data-en="Windows 10 / 11 supported">支持 Windows 10 / 11</p>
-    <div class="download-actions">
-      <a href="https://github.com/Karmicore/sticky-notes/releases" class="btn btn-primary btn-large" data-zh="前往下载" data-en="Download Now">前往下载</a>
+<!-- ============ FOOTER ============ -->
+<footer class="border-t border-amber-200/50 py-10 px-4">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <img src="images/logo.png" alt="Logo" class="w-7 h-7 rounded-md">
+      <span class="text-sm font-semibold text-amber-800">Sticky Notes</span>
     </div>
-    <div class="download-formats">
-      <span data-zh=".exe NSIS 安装包（推荐）" data-en=".exe NSIS installer (recommended)">.exe NSIS 安装包（推荐）</span>
-      <span data-zh=".msi MSI 安装包" data-en=".msi MSI installer">.msi MSI 安装包</span>
+    <div class="flex items-center gap-6 text-sm text-amber-700/60">
+      <a href="https://github.com/Karmicore/sticky-notes" target="_blank" rel="noopener"
+         class="hover:text-amber-600 transition-colors">GitHub</a>
+      <a href="https://github.com/Karmicore/sticky-notes/releases" target="_blank" rel="noopener"
+         class="hover:text-amber-600 transition-colors">Releases</a>
+      <a href="https://github.com/Karmicore/sticky-notes/issues" target="_blank" rel="noopener"
+         class="hover:text-amber-600 transition-colors" data-i18n="footer_feedback">Feedback</a>
     </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="footer">
-    <p>Sticky Notes is open source under the <a href="https://github.com/Karmicore/sticky-notes/blob/main/LICENSE">MIT License</a></p>
-    <p class="footer-links">
-      <a href="https://github.com/Karmicore/sticky-notes">GitHub</a>
-      <span>·</span>
-      <a href="https://github.com/Karmicore/sticky-notes/releases">Releases</a>
-      <span>·</span>
-      <a href="https://github.com/Karmicore/sticky-notes/issues" data-zh="反馈" data-en="Issues">反馈</a>
+    <p class="text-xs text-amber-700/40">
+      MIT License &copy; 2026 Karmicore
     </p>
-  </footer>
+  </div>
+</footer>
 
-  <!-- i18n Script -->
-  <script>
-    (function () {
-      const STORAGE_KEY = 'sticky-notes-lang';
-      var langBtn = document.getElementById('langBtn');
-      var langDropdown = document.getElementById('langDropdown');
+<!-- Scripts -->
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script>
+AOS.init({
+  duration: 600,
+  easing: 'ease-out-cubic',
+  once: true,
+  offset: 60,
+});
+lucide.createIcons();
 
-      function detectLang() {
-        var saved = localStorage.getItem(STORAGE_KEY);
-        if (saved === 'zh' || saved === 'en') return saved;
-        var nav = navigator.language || navigator.userLanguage || '';
-        return nav.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+// ── i18n ──
+const i18n = {
+  zh: {
+    nav_features: '功能', nav_gallery: '截图', nav_shortcuts: '快捷键', nav_download: '下载',
+    hero_title: '把桌面变成<br><span class="gradient-text">你的便签墙</span>',
+    hero_desc: '轻量、无边框、每个便签都是独立窗口。自由拖放、一键美化、待办清单、分享卡片——你的桌面，你做主。（方便地导出内容给AI✦）',
+    hero_download: '下载安装包', hero_source: '查看源码',
+    stat_themes: '颜色主题', stat_shortcuts: '快捷键', stat_size: '安装体积', stat_lang: '语言支持',
+    feat_title: '为你打造的每一个细节', feat_sub: '不只是便签，而是一个完整的桌面生产力工具',
+    f1_title: '独立窗口便签', f1_desc: '每个便签都是独立的透明无边框窗口，自由拖放、调整大小，想放哪就放哪。',
+    f2_title: '12 种颜色主题', f2_desc: '一键切换颜色，透明度 10%–100% 可调，字体大小 8px–72px 自由控制。',
+    f3_title: '智能窗口行为', f3_desc: '置顶显示、锁定防误编辑、拖拽时自动吸附边缘，整齐排列不费力。',
+    f4_title: '待办清单', f4_desc: '插入 checkbox，点击切换：待办 → 进行中 → 完成，完成瞬间有庆祝特效。',
+    f5_title: '导出 & 分享', f5_desc: '一键导出 Markdown、生成精美分享卡片（渐变背景 + 进度条 + 鼓励语），保存 PNG 或复制到剪贴板。',
+    f5_tip: '（每天的便签导出后丢给 GPT，帮你回顾、总结、每日成长 ✦）',
+    f6_title: '系统托盘', f6_desc: '隐藏/显示/折叠全部便签，新建、导出、语言切换，左键单击一键显示。',
+    gallery_title: '一图胜千言', gallery_sub: '真实截图，所见即所得',
+    cap_context: '完成待办', cap_appearance: '外观设置', cap_share: '分享卡片',
+    cap_tray: '系统托盘菜单', cap_demo: '完整功能演示',
+    sc_title: '快捷键一览', sc_sub: '键盘操作，效率翻倍', sc_action: '操作', sc_key: '快捷键',
+    sc_new: '新建便签', sc_dup: '复制便签', sc_rename: '重命名', sc_pin: '置顶 / 取消置顶',
+    sc_lock: '锁定 / 解锁', sc_todo: '添加待办', sc_font: '字号调节', sc_opacity: '透明度调节',
+    sc_showall: '显示全部便签',
+    tech_title: '技术栈',
+    cta_title: '开始使用 Sticky Notes', cta_desc: '免费、开源、轻量。下载安装包，几秒即可开始。',
+    cta_download: '下载安装包',
+    cta_exe: '.exe 安装包', cta_msi: '.msi 安装包',
+    footer_feedback: '反馈',
+  },
+  en: {
+    nav_features: 'Features', nav_gallery: 'Gallery', nav_shortcuts: 'Shortcuts', nav_download: 'Download',
+    hero_title: 'Turn Your Desktop<br><span class="gradient-text">Into a Wall of Notes</span>',
+    hero_desc: 'Lightweight, frameless, and every note is an independent window. Drag freely, style instantly, track todos, share cards — your desktop, your way. (Easily export to AI for faster growth ✦)',
+    hero_download: 'Download Installer', hero_source: 'View Source',
+    stat_themes: 'Color Themes', stat_shortcuts: 'Shortcuts', stat_size: 'Install Size', stat_lang: 'Languages',
+    feat_title: 'Every Detail, Crafted for You', feat_sub: 'Not just sticky notes — a complete desktop productivity tool',
+    f1_title: 'Independent Windows', f1_desc: 'Each note is a standalone transparent frameless window. Drag, resize, place anywhere you want.',
+    f2_title: '12 Color Themes', f2_desc: 'Switch colors instantly. Opacity 10%–100%, font size 8px–72px, fully adjustable.',
+    f3_title: 'Smart Window Behavior', f3_desc: 'Always-on-top, lock to prevent accidental edits, auto-snap to other notes when dragging.',
+    f4_title: 'Todo Checklist', f4_desc: 'Insert checkboxes with a shortcut. Click to toggle: Todo → In Progress → Done, with celebration effects.',
+    f5_title: 'Export & Share', f5_desc: 'One-click Markdown export, generate beautiful share cards (gradient + progress bar + encouragement), save as PNG or copy to clipboard.',
+    f5_tip: '(Export daily notes to GPT for review, reflection, and daily growth ✦)',
+    f6_title: 'System Tray', f6_desc: 'Hide / Show / Collapse all notes, create new, export, switch language — one click on the tray icon to show all.',
+    gallery_title: 'A Picture Is Worth a Thousand Words', gallery_sub: 'Real screenshots, what you see is what you get',
+    cap_context: 'Todo Completion', cap_appearance: 'Appearance Settings', cap_share: 'Share Card',
+    cap_tray: 'System Tray Menu', cap_demo: 'Full Feature Demo',
+    sc_title: 'Keyboard Shortcuts', sc_sub: 'Keyboard-first, maximum efficiency', sc_action: 'Action', sc_key: 'Shortcut',
+    sc_new: 'New Note', sc_dup: 'Duplicate Note', sc_rename: 'Rename', sc_pin: 'Pin / Unpin',
+    sc_lock: 'Lock / Unlock', sc_todo: 'Add Todo', sc_font: 'Font Size', sc_opacity: 'Opacity',
+    sc_showall: 'Show All Notes',
+    tech_title: 'Tech Stack',
+    cta_title: 'Start Using Sticky Notes', cta_desc: 'Free, open-source, lightweight. Download the installer and get started in seconds.',
+    cta_download: 'Download Installer',
+    cta_exe: '.exe Installer', cta_msi: '.msi Installer',
+    footer_feedback: 'Feedback',
+  }
+};
+
+function setLang(lang) {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (i18n[lang][key] !== undefined) {
+      if (el.hasAttribute('data-i18n-html')) {
+        el.innerHTML = i18n[lang][key];
+      } else {
+        el.textContent = i18n[lang][key];
       }
+    }
+  });
+  document.getElementById('langLabel').textContent = lang === 'zh' ? 'EN' : '中';
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+  document.title = lang === 'zh' ? 'Sticky Notes — 把桌面变成你的便签墙' : 'Sticky Notes — Turn Your Desktop Into a Wall of Notes';
+  document.querySelector('meta[name="description"]').content = lang === 'zh'
+    ? '轻量、无边框、每个便签都是独立窗口。Tauri 2.x + React 打造的桌面便签应用。'
+    : 'Lightweight, frameless, and every note is an independent window. Built with Tauri 2.x + React.';
+  localStorage.setItem('lang', lang);
+}
 
-      function applyLang(lang) {
-        document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
-        document.querySelectorAll('[data-zh]').forEach(function (el) {
-          var text = lang === 'zh' ? el.getAttribute('data-zh') : el.getAttribute('data-en');
-          if (text !== null) {
-            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-              el.placeholder = text;
-            } else {
-              el.innerHTML = text;
-            }
-          }
-        });
-        langBtn.textContent = lang === 'zh' ? '🇨🇳 中文' : '🇺🇸 EN';
-        document.querySelectorAll('.lang-option').forEach(function (btn) {
-          btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
-        });
-      }
+function toggleLang() {
+  const current = localStorage.getItem('lang') || 'en';
+  setLang(current === 'en' ? 'zh' : 'en');
+}
 
-      var currentLang = detectLang();
-      applyLang(currentLang);
-
-      langBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        langDropdown.classList.toggle('show');
-      });
-
-      document.querySelectorAll('.lang-option').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          currentLang = this.getAttribute('data-lang');
-          localStorage.setItem(STORAGE_KEY, currentLang);
-          applyLang(currentLang);
-          langDropdown.classList.remove('show');
-        });
-      });
-
-      document.addEventListener('click', function () {
-        langDropdown.classList.remove('show');
-      });
-    })();
-  </script>
+// Auto-detect on first visit — default English
+(function() {
+  const saved = localStorage.getItem('lang');
+  if (saved) {
+    setLang(saved);
+  } else {
+    const browserLang = navigator.language || navigator.userLanguage || '';
+    setLang(browserLang.startsWith('zh') ? 'zh' : 'en');
+  }
+})();
+</script>
 </body>
 </html>
