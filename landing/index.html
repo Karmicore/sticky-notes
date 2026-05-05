@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sticky Notes — 把桌面变成你的便签墙</title>
 <meta name="description" content="轻量、无边框、每个便签都是独立窗口。Tauri 2.x + React 打造的桌面便签应用。">
+<link rel="icon" type="image/png" href="images/logo.png">
 
 <!-- Tailwind CSS CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
@@ -169,16 +170,23 @@ html { scroll-behavior: smooth; }
       <span class="font-bold text-lg text-amber-900">Sticky Notes</span>
     </a>
     <div class="hidden md:flex items-center gap-8 text-sm font-medium text-amber-800">
-      <a href="#features" class="hover:text-coral-500 transition-colors duration-200">功能</a>
-      <a href="#gallery" class="hover:text-coral-500 transition-colors duration-200">截图</a>
-      <a href="#shortcuts" class="hover:text-coral-500 transition-colors duration-200">快捷键</a>
+      <a href="#features" class="hover:text-coral-500 transition-colors duration-200" data-i18n="nav_features">功能</a>
+      <a href="#gallery" class="hover:text-coral-500 transition-colors duration-200" data-i18n="nav_gallery">截图</a>
+      <a href="#shortcuts" class="hover:text-coral-500 transition-colors duration-200" data-i18n="nav_shortcuts">快捷键</a>
       <a href="https://github.com/Karmicore/sticky-notes" target="_blank" rel="noopener" class="hover:text-coral-500 transition-colors duration-200">GitHub</a>
     </div>
-    <a href="https://github.com/Karmicore/sticky-notes/releases" target="_blank" rel="noopener"
-       class="cta-glow inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-coral-500 text-white font-semibold text-sm px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-amber-500/25 transition-all duration-300">
-      <i data-lucide="download" class="w-4 h-4"></i>
-      下载
-    </a>
+    <div class="flex items-center gap-2">
+      <button id="langToggle" onclick="toggleLang()"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-100/60 hover:bg-amber-200/60 px-3 py-1.5 rounded-lg transition-colors duration-200 cursor-pointer">
+        <i data-lucide="languages" class="w-3.5 h-3.5"></i>
+        <span id="langLabel">EN</span>
+      </button>
+      <a href="https://github.com/Karmicore/sticky-notes/releases" target="_blank" rel="noopener"
+         class="cta-glow inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-coral-500 text-white font-semibold text-sm px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-amber-500/25 transition-all duration-300">
+        <i data-lucide="download" class="w-4 h-4"></i>
+        <span data-i18n="nav_download">下载</span>
+      </a>
+    </div>
   </div>
 </nav>
 
@@ -191,23 +199,23 @@ html { scroll-behavior: smooth; }
         <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
         v0.2.0 — Tauri 2.x + React
       </div>
-      <h1 class="text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
+      <h1 class="text-5xl lg:text-6xl font-extrabold leading-tight mb-6" data-i18n="hero_title" data-i18n-html>
         把桌面变成<br>
         <span class="gradient-text">你的便签墙</span>
       </h1>
-      <p class="text-lg text-amber-800/70 leading-relaxed mb-8 max-w-lg">
+      <p class="text-lg text-amber-800/70 leading-relaxed mb-8 max-w-lg" data-i18n="hero_desc">
         轻量、无边框、每个便签都是独立窗口。自由拖放、一键美化、待办清单、分享卡片——你的桌面，你做主。
       </p>
       <div class="flex flex-wrap gap-4">
         <a href="https://github.com/Karmicore/sticky-notes/releases" target="_blank" rel="noopener"
            class="cta-glow inline-flex items-center gap-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-base px-8 py-4 rounded-2xl hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-300">
           <i data-lucide="download" class="w-5 h-5"></i>
-          下载安装包
+          <span data-i18n="hero_download">下载安装包</span>
         </a>
         <a href="https://github.com/Karmicore/sticky-notes" target="_blank" rel="noopener"
            class="inline-flex items-center gap-2 bg-white/80 border border-amber-200 text-amber-800 font-semibold text-base px-8 py-4 rounded-2xl hover:bg-amber-50 hover:border-amber-300 transition-all duration-200">
           <i data-lucide="github" class="w-5 h-5"></i>
-          查看源码
+          <span data-i18n="hero_source">查看源码</span>
         </a>
       </div>
       <div class="flex items-center gap-6 mt-8 text-sm text-amber-700/60">
@@ -244,19 +252,19 @@ html { scroll-behavior: smooth; }
   <div class="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
     <div>
       <div class="stat-number text-3xl font-extrabold">12</div>
-      <div class="text-sm text-amber-700/60 mt-1">颜色主题</div>
+      <div class="text-sm text-amber-700/60 mt-1" data-i18n="stat_themes">颜色主题</div>
     </div>
     <div>
       <div class="stat-number text-3xl font-extrabold">15+</div>
-      <div class="text-sm text-amber-700/60 mt-1">快捷键</div>
+      <div class="text-sm text-amber-700/60 mt-1" data-i18n="stat_shortcuts">快捷键</div>
     </div>
     <div>
       <div class="stat-number text-3xl font-extrabold">~3MB</div>
-      <div class="text-sm text-amber-700/60 mt-1">安装体积</div>
+      <div class="text-sm text-amber-700/60 mt-1" data-i18n="stat_size">安装体积</div>
     </div>
     <div>
       <div class="stat-number text-3xl font-extrabold">2</div>
-      <div class="text-sm text-amber-700/60 mt-1">语言支持</div>
+      <div class="text-sm text-amber-700/60 mt-1" data-i18n="stat_lang">语言支持</div>
     </div>
   </div>
 </section>
@@ -267,8 +275,8 @@ html { scroll-behavior: smooth; }
 <section id="features" class="py-20 px-4">
   <div class="max-w-6xl mx-auto">
     <div class="text-center mb-16" data-aos="fade-up">
-      <h2 class="text-4xl font-extrabold mb-4">为你打造的每一个细节</h2>
-      <p class="text-amber-800/60 text-lg max-w-2xl mx-auto">
+      <h2 class="text-4xl font-extrabold mb-4" data-i18n="feat_title">为你打造的每一个细节</h2>
+      <p class="text-amber-800/60 text-lg max-w-2xl mx-auto" data-i18n="feat_sub">
         不只是便签，而是一个完整的桌面生产力工具
       </p>
     </div>
@@ -280,8 +288,8 @@ html { scroll-behavior: smooth; }
         <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center mb-4">
           <i data-lucide="layout-grid" class="w-6 h-6 text-amber-600"></i>
         </div>
-        <h3 class="font-bold text-lg mb-2">独立窗口便签</h3>
-        <p class="text-amber-800/60 text-sm leading-relaxed">
+        <h3 class="font-bold text-lg mb-2" data-i18n="f1_title">独立窗口便签</h3>
+        <p class="text-amber-800/60 text-sm leading-relaxed" data-i18n="f1_desc">
           每个便签都是独立的透明无边框窗口，自由拖放、调整大小，想放哪就放哪。
         </p>
       </div>
@@ -291,8 +299,8 @@ html { scroll-behavior: smooth; }
         <div class="w-12 h-12 rounded-xl bg-coral-400/10 flex items-center justify-center mb-4">
           <i data-lucide="palette" class="w-6 h-6 text-coral-500"></i>
         </div>
-        <h3 class="font-bold text-lg mb-2">12 种颜色主题</h3>
-        <p class="text-amber-800/60 text-sm leading-relaxed">
+        <h3 class="font-bold text-lg mb-2" data-i18n="f2_title">12 种颜色主题</h3>
+        <p class="text-amber-800/60 text-sm leading-relaxed" data-i18n="f2_desc">
           一键切换颜色，透明度 10%–100% 可调，字体大小 8px–72px 自由控制。
         </p>
       </div>
@@ -302,8 +310,8 @@ html { scroll-behavior: smooth; }
         <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center mb-4">
           <i data-lucide="pin" class="w-6 h-6 text-amber-600"></i>
         </div>
-        <h3 class="font-bold text-lg mb-2">智能窗口行为</h3>
-        <p class="text-amber-800/60 text-sm leading-relaxed">
+        <h3 class="font-bold text-lg mb-2" data-i18n="f3_title">智能窗口行为</h3>
+        <p class="text-amber-800/60 text-sm leading-relaxed" data-i18n="f3_desc">
           置顶显示、锁定防误编辑、拖拽时自动吸附边缘，整齐排列不费力。
         </p>
       </div>
@@ -313,9 +321,9 @@ html { scroll-behavior: smooth; }
         <div class="w-12 h-12 rounded-xl bg-coral-400/10 flex items-center justify-center mb-4">
           <i data-lucide="check-square" class="w-6 h-6 text-coral-500"></i>
         </div>
-        <h3 class="font-bold text-lg mb-2">待办清单</h3>
+        <h3 class="font-bold text-lg mb-2" data-i18n="f4_title">待办清单</h3>
         <p class="text-amber-800/60 text-sm leading-relaxed">
-          <kbd class="kbd">Ctrl+1</kbd> 插入 checkbox，点击切换：待办 → 进行中 → 完成，完成瞬间有庆祝特效。
+          <kbd class="kbd">Ctrl+1</kbd> <span data-i18n="f4_desc">插入 checkbox，点击切换：待办 → 进行中 → 完成，完成瞬间有庆祝特效。</span>
         </p>
       </div>
 
@@ -324,9 +332,12 @@ html { scroll-behavior: smooth; }
         <div class="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center mb-4">
           <i data-lucide="share-2" class="w-6 h-6 text-amber-600"></i>
         </div>
-        <h3 class="font-bold text-lg mb-2">导出 & 分享</h3>
-        <p class="text-amber-800/60 text-sm leading-relaxed">
+        <h3 class="font-bold text-lg mb-2" data-i18n="f5_title">导出 & 分享</h3>
+        <p class="text-amber-800/60 text-sm leading-relaxed" data-i18n="f5_desc">
           一键导出 Markdown、生成精美分享卡片（渐变背景 + 进度条 + 鼓励语），保存 PNG 或复制到剪贴板。
+        </p>
+        <p class="mt-3 text-xs text-amber-600/50 leading-relaxed" data-i18n="f5_tip">
+          （每天的便签导出后丢给 GPT，帮你回顾、总结、每日成长 ✦）
         </p>
       </div>
 
@@ -335,8 +346,8 @@ html { scroll-behavior: smooth; }
         <div class="w-12 h-12 rounded-xl bg-coral-400/10 flex items-center justify-center mb-4">
           <i data-lucide="tray" class="w-6 h-6 text-coral-500"></i>
         </div>
-        <h3 class="font-bold text-lg mb-2">系统托盘</h3>
-        <p class="text-amber-800/60 text-sm leading-relaxed">
+        <h3 class="font-bold text-lg mb-2" data-i18n="f6_title">系统托盘</h3>
+        <p class="text-amber-800/60 text-sm leading-relaxed" data-i18n="f6_desc">
           隐藏/显示/折叠全部便签，新建、导出、语言切换，左键单击一键显示。
         </p>
       </div>
@@ -350,40 +361,40 @@ html { scroll-behavior: smooth; }
 <section id="gallery" class="py-20 px-4">
   <div class="max-w-6xl mx-auto">
     <div class="text-center mb-16" data-aos="fade-up">
-      <h2 class="text-4xl font-extrabold mb-4">一图胜千言</h2>
-      <p class="text-amber-800/60 text-lg">真实截图，所见即所得</p>
+      <h2 class="text-4xl font-extrabold mb-4" data-i18n="gallery_title">一图胜千言</h2>
+      <p class="text-amber-800/60 text-lg" data-i18n="gallery_sub">真实截图，所见即所得</p>
     </div>
 
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
       <div data-aos="fade-up" data-aos-delay="0">
         <img src="images/color-picker.png" alt="颜色选择器"
              class="screenshot-frame w-full rounded-xl cursor-pointer">
-        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium">12 种颜色主题</p>
+        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium" data-i18n="cap_themes">12 种颜色主题</p>
       </div>
       <div data-aos="fade-up" data-aos-delay="100">
         <img src="images/todo-checkbox.png" alt="待办清单"
              class="screenshot-frame w-full rounded-xl cursor-pointer">
-        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium">待办清单 & 进度追踪</p>
+        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium" data-i18n="cap_todo">待办清单 & 进度追踪</p>
       </div>
       <div data-aos="fade-up" data-aos-delay="200">
         <img src="images/window-snap.png" alt="窗口吸附"
              class="screenshot-frame w-full rounded-xl cursor-pointer">
-        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium">窗口自动吸附</p>
+        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium" data-i18n="cap_snap">窗口自动吸附</p>
       </div>
       <div data-aos="fade-up" data-aos-delay="0">
         <img src="images/share-card.gif" alt="分享卡片"
              class="screenshot-frame w-full rounded-xl cursor-pointer">
-        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium">精美分享卡片</p>
+        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium" data-i18n="cap_share">精美分享卡片</p>
       </div>
       <div data-aos="fade-up" data-aos-delay="100">
         <img src="images/tray-menu.png" alt="系统托盘"
              class="screenshot-frame w-full rounded-xl cursor-pointer">
-        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium">系统托盘菜单</p>
+        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium" data-i18n="cap_tray">系统托盘菜单</p>
       </div>
       <div data-aos="fade-up" data-aos-delay="200">
         <img src="images/features-demo.gif" alt="功能演示"
              class="screenshot-frame w-full rounded-xl cursor-pointer">
-        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium">完整功能演示</p>
+        <p class="text-sm text-amber-700/60 mt-3 text-center font-medium" data-i18n="cap_demo">完整功能演示</p>
       </div>
     </div>
   </div>
@@ -395,53 +406,53 @@ html { scroll-behavior: smooth; }
 <section id="shortcuts" class="py-20 px-4">
   <div class="max-w-3xl mx-auto">
     <div class="text-center mb-12" data-aos="fade-up">
-      <h2 class="text-4xl font-extrabold mb-4">快捷键一览</h2>
-      <p class="text-amber-800/60 text-lg">键盘操作，效率翻倍</p>
+      <h2 class="text-4xl font-extrabold mb-4" data-i18n="sc_title">快捷键一览</h2>
+      <p class="text-amber-800/60 text-lg" data-i18n="sc_sub">键盘操作，效率翻倍</p>
     </div>
 
     <div class="glass-card rounded-2xl overflow-hidden" data-aos="fade-up" data-aos-delay="100">
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-amber-200/50">
-            <th class="text-left px-6 py-4 font-semibold text-amber-900">操作</th>
-            <th class="text-right px-6 py-4 font-semibold text-amber-900">快捷键</th>
+            <th class="text-left px-6 py-4 font-semibold text-amber-900" data-i18n="sc_action">操作</th>
+            <th class="text-right px-6 py-4 font-semibold text-amber-900" data-i18n="sc_key">快捷键</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-amber-100/50">
           <tr class="hover:bg-amber-50/50 transition-colors">
-            <td class="px-6 py-3.5">新建便签</td>
+            <td class="px-6 py-3.5" data-i18n="sc_new">新建便签</td>
             <td class="px-6 py-3.5 text-right"><kbd class="kbd">Ctrl</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">N</kbd></td>
           </tr>
           <tr class="hover:bg-amber-50/50 transition-colors">
-            <td class="px-6 py-3.5">复制便签</td>
+            <td class="px-6 py-3.5" data-i18n="sc_dup">复制便签</td>
             <td class="px-6 py-3.5 text-right"><kbd class="kbd">Ctrl</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">D</kbd></td>
           </tr>
           <tr class="hover:bg-amber-50/50 transition-colors">
-            <td class="px-6 py-3.5">重命名</td>
+            <td class="px-6 py-3.5" data-i18n="sc_rename">重命名</td>
             <td class="px-6 py-3.5 text-right"><kbd class="kbd">F2</kbd></td>
           </tr>
           <tr class="hover:bg-amber-50/50 transition-colors">
-            <td class="px-6 py-3.5">置顶 / 取消置顶</td>
+            <td class="px-6 py-3.5" data-i18n="sc_pin">置顶 / 取消置顶</td>
             <td class="px-6 py-3.5 text-right"><kbd class="kbd">Alt</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">T</kbd></td>
           </tr>
           <tr class="hover:bg-amber-50/50 transition-colors">
-            <td class="px-6 py-3.5">锁定 / 解锁</td>
+            <td class="px-6 py-3.5" data-i18n="sc_lock">锁定 / 解锁</td>
             <td class="px-6 py-3.5 text-right"><kbd class="kbd">Ctrl</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">L</kbd></td>
           </tr>
           <tr class="hover:bg-amber-50/50 transition-colors">
-            <td class="px-6 py-3.5">添加待办</td>
+            <td class="px-6 py-3.5" data-i18n="sc_todo">添加待办</td>
             <td class="px-6 py-3.5 text-right"><kbd class="kbd">Ctrl</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">1</kbd></td>
           </tr>
           <tr class="hover:bg-amber-50/50 transition-colors">
-            <td class="px-6 py-3.5">字号调节</td>
+            <td class="px-6 py-3.5" data-i18n="sc_font">字号调节</td>
             <td class="px-6 py-3.5 text-right"><kbd class="kbd">Ctrl</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">=</kbd> / <kbd class="kbd">-</kbd></td>
           </tr>
           <tr class="hover:bg-amber-50/50 transition-colors">
-            <td class="px-6 py-3.5">透明度调节</td>
+            <td class="px-6 py-3.5" data-i18n="sc_opacity">透明度调节</td>
             <td class="px-6 py-3.5 text-right"><kbd class="kbd">Ctrl</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">Shift</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">↑</kbd> / <kbd class="kbd">↓</kbd></td>
           </tr>
           <tr class="hover:bg-amber-50/50 transition-colors">
-            <td class="px-6 py-3.5">显示全部便签</td>
+            <td class="px-6 py-3.5" data-i18n="sc_showall">显示全部便签</td>
             <td class="px-6 py-3.5 text-right"><kbd class="kbd">Alt</kbd> <span class="mx-1 text-amber-300">+</span> <kbd class="kbd">S</kbd></td>
           </tr>
         </tbody>
@@ -455,7 +466,7 @@ html { scroll-behavior: smooth; }
 <!-- ============ TECH STACK ============ -->
 <section class="py-16 px-4" data-aos="fade-up">
   <div class="max-w-4xl mx-auto text-center">
-    <p class="text-sm text-amber-700/50 font-medium mb-6">技术栈</p>
+    <p class="text-sm text-amber-700/50 font-medium mb-6" data-i18n="tech_title">技术栈</p>
     <div class="flex flex-wrap justify-center gap-4">
       <span class="inline-flex items-center gap-2 bg-amber-50 border border-amber-200/60 text-amber-800 text-sm font-medium px-4 py-2 rounded-full">
         <i data-lucide="cpu" class="w-4 h-4"></i> Tauri 2.x
@@ -480,15 +491,15 @@ html { scroll-behavior: smooth; }
 <section class="py-20 px-4">
   <div class="max-w-3xl mx-auto text-center" data-aos="zoom-in">
     <div class="glass-card rounded-3xl p-12 bg-gradient-to-br from-amber-50 to-white">
-      <h2 class="text-4xl font-extrabold mb-4">开始使用 Sticky Notes</h2>
-      <p class="text-amber-800/60 text-lg mb-8 max-w-md mx-auto">
+      <h2 class="text-4xl font-extrabold mb-4" data-i18n="cta_title">开始使用 Sticky Notes</h2>
+      <p class="text-amber-800/60 text-lg mb-8 max-w-md mx-auto" data-i18n="cta_desc">
         免费、开源、轻量。下载安装包，几秒即可开始。
       </p>
       <div class="flex flex-wrap justify-center gap-4">
         <a href="https://github.com/Karmicore/sticky-notes/releases" target="_blank" rel="noopener"
            class="cta-glow inline-flex items-center gap-2.5 bg-gradient-to-r from-amber-500 to-coral-500 text-white font-bold text-lg px-10 py-4 rounded-2xl hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-300">
           <i data-lucide="download" class="w-5 h-5"></i>
-          下载安装包
+          <span data-i18n="cta_download">下载安装包</span>
         </a>
         <a href="https://github.com/Karmicore/sticky-notes" target="_blank" rel="noopener"
            class="inline-flex items-center gap-2 bg-white border border-amber-200 text-amber-800 font-semibold text-lg px-10 py-4 rounded-2xl hover:bg-amber-50 transition-all duration-200">
@@ -520,7 +531,7 @@ html { scroll-behavior: smooth; }
       <a href="https://github.com/Karmicore/sticky-notes/releases" target="_blank" rel="noopener"
          class="hover:text-amber-600 transition-colors">Releases</a>
       <a href="https://github.com/Karmicore/sticky-notes/issues" target="_blank" rel="noopener"
-         class="hover:text-amber-600 transition-colors">反馈</a>
+         class="hover:text-amber-600 transition-colors" data-i18n="footer_feedback">反馈</a>
     </div>
     <p class="text-xs text-amber-700/40">
       MIT License &copy; 2026 Karmicore
@@ -538,6 +549,98 @@ AOS.init({
   offset: 60,
 });
 lucide.createIcons();
+
+// ── i18n ──
+const i18n = {
+  zh: {
+    nav_features: '功能', nav_gallery: '截图', nav_shortcuts: '快捷键', nav_download: '下载',
+    hero_title: '把桌面变成<br><span class="gradient-text">你的便签墙</span>',
+    hero_desc: '轻量、无边框、每个便签都是独立窗口。自由拖放、一键美化、待办清单、分享卡片——你的桌面，你做主。',
+    hero_download: '下载安装包', hero_source: '查看源码',
+    stat_themes: '颜色主题', stat_shortcuts: '快捷键', stat_size: '安装体积', stat_lang: '语言支持',
+    feat_title: '为你打造的每一个细节', feat_sub: '不只是便签，而是一个完整的桌面生产力工具',
+    f1_title: '独立窗口便签', f1_desc: '每个便签都是独立的透明无边框窗口，自由拖放、调整大小，想放哪就放哪。',
+    f2_title: '12 种颜色主题', f2_desc: '一键切换颜色，透明度 10%–100% 可调，字体大小 8px–72px 自由控制。',
+    f3_title: '智能窗口行为', f3_desc: '置顶显示、锁定防误编辑、拖拽时自动吸附边缘，整齐排列不费力。',
+    f4_title: '待办清单', f4_desc: '插入 checkbox，点击切换：待办 → 进行中 → 完成，完成瞬间有庆祝特效。',
+    f5_title: '导出 & 分享', f5_desc: '一键导出 Markdown、生成精美分享卡片（渐变背景 + 进度条 + 鼓励语），保存 PNG 或复制到剪贴板。',
+    f5_tip: '（每天的便签导出后丢给 GPT，帮你回顾、总结、每日成长 ✦）',
+    f6_title: '系统托盘', f6_desc: '隐藏/显示/折叠全部便签，新建、导出、语言切换，左键单击一键显示。',
+    gallery_title: '一图胜千言', gallery_sub: '真实截图，所见即所得',
+    cap_themes: '12 种颜色主题', cap_todo: '待办清单 & 进度追踪', cap_snap: '窗口自动吸附',
+    cap_share: '精美分享卡片', cap_tray: '系统托盘菜单', cap_demo: '完整功能演示',
+    sc_title: '快捷键一览', sc_sub: '键盘操作，效率翻倍', sc_action: '操作', sc_key: '快捷键',
+    sc_new: '新建便签', sc_dup: '复制便签', sc_rename: '重命名', sc_pin: '置顶 / 取消置顶',
+    sc_lock: '锁定 / 解锁', sc_todo: '添加待办', sc_font: '字号调节', sc_opacity: '透明度调节',
+    sc_showall: '显示全部便签',
+    tech_title: '技术栈',
+    cta_title: '开始使用 Sticky Notes', cta_desc: '免费、开源、轻量。下载安装包，几秒即可开始。',
+    cta_download: '下载安装包',
+    footer_feedback: '反馈',
+  },
+  en: {
+    nav_features: 'Features', nav_gallery: 'Gallery', nav_shortcuts: 'Shortcuts', nav_download: 'Download',
+    hero_title: 'Turn Your Desktop<br><span class="gradient-text">Into a Wall of Notes</span>',
+    hero_desc: 'Lightweight, frameless, and every note is an independent window. Drag freely, style instantly, track todos, share cards — your desktop, your way.',
+    hero_download: 'Download Installer', hero_source: 'View Source',
+    stat_themes: 'Color Themes', stat_shortcuts: 'Shortcuts', stat_size: 'Install Size', stat_lang: 'Languages',
+    feat_title: 'Every Detail, Crafted for You', feat_sub: 'Not just sticky notes — a complete desktop productivity tool',
+    f1_title: 'Independent Windows', f1_desc: 'Each note is a standalone transparent frameless window. Drag, resize, place anywhere you want.',
+    f2_title: '12 Color Themes', f2_desc: 'Switch colors instantly. Opacity 10%–100%, font size 8px–72px, fully adjustable.',
+    f3_title: 'Smart Window Behavior', f3_desc: 'Always-on-top, lock to prevent accidental edits, auto-snap to other notes when dragging.',
+    f4_title: 'Todo Checklist', f4_desc: 'Insert checkboxes with a shortcut. Click to toggle: Todo → In Progress → Done, with celebration effects.',
+    f5_title: 'Export & Share', f5_desc: 'One-click Markdown export, generate beautiful share cards (gradient + progress bar + encouragement), save as PNG or copy to clipboard.',
+    f5_tip: '(Export daily notes to GPT for review, reflection, and daily growth ✦)',
+    f6_title: 'System Tray', f6_desc: 'Hide / Show / Collapse all notes, create new, export, switch language — one click on the tray icon to show all.',
+    gallery_title: 'A Picture Is Worth a Thousand Words', gallery_sub: 'Real screenshots, what you see is what you get',
+    cap_themes: '12 Color Themes', cap_todo: 'Todo List & Progress', cap_snap: 'Window Auto-Snap',
+    cap_share: 'Beautiful Share Cards', cap_tray: 'System Tray Menu', cap_demo: 'Full Feature Demo',
+    sc_title: 'Keyboard Shortcuts', sc_sub: 'Keyboard-first, maximum efficiency', sc_action: 'Action', sc_key: 'Shortcut',
+    sc_new: 'New Note', sc_dup: 'Duplicate Note', sc_rename: 'Rename', sc_pin: 'Pin / Unpin',
+    sc_lock: 'Lock / Unlock', sc_todo: 'Add Todo', sc_font: 'Font Size', sc_opacity: 'Opacity',
+    sc_showall: 'Show All Notes',
+    tech_title: 'Tech Stack',
+    cta_title: 'Start Using Sticky Notes', cta_desc: 'Free, open-source, lightweight. Download the installer and get started in seconds.',
+    cta_download: 'Download Installer',
+    footer_feedback: 'Feedback',
+  }
+};
+
+function setLang(lang) {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (i18n[lang][key] !== undefined) {
+      if (el.hasAttribute('data-i18n-html')) {
+        el.innerHTML = i18n[lang][key];
+      } else {
+        el.textContent = i18n[lang][key];
+      }
+    }
+  });
+  document.getElementById('langLabel').textContent = lang === 'zh' ? 'EN' : '中';
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+  document.title = lang === 'zh' ? 'Sticky Notes — 把桌面变成你的便签墙' : 'Sticky Notes — Turn Your Desktop Into a Wall of Notes';
+  document.querySelector('meta[name="description"]').content = lang === 'zh'
+    ? '轻量、无边框、每个便签都是独立窗口。Tauri 2.x + React 打造的桌面便签应用。'
+    : 'Lightweight, frameless, and every note is an independent window. Built with Tauri 2.x + React.';
+  localStorage.setItem('lang', lang);
+}
+
+function toggleLang() {
+  const current = localStorage.getItem('lang') || 'zh';
+  setLang(current === 'zh' ? 'en' : 'zh');
+}
+
+// Auto-detect on first visit
+(function() {
+  const saved = localStorage.getItem('lang');
+  if (saved) {
+    setLang(saved);
+  } else {
+    const browserLang = navigator.language || navigator.userLanguage || '';
+    setLang(browserLang.startsWith('zh') ? 'zh' : 'en');
+  }
+})();
 </script>
 </body>
 </html>
