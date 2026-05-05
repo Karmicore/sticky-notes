@@ -39,6 +39,8 @@ Turn your desktop into a sticky wall. Lightweight, frameless, each note is its o
 - Cut export: exports then clears the original notes
 - Generate beautiful share cards (gradient background + progress bar + motivational quote), save as PNG or copy to clipboard
 
+![Share Card](docs/images/share-card.gif)
+
 **System Tray**
 
 ![Tray Menu](docs/images/tray-menu.png)

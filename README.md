@@ -39,6 +39,8 @@
 - 剪切式导出：导出后自动清空原便签
 - 生成精美分享卡片（渐变背景 + 进度条 + 鼓励语），保存为 PNG 或复制到剪贴板
 
+![分享卡片](docs/images/share-card.gif)
+
 **系统托盘**
 
 ![托盘菜单](docs/images/tray-menu.png)
