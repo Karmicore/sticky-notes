@@ -34,6 +34,8 @@ Turn your desktop into a sticky wall. Lightweight, frameless, each note is its o
 - `Ctrl+1` to insert a checkbox, click to cycle: todo → in progress → done
 - Confetti animation celebrates completion
 
+![Todo Workflow](docs/images/todo-workflow.gif)
+
 **Export & Share**
 - Select notes and export as Markdown to clipboard
 - Cut export: exports then clears the original notes
