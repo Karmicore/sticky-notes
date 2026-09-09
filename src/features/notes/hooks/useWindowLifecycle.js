@@ -65,6 +65,8 @@ export function useWindowLifecycle(noteId, saveNow, update) {
       if (detail.id !== noteId) return;
       skipNextMoved.current = true;
       transitioning.current = false;
+      // native 拖动（Linux/Wayland）拿不到可靠坐标，detail 无 x/y，跳过落库
+      if (detail.x == null || detail.y == null) return;
       try {
         const note = await invoke("get_note", { id: noteId });
         await invoke("save_note", { note: { ...note, x: detail.x, y: detail.y } });

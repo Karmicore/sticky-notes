@@ -68,6 +68,12 @@ interface NoteRect {
 
 ## Window Management
 
+### window_drag_mode
+- **Args**: none
+- **Returns**: `"manual" | "native"`
+- **Behavior**: Linux + Wayland 返回 `"native"`（需用系统原生拖动 `startDragging`，协议禁止客户端自行 `setPosition`）；其余平台返回 `"manual"`（JS 手动 setPosition + 吸附）
+- **Source**: `commands/window_cmd.rs`
+
 ### set_window_always_on_top
 - **Args**: `{ onTop: boolean }`
 - **Returns**: `void`

@@ -86,6 +86,7 @@ pub fn run() {
             commands::note_cmd::close_note_window,
             commands::note_cmd::load_all_notes,
             commands::note_cmd::get_all_notes_rect,
+            commands::window_cmd::window_drag_mode,
             commands::window_cmd::set_window_always_on_top,
             commands::window_cmd::show_all_notes,
             commands::window_cmd::hide_all_notes,

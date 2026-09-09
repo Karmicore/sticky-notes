@@ -152,6 +152,17 @@ pub fn spawn_export_window(
 // ── Tauri commands ──
 
 #[tauri::command]
+pub fn window_drag_mode() -> &'static str {
+    // Linux + Wayland 下客户端无法通过 setPosition 移动自身窗口（由合成器管理），
+    // 必须交给系统原生拖动（xdg_toplevel_move）；其余平台沿用手动 setPosition 以支持吸附。
+    if cfg!(target_os = "linux") && std::env::var("WAYLAND_DISPLAY").is_ok() {
+        "native"
+    } else {
+        "manual"
+    }
+}
+
+#[tauri::command]
 pub fn set_window_always_on_top(window: WebviewWindow, on_top: bool) -> Result<(), String> {
     window.set_always_on_top(on_top).map_err(|e| e.to_string())
 }
